@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+@theme {
+    /* Public theme (homepage palette) */
+    --color-gold-deep: #B8860B;
+    --color-gold-mid: #C9A84C;
+    --color-gold-light: #E8C96D;
+    --color-warm-black: #1A1208;
+    --color-off-white: #FAF8F3;
+    --color-cream: #F2EDE4;
+
+    /* Admin theme */
+    --color-admin-dark: #2C1A0E;
+    --color-admin-secondary: #3D2010;
+    --color-admin-card: #4a2a14;
+    --color-admin-cream: #F5E6C8;
+    --color-admin-cream-dim: #c8b89a;
+    --color-admin-gold: #D4A017;
+    --color-admin-gold-light: #F0D060;
+    --color-admin-red: #e74c3c;
+    --color-admin-green: #4ade80;
+    --color-admin-yellow: #f59e0b;
+    --color-admin-blue: #3b82f6;
+
+    --font-heading: 'Cormorant Garamond', serif;
+    --font-body: 'Jost', sans-serif;
+}
+
+/* ── Global base styles ── */
+@layer base {
+    html { scroll-behavior: smooth; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #FAF8F3; }
+    ::-webkit-scrollbar-thumb { background: #B8860B; border-radius: 3px; }
+
+    /* Admin scrollbar variant */
+    .admin-page::-webkit-scrollbar-track { background: #2C1A0E; }
+    .admin-page::-webkit-scrollbar-thumb { background: #D4A017; border-radius: 3px; }
+}
+
+/* ── Reusable component utilities ── */
+@layer components {
+    .gold-divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, #B8860B, transparent);
+    }
+
+    .hero-bg {
+        background:
+            linear-gradient(rgba(26,18,8,0.58), rgba(26,18,8,0.68)),
+            url("/swimmingpoolbg.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .contact-hero-bg {
+        background:
+            linear-gradient(rgba(26,18,8,0.58), rgba(26,18,8,0.68)),
+            url("/Event.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .discover-hero-bg {
+        background:
+            linear-gradient(rgba(26,18,8,0.58), rgba(26,18,8,0.68)),
+            url("/Event.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .booking-hero-bg {
+        background:
+            linear-gradient(rgba(26,18,8,0.58), rgba(26,18,8,0.68)),
+            url("/swimmingpoolbg.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .auth-bg {
+        background:
+            linear-gradient(rgba(26,18,8,0.72), rgba(26,18,8,0.82)),
+            url("/swimmingpoolbg.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .about-img-wrap::before {
+        content: '';
+        position: absolute;
+        top: -10px; left: -10px; right: 10px; bottom: 10px;
+        border: 1px solid #B8860B;
+        border-radius: 8px;
+        opacity: 0.35;
+        pointer-events: none;
+    }
+
+    .play-btn {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        transition: transform 0.3s, background 0.3s;
+    }
+    .play-btn:hover {
+        transform: translate(-50%, -50%) scale(1.08);
+    }
+
+    /* Dropdown hover behavior */
+    .dropdown:hover .dropdown-menu { display: block; }
+    .dropdown::after {
+        content: "";
+        position: absolute;
+        left: 0; right: 0;
+        top: 100%;
+        height: 14px;
+    }
+
+    /* Nav link styling */
+    .nav-link-active { color: #B8860B !important; border-bottom: 2px solid #B8860B; }
+}
