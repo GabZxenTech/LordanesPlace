@@ -1,23 +1,19 @@
-# 🌟 LorDane's Place - Resort & Venue Booking System
+#LorDane's Place - Resort & Venue Booking System
 
 LorDane's Place is a dedicated resort and event venue management application built to stream-line bookings, showcase our beautiful spaces, and provide clients with an unforgettable digital experience. This platform offers clients the ability to explore our facilities (including an interactive 360° virtual tour), reserve dates for their stay, and manage their bookings.
 
-## 🚀 Key Features
+##Key Features
 
-* **Beautiful UI/UX**: Completely designed using Tailwind CSS (v4) with an elegant, mobile-responsive light theme, utilizing smooth transitions and accessible typography.
-* **Property Showcase**: Detailed presentations of all packages (Rooms, Cottages, and Venue Hall) available at the resort.
 * **360° Virtual Tour**: Fully integrated immersive 360-degree panorama viewer allowing guests to "walk" the resort before they arrive.
 * **Online Booking System**: Seamless reservation system allowing users to easily pick a package and request a booking.
 * **Admin Dashboard**: Secure backend that empowers administrators to oversee reservations, handle user data, set up pricing, and block out dates on the calendar.
 * **User Authentication**: Secure user login and registration portal integrated specifically for returning clients to track their past or upcoming bookings.
 
----
-
-## 🛠️ Technology Stack
+##Technology Stack
 
 This application takes advantage of modern web development frameworks for speed, security, and scalability.
 
-- **Backend Framework**: Laravel 11 (PHP 8.2+)
+- **Backend Framework**: Laravel 
 - **Frontend Styling**: Tailwind CSS
 - **Asset Bundler**: Vite
 - **Database**: MySQL
@@ -25,7 +21,7 @@ This application takes advantage of modern web development frameworks for speed,
 
 ---
 
-## 💻 Installation & Setup
+## Installation & Setup
 
 If you are a developer looking to run LorDane's Place on your local machine using **XAMPP**, follow these precise steps:
 
@@ -79,11 +75,11 @@ If you are a developer looking to run LorDane's Place on your local machine usin
    
 ---
 
-## 🗺️ Project Structure Highlights
+## Project Structure Highlights
 * `routes/web.php` – Houses all public, auth, and admin URLs.
 * `resources/views/` – Contains all the visual pages (Blade files). Includes the `partials/` folder for shared components like the Navigation Bar and Footer.
 * `public/lordanes360view/` – Houses the immersive Javascript-based 360 visual tour plugin.
 * `resources/css/app.css` – Central repository for Tailwind's config and UI styling tokens.
 
-## 🤝 Support
+## Support
 If you encounter any bugs, unexpected routing issues (like a 404), or UI glitches during the setup, be sure to use `php artisan optimize:clear` to clear stale cache structures.
