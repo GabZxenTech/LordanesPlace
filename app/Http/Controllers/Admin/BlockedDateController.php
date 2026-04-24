@@ -67,6 +67,7 @@ class BlockedDateController extends Controller
             'guest_count' => 'required|integer|min:1',
             'notes'       => 'nullable|string',
             'package'     => 'required|string',
+            'total_amount' => 'required|numeric|min:0',
         ]);
 
         $booking->update([
@@ -76,6 +77,8 @@ class BlockedDateController extends Controller
             'guest_count' => $request->guest_count,
             'notes'       => $request->notes,
             'package'     => $request->package,
+            'total_amount' => $request->total_amount,
+            'down_payment_amount' => $request->total_amount * 0.20,
         ]);
 
         return back()->with('success', 'Booking updated successfully.');

@@ -86,12 +86,13 @@
           <table class="w-full border-collapse">
             <thead class="bg-admin-secondary">
               <tr>
+                <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">BOOKING #</th>
                 <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">GUEST</th>
                 <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold hidden md:table-cell">EVENT</th>
                 <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">DATE & TIME</th>
                 <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold hidden lg:table-cell">PACKAGE</th>
-                <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold hidden lg:table-cell">GUESTS</th>
-                <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold hidden xl:table-cell">NOTES</th>
+                <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">GUESTS</th>
+                <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">PAYMENT</th>
                 <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">STATUS</th>
                 <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">ACTION</th>
               </tr>
@@ -99,12 +100,23 @@
             <tbody>
               @forelse($bookings as $booking)
                 <tr class="border-b border-admin-gold/10 transition-colors hover:bg-admin-gold/5">
+                  <td class="p-3 md:px-4 md:py-3.5 text-[13px] text-admin-gold font-mono">{{ $booking->booking_number }}</td>
                   <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream font-bold">{{ $booking->user->name }}</td>
                   <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream-dim hidden md:table-cell">{{ $booking->event_type }}</td>
                   <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream-dim">{{ $booking->event_date->format('M d, Y') }}<br><span class="text-[11px]">{{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}</span></td>
                   <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream-dim hidden lg:table-cell">{{ $booking->package }}</td>
-                  <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream-dim hidden lg:table-cell">{{ $booking->guest_count }}</td>
-                  <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream-dim hidden xl:table-cell"><div class="max-w-[120px] whitespace-nowrap overflow-hidden text-ellipsis" title="{{ $booking->notes }}">{{ $booking->notes ?? 'None' }}</div></td>
+                  <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream-dim">{{ $booking->guest_count }}</td>
+                  <td class="p-3 md:px-4 md:py-3.5">
+                    <div class="text-[14px] text-admin-cream font-bold">₱{{ number_format($booking->total_amount, 2) }}</div>
+                    <div class="text-[11px] text-admin-cream-dim">DP: ₱{{ number_format($booking->down_payment_amount, 2) }}</div>
+                    @if($booking->payment_status === 'unpaid')
+                      <span class="text-[10px] text-admin-red font-bold uppercase">Unpaid</span>
+                    @elseif($booking->payment_status === 'partially_paid')
+                      <span class="text-[10px] text-admin-green font-bold uppercase">Partially Paid</span>
+                    @else
+                      <span class="text-[10px] text-admin-blue font-bold uppercase">Fully Paid</span>
+                    @endif
+                  </td>
                   <td class="p-3 md:px-4 md:py-3.5">
                     @if($booking->status === 'pending')
                       <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold bg-yellow-400/15 text-admin-yellow border border-admin-yellow">⏳ Pending</span>
@@ -120,7 +132,13 @@
                         <form method="POST" action="{{ route('admin.booking.approve', $booking->id) }}">@csrf <button type="submit" class="bg-green-400/15 border border-admin-green text-admin-green px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-admin-green hover:text-admin-dark">Approve</button></form>
                         <form method="POST" action="{{ route('admin.booking.reject', $booking->id) }}">@csrf <button type="submit" class="bg-red-400/15 border border-admin-red text-admin-red px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-admin-red hover:text-white">Reject</button></form>
                       @endif
-                      <button type="button" class="bg-blue-400/15 border border-admin-blue text-admin-blue px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-admin-blue hover:text-white" onclick="openEditModal({{ $booking->id }}, '{{ $booking->package }}', '{{ $booking->event_date->format('Y-m-d') }}', '{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}', '{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}', '{{ $booking->guest_count }}', '{{ addslashes($booking->notes) }}')">Edit</button>
+                      @if($booking->payment_status === 'unpaid')
+                        <form method="POST" action="{{ route('admin.booking.confirm-downpayment', $booking->id) }}">
+                          @csrf
+                          <button type="submit" class="bg-admin-gold/20 border border-admin-gold text-admin-gold px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-admin-gold hover:text-admin-dark">Confirm DP</button>
+                        </form>
+                      @endif
+                      <button type="button" class="bg-blue-400/15 border border-admin-blue text-admin-blue px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-blue-400 hover:text-white" onclick="openEditModal({{ $booking->id }}, '{{ $booking->package }}', '{{ $booking->event_date->format('Y-m-d') }}', '{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}', '{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}', '{{ $booking->guest_count }}', '{{ addslashes($booking->notes) }}', '{{ $booking->total_amount }}')">Edit</button>
                       <form method="POST" action="{{ route('admin.booking.destroy', $booking->id) }}" onsubmit="return confirm('Are you sure you want to delete this booking?');">
                         @csrf @method('DELETE')
                         <button type="submit" class="bg-transparent border border-admin-red text-admin-red px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-admin-red hover:text-white">Delete</button>
@@ -176,6 +194,10 @@
           <label class="block text-[12px] tracking-[1px] text-admin-gold mb-2 font-bold">Number of Guests</label>
           <input type="number" name="guest_count" id="edit_guest_count" required min="1" class="w-full bg-admin-secondary border border-admin-gold/30 text-admin-cream px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-admin-gold font-body" />
         </div>
+        <div class="mb-4">
+          <label class="block text-[12px] tracking-[1px] text-admin-gold mb-2 font-bold">Total Amount (₱)</label>
+          <input type="number" name="total_amount" id="edit_total_amount" required step="0.01" class="w-full bg-admin-secondary border border-admin-gold/30 text-admin-cream px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-admin-gold font-body" />
+        </div>
         <div class="mb-5">
           <label class="block text-[12px] tracking-[1px] text-admin-gold mb-2 font-bold">Notes</label>
           <textarea name="notes" id="edit_notes" rows="2" class="w-full bg-admin-secondary border border-admin-gold/30 text-admin-cream px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-admin-gold font-body resize-y"></textarea>
@@ -189,7 +211,7 @@
   </div>
 
   <script>
-    function openEditModal(id, pkg, date, start, end, guests, notes) {
+    function openEditModal(id, pkg, date, start, end, guests, notes, total) {
       document.getElementById('editBookingForm').action = '/admin/booking/' + id;
       document.getElementById('edit_package').value = pkg;
       document.getElementById('edit_event_date').value = date;
@@ -197,6 +219,7 @@
       document.getElementById('edit_end_time').value = end;
       document.getElementById('edit_guest_count').value = guests;
       document.getElementById('edit_notes').value = notes;
+      document.getElementById('edit_total_amount').value = total;
       document.getElementById('editModal').style.display = 'flex';
     }
   </script>

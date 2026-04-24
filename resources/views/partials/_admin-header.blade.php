@@ -6,6 +6,7 @@
     <a href="{{ route('admin.dashboard') }}" class="text-admin-cream-dim no-underline text-[15px] px-3 lg:px-4 py-2 rounded border border-admin-gold/30 transition-all duration-200 hover:bg-admin-gold hover:text-admin-dark hover:border-admin-gold {{ request()->routeIs('admin.dashboard') ? 'bg-admin-gold text-admin-dark border-admin-gold' : '' }}">Users</a>
     <a href="{{ route('admin.packages.index') }}" class="text-admin-cream-dim no-underline text-[15px] px-3 lg:px-4 py-2 rounded border border-admin-gold/30 transition-all duration-200 hover:bg-admin-gold hover:text-admin-dark hover:border-admin-gold {{ request()->routeIs('admin.packages.*') ? 'bg-admin-gold text-admin-dark border-admin-gold' : '' }}">Packages</a>
     <a href="{{ route('admin.schedule') }}" class="text-admin-cream-dim no-underline text-[15px] px-3 lg:px-4 py-2 rounded border border-admin-gold/30 transition-all duration-200 hover:bg-admin-gold hover:text-admin-dark hover:border-admin-gold {{ request()->routeIs('admin.schedule') ? 'bg-admin-gold text-admin-dark border-admin-gold' : '' }}">Schedule</a>
+    <a href="{{ route('admin.chat.index') }}" class="text-admin-cream-dim no-underline text-[15px] px-3 lg:px-4 py-2 rounded border border-admin-gold/30 transition-all duration-200 hover:bg-admin-gold hover:text-admin-dark hover:border-admin-gold {{ request()->routeIs('admin.chat.*') ? 'bg-admin-gold text-admin-dark border-admin-gold' : '' }}">Chat</a>
   </div>
 
   <div class="flex items-center gap-3 lg:gap-4">

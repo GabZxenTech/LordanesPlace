@@ -39,7 +39,7 @@
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
       <div class="text-[28px] mb-3">💳</div>
       <h4 class="text-[12px] md:text-[15px] font-bold text-gold-deep tracking-[1px] mb-2">PAYMENT POLICY</h4>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">50% downpayment required to confirm booking. Full payment due on event day.</p>
+      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">20% downpayment required to confirm booking. Full payment due on event day.</p>
     </div>
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
       <div class="text-[28px] mb-3">🔄</div>
@@ -74,7 +74,7 @@
     <div class="text-center p-5 md:p-6 bg-cream border border-gold-deep/15 rounded-lg">
       <div class="w-10 h-10 rounded-full bg-gold-deep text-white font-bold text-[16px] flex items-center justify-center mx-auto mb-3">3</div>
       <h4 class="text-[16px] font-bold text-warm-black mb-2">Pay Deposit</h4>
-      <p class="text-[15px] text-warm-black/60 font-normal leading-[1.6]">Pay the 50% downpayment to confirm your reservation.</p>
+      <p class="text-[15px] text-warm-black/60 font-normal leading-[1.6]">Pay the 20% downpayment to confirm your reservation.</p>
     </div>
     <div class="text-center p-5 md:p-6 bg-cream border border-gold-deep/15 rounded-lg">
       <div class="w-10 h-10 rounded-full bg-gold-deep text-white font-bold text-[16px] flex items-center justify-center mx-auto mb-3">4</div>
@@ -161,7 +161,7 @@
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
             <option value="">Select a package</option>
             @foreach($packages as $pkg)
-              <option value="{{ $pkg->name }}" data-max="{{ $pkg->max_guests }}" {{ old('package') == $pkg->name ? 'selected' : '' }}>
+              <option value="{{ $pkg->name }}" data-max="{{ $pkg->max_guests }}" data-price="{{ $pkg->price }}" {{ old('package') == $pkg->name ? 'selected' : '' }}>
                 {{ $pkg->name }} — ₱{{ number_format($pkg->price, 0) }} (up to {{ $pkg->max_guests }} guests{{ $pkg->duration ? ', ' . $pkg->duration : '' }})
               </option>
             @endforeach
@@ -215,10 +215,28 @@
           @error('guest_count') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
         </div>
 
+        <div class="mb-4">
+          <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Total Amount (₱)</label>
+          <input type="number" name="total_amount" id="totalAmountInput" placeholder="0.00" step="0.01" value="{{ old('total_amount') }}" required
+            class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body" />
+          <div class="mt-2 text-[13px] text-warm-black/70 flex justify-between items-center bg-gold-deep/5 p-2.5 rounded border border-gold-deep/10">
+            <span>20% Required Down Payment:</span>
+            <span class="font-bold text-gold-deep" id="downPaymentDisplay">₱0.00</span>
+          </div>
+          @error('total_amount') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
+        </div>
+
         <div class="mb-5">
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Additional Notes <span class="font-normal">(optional)</span></label>
           <textarea name="notes" rows="3" placeholder="Any special requests or notes..."
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body resize-y">{{ old('notes') }}</textarea>
+        </div>
+
+        <div class="bg-blue-500/10 border border-blue-400/30 rounded-lg p-4 mb-6 flex gap-3.5 items-start">
+            <span class="text-[20px] mt-0.5">📌</span>
+            <div class="text-[13.5px] text-warm-black/80 leading-relaxed">
+                <strong>Please note:</strong> A 20% down payment is required to confirm your reservation. Our admin will contact you with payment instructions after booking.
+            </div>
         </div>
 
         <button type="submit" class="w-full bg-gold-deep text-white border-none py-3 rounded-md font-bold text-[16px] tracking-[1px] cursor-pointer transition-all hover:bg-gold-mid">CONFIRM BOOKING</button>
@@ -227,16 +245,90 @@
   </div>
 </section>
 
-<!-- SUCCESS MODAL -->
+<!-- SUCCESS MODAL + VISIT SCHEDULING -->
 <div class="modal-overlay hidden fixed inset-0 bg-black/70 z-[9999] items-center justify-center {{ session('booking_success') ? 'open' : '' }}" id="successModal" style="display:none; {{ session('booking_success') ? 'display:flex;' : '' }}">
+  <div class="modal-box bg-off-white border border-gold-deep/25 rounded-2xl p-8 md:p-10 max-w-[650px] w-[95%] overflow-y-auto max-h-[90vh]">
+    <div class="text-center mb-6">
+        <div class="text-[48px] mb-2">🎉</div>
+        <h2 class="font-heading text-[26px] md:text-[32px] font-bold text-gold-deep mb-2">Booking Submitted!</h2>
+        @if(session('booking_number'))
+          <div class="mb-4">
+              <p class="text-[11px] tracking-[1px] text-warm-black/50 font-bold uppercase mb-1">Booking Reference</p>
+              <p class="text-[18px] font-bold text-gold-deep">#{{ session('booking_number') }}</p>
+          </div>
+        @endif
+        <p class="text-warm-black/80 text-[15px] leading-relaxed mb-4">Your reservation request has been received and is currently <strong class="text-gold-deep">pending approval</strong>.</p>
+        
+        @if(session('new_booking_id'))
+          <div class="mb-6">
+            <a href="{{ route('booking.receipt', session('new_booking_id')) }}" class="inline-flex items-center gap-2 bg-warm-black text-white px-5 py-2.5 rounded-md no-underline text-[14px] font-bold transition-all hover:bg-gold-deep shadow-sm">
+              <span>📄</span> DOWNLOAD PDF RECEIPT
+            </a>
+          </div>
+        @endif
+    </div>
+
+    <div class="bg-cream border border-gold-deep/15 rounded-xl p-6 md:p-8">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-full bg-gold-deep text-white flex items-center justify-center font-bold text-[14px]">2</div>
+            <h3 class="text-[18px] md:text-[20px] font-bold text-warm-black">Schedule Your Visit</h3>
+        </div>
+        <p class="text-[14px] text-warm-black/70 mb-6 font-normal">Please select a date and time to visit our venue for final payment and a walkthrough before your event.</p>
+
+        <form action="{{ route('visit-schedule.store') }}" method="POST">
+            @csrf
+            <input type="hidden" name="booking_id" value="{{ session('new_booking_id') }}">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                <div>
+                    <label class="block text-[11px] tracking-[1px] text-gold-deep mb-2 font-bold uppercase">Preferred Date</label>
+                    <input type="date" name="visit_date" required min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                        class="w-full bg-off-white border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[14px] outline-none transition-colors focus:border-gold-deep font-body" />
+                </div>
+                <div>
+                    <label class="block text-[11px] tracking-[1px] text-gold-deep mb-2 font-bold uppercase">Preferred Time</label>
+                    <select name="visit_time" required
+                        class="w-full bg-off-white border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[14px] outline-none transition-colors focus:border-gold-deep font-body">
+                        <option value="">Select time</option>
+                        @for($i = 8; $i <= 22; $i++)
+                            @foreach(['00', '30'] as $min)
+                                @if($i == 22 && $min == '30') @continue @endif
+                                @php
+                                    $val24 = sprintf('%02d:%s', $i, $min);
+                                    $formatted = \Carbon\Carbon::createFromFormat('H:i', $val24)->format('h:i A');
+                                @endphp
+                                <option value="{{ $val24 }}">{{ $formatted }}</option>
+                            @endforeach
+                        @endfor
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-[11px] tracking-[1px] text-gold-deep mb-2 font-bold uppercase">Optional Notes</label>
+                <textarea name="notes" rows="2" placeholder="e.g. I'll bring my partner..."
+                    class="w-full bg-off-white border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[14px] outline-none transition-colors focus:border-gold-deep font-body resize-y"></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-gold-deep text-white border-none py-3.5 rounded-md font-bold text-[15px] tracking-[1px] cursor-pointer transition-all hover:bg-gold-mid">CONFIRM VISIT SCHEDULE</button>
+        </form>
+
+        <div class="mt-6 flex justify-center gap-6">
+            <a href="{{ route('my.bookings') }}" class="text-[13px] text-warm-black/40 hover:text-gold-deep transition-colors font-medium">Skip for now</a>
+            <a href="{{ route('home') }}" class="text-[13px] text-warm-black/40 hover:text-gold-deep transition-colors font-medium">Back to Home</a>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL VISIT SUCCESS MODAL -->
+<div class="modal-overlay hidden fixed inset-0 bg-black/70 z-[9999] items-center justify-center {{ session('visit_success') ? 'open' : '' }}" id="visitSuccessModal" style="display:none; {{ session('visit_success') ? 'display:flex;' : '' }}">
   <div class="modal-box bg-off-white border border-gold-deep/25 rounded-2xl p-10 md:p-12 text-center max-w-[460px] w-[90%]">
-    <div class="text-[56px] mb-4">🎉</div>
-    <h2 class="font-heading text-[26px] md:text-[28px] font-bold text-gold-deep mb-3">Booking Submitted!</h2>
-    <p class="text-warm-black/90 text-[16px] leading-[1.7] mb-5">Your reservation request has been received. We will review your booking and get back to you shortly.</p>
-    <div class="bg-green-500/10 border border-green-400 text-green-600 p-3 rounded-md text-[15px] mb-6">✓ Your booking is currently <strong>pending approval</strong> from our team.</div>
+    <div class="text-[56px] mb-4">✨</div>
+    <h2 class="font-heading text-[26px] md:text-[28px] font-bold text-gold-deep mb-3">All Set!</h2>
+    <p class="text-warm-black/90 text-[16px] leading-[1.7] mb-6">Thank you! Your visit has been scheduled. We look forward to seeing you at LorDane's Place soon!</p>
     <div class="flex gap-3 justify-center flex-wrap">
-      <a href="{{ route('my.bookings') }}" class="bg-gold-deep text-white px-5 py-2.5 rounded-md no-underline font-bold text-[15px] tracking-[1px] transition-all hover:bg-gold-mid">VIEW MY BOOKINGS</a>
-      <a href="{{ route('home') }}" class="bg-transparent border border-warm-black/25 text-warm-black/90 px-5 py-2.5 rounded-md no-underline text-[15px] transition-all hover:border-warm-black hover:text-warm-black">Back to Home</a>
+      <a href="{{ route('my.bookings') }}" class="bg-gold-deep text-white px-6 py-2.5 rounded-md no-underline font-bold text-[15px] tracking-[1px] transition-all hover:bg-gold-mid">GO TO MY BOOKINGS</a>
     </div>
   </div>
 </div>
@@ -267,12 +359,31 @@
     if(selectedOption && selectedOption.dataset.max) {
       document.getElementById('guestCountInput').max = selectedOption.dataset.max;
       document.getElementById('guestCountInput').placeholder = "Max: " + selectedOption.dataset.max;
+      
+      // Auto-fill total amount
+      if(selectedOption.dataset.price) {
+        document.getElementById('totalAmountInput').value = selectedOption.dataset.price;
+        updateDownPayment();
+      }
     } else {
       document.getElementById('guestCountInput').removeAttribute('max');
       document.getElementById('guestCountInput').placeholder = "How many guests?";
     }
     renderCalendar();
   });
+
+  // Dynamic Down Payment Calculation
+  const totalAmountInput = document.getElementById('totalAmountInput');
+  const downPaymentDisplay = document.getElementById('downPaymentDisplay');
+
+  function updateDownPayment() {
+    const total = parseFloat(totalAmountInput.value) || 0;
+    const downPayment = total * 0.20;
+    downPaymentDisplay.textContent = '₱' + downPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  totalAmountInput.addEventListener('input', updateDownPayment);
+  if (totalAmountInput.value) updateDownPayment();
 
   const urlParams = new URLSearchParams(window.location.search);
   const packageFromUrl = urlParams.get('package');

@@ -71,11 +71,17 @@
     font-size: 14px;
     font-weight: 700;
     color: #F5E6C8;
+    margin: 0;
   }
 
   .chat-header-info p {
     font-size: 11px;
     color: #4ade80;
+    margin: 0;
+  }
+
+  .chat-header-info p.offline {
+    color: #f87171;
   }
 
   .chat-close {
@@ -126,21 +132,13 @@
     font-weight: 600;
   }
 
-  .msg.typing {
-    background: #3D2010;
-    color: #c8b89a;
-    align-self: flex-start;
-    border: 1px solid rgba(212, 160, 23, 0.15);
-    font-style: italic;
-    font-size: 12px;
-  }
-
   /* QUICK REPLIES */
   .quick-replies {
     padding: 8px 16px;
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    background: #2C1A0E;
   }
 
   .quick-btn {
@@ -178,7 +176,7 @@
     border-radius: 20px;
     font-size: 13px;
     outline: none;
-    font-family: 'Lato', sans-serif;
+    font-family: 'Jost', sans-serif;
   }
 
   .chat-input::placeholder { color: #c8b89a; }
@@ -200,6 +198,7 @@
   }
 
   .chat-send:hover { background: #F0D060; }
+  .d-none { display: none !important; }
 </style>
 
 <!-- CHAT BUBBLE -->
@@ -210,8 +209,8 @@
     <div class="chat-header">
       <div class="chat-avatar">🏡</div>
       <div class="chat-header-info">
-        <h4>PlanVista Assistant</h4>
-        <p>● Online — here to help!</p>
+        <h4>Lordane's Place Chat Assistance</h4>
+        <p id="adminStatusText">● Online — here to help!</p>
       </div>
       <button class="chat-close" onclick="toggleChat()">×</button>
     </div>
@@ -221,61 +220,32 @@
     </div>
 
     <div class="quick-replies" id="quickReplies">
-      <button class="quick-btn" onclick="sendQuick('Pricing & Packages')">💰 Pricing</button>
-      <button class="quick-btn" onclick="sendQuick('How to Book')">📅 Booking</button>
-      <button class="quick-btn" onclick="sendQuick('Location & Directions')">📍 Location</button>
-      <button class="quick-btn" onclick="sendQuick('Amenities & Facilities')">🏊 Amenities</button>
+      <button class="quick-btn" onclick="handleQuickReply('pricing')">💰 Pricing</button>
+      <button class="quick-btn" onclick="handleQuickReply('booking')">📋 Booking</button>
+      <button class="quick-btn" onclick="handleQuickReply('location')">📍 Location</button>
+      <button class="quick-btn" onclick="handleQuickReply('amenities')">🏠 Amenities</button>
     </div>
 
-    <div class="chat-input-row">
+    <div class="chat-input-row" id="chatInputRow">
       <input type="text" class="chat-input" id="chatInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter') sendMessage()" />
       <button class="chat-send" onclick="sendMessage()">➤</button>
     </div>
   </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-  const SYSTEM_PROMPT = `You are a helpful and friendly customer service assistant for LorDane's Place (also called PlanVista), an event venue and resort in the Philippines.
-
-You only answer questions about LorDane's Place. If asked something unrelated, politely redirect to venue-related topics.
-
-Here is what you know about LorDane's Place:
-
-PRICING & PACKAGES:
-- Basic Package: ₱5,000 (up to 50 guests, 4 hours)
-- Standard Package: ₱10,000 (up to 100 guests, 6 hours, includes setup)
-- Premium Package: ₱20,000 (up to 200 guests, full day, includes catering coordination)
-- Pool Use: ₱500 per person
-- Overnight Stay: ₱15,000 (up to 20 guests)
-
-AVAILABILITY & BOOKING:
-- Open daily from 8AM to 10PM
-- Bookings must be made at least 3 days in advance
-- 50% downpayment required to confirm booking
-- Cancellation must be 48 hours before event for refund
-- Contact us via this chat or call to check availability
-
-LOCATION & DIRECTIONS:
-- Located in San Jose del Monte, Bulacan, Philippines
-- From Manila: Take NLEX, exit Bocaue, then follow signs to San Jose del Monte (approximately 1.5 hours)
-- From MRT: Take bus to Fairview, then jeepney to San Jose del Monte
-- Landmark: Near the municipal hall of San Jose del Monte
-
-AMENITIES & FACILITIES:
-- Olympic-size swimming pool
-- Function hall (air-conditioned, capacity 200 pax)
-- Outdoor garden area
-- Full kitchen and catering area
-- Sound system and lighting
-- Free parking (50 cars)
-- Cottages and rest areas
-- 360° Virtual Tour available on the website
-
-Always be warm, helpful, and professional. Use simple English or mix with Filipino if needed. Keep responses concise but complete. End with an offer to help further.`;
-
   let chatOpen = false;
-  let conversationHistory = [];
   let greeted = false;
+  let isAdminOnline = true;
+  let lastMessageId = 0;
+
+  const quickResponses = {
+    pricing: "Our packages start at ₱5,000 for basic events and ₱15,000 for overnight stays. Contact us for detailed package inclusion!",
+    booking: "You can book by filling out our booking form here: <a href='/booking' style='color: #D4A017;'>Click Here to Book</a>",
+    location: "We are located at Pulong Buhangin, Santa Maria, Bulacan, Philippines. Near the municipal hall.",
+    amenities: "We offer: Olympic-size swimming pool, Air-conditioned Function Hall (200 pax), Outdoor Garden, Full Kitchen, and Free Parking."
+  };
 
   function toggleChat() {
     chatOpen = !chatOpen;
@@ -285,7 +255,8 @@ Always be warm, helpful, and professional. Use simple English or mix with Filipi
     if (chatOpen && !greeted) {
       greeted = true;
       setTimeout(() => {
-        addMessage('bot', "👋 Hi! Welcome to **LorDane's Place**! I'm your virtual assistant. How can I help you today?\n\nYou can ask me about our pricing, bookings, location, or amenities!");
+        addMessage('bot', "👋 Hi! Welcome to **Lordane's Place**! I'm your assistant. How can I help you today?");
+        loadHistory();
       }, 400);
     }
 
@@ -304,13 +275,25 @@ Always be warm, helpful, and professional. Use simple English or mix with Filipi
     return div;
   }
 
-  function showTyping() {
-    return addMessage('typing', '● typing...');
+  function handleQuickReply(key) {
+    const labels = { pricing: "💰 Pricing", booking: "📋 Booking", location: "📍 Location", amenities: "🏠 Amenities" };
+    addMessage('user', labels[key]);
+    
+    setTimeout(() => {
+      addMessage('bot', quickResponses[key]);
+    }, 500);
   }
 
-  function sendQuick(text) {
-    document.getElementById('chatInput').value = text;
-    sendMessage();
+  function loadHistory() {
+    $.get('{{ route("chat.messages") }}', function(res) {
+      if (res.messages.length > 0) {
+        document.getElementById('chatMessages').innerHTML = ''; // Clear and reload
+        res.messages.forEach(msg => {
+          addMessage(msg.role === 'admin' ? 'bot' : 'user', msg.body);
+          lastMessageId = msg.id;
+        });
+      }
+    });
   }
 
   async function sendMessage() {
@@ -321,32 +304,33 @@ Always be warm, helpful, and professional. Use simple English or mix with Filipi
     input.value = '';
     addMessage('user', text);
 
-    conversationHistory.push({ role: 'user', content: text });
-
-    const typingEl = showTyping();
-
-    try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: SYSTEM_PROMPT,
-          messages: conversationHistory
-        })
-      });
-
-      const data = await response.json();
-      const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response. Please try again!";
-
-      typingEl.remove();
-      addMessage('bot', reply);
-      conversationHistory.push({ role: 'assistant', content: reply });
-
-    } catch (err) {
-      typingEl.remove();
-      addMessage('bot', "Sorry, I'm having trouble connecting right now. Please try again or contact us directly!");
-    }
+    $.post('{{ route("chat.send") }}', {
+      _token: '{{ csrf_token() }}',
+      message: text
+    }, function(res) {
+      if (res.success) {
+        lastMessageId = res.message.id;
+      } else {
+        console.error("Chat send failed:", res.error);
+        alert("Chat Send Error: " + res.error);
+      }
+    }).fail(function(xhr) {
+      console.error("Chat POST failed:", xhr.responseText);
+      alert("Network/Server Error: " + xhr.status + " " + xhr.statusText);
+    });
   }
+
+  // Polling for new messages
+  setInterval(() => {
+    if (chatOpen) {
+      $.get('{{ route("chat.messages") }}', { last_id: lastMessageId }, function(res) {
+        res.messages.forEach(msg => {
+          if (msg.role === 'admin') {
+            addMessage('bot', msg.body);
+          }
+          lastMessageId = msg.id;
+        });
+      });
+    }
+  }, 3000);
 </script>

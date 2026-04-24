@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\Admin\BlockedDateController;
+use App\Http\Controllers\VisitScheduleController;
+use App\Http\Controllers\ReceiptController;
 
 Route::get('/', function () {
     return view('homepage');
@@ -52,6 +54,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/success', [BookingController::class, 'success'])->name('booking.success');
     Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('my.bookings');
+
+    // Visit Schedule routes
+    Route::get('/visit-schedule/create', [VisitScheduleController::class, 'create'])->name('visit-schedule.create');
+    Route::post('/visit-schedule', [VisitScheduleController::class, 'store'])->name('visit-schedule.store');
+    Route::get('/my-visits', [VisitScheduleController::class, 'index'])->name('my.visits');
+
+    // Receipt route
+    Route::get('/bookings/{booking}/receipt', [ReceiptController::class, 'download'])->name('booking.receipt');
 });
 
 use App\Http\Controllers\Admin\PackageController;
@@ -65,10 +75,29 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/booking/{id}/reject', [BlockedDateController::class, 'rejectBooking'])->name('booking.reject');
     Route::put('/booking/{id}', [BlockedDateController::class, 'updateBooking'])->name('booking.update');
     Route::delete('/booking/{id}', [BlockedDateController::class, 'destroyBooking'])->name('booking.destroy');
+    Route::post('/booking/{id}/confirm-downpayment', [BookingController::class, 'confirmDownPayment'])->name('booking.confirm-downpayment');
+
+    // Admin Visit Schedule routes
+    Route::get('/visits', [VisitScheduleController::class, 'adminIndex'])->name('visits.index');
+    Route::post('/visits/{id}/confirm', [VisitScheduleController::class, 'confirm'])->name('visits.confirm');
+    Route::post('/visits/{id}/reschedule', [VisitScheduleController::class, 'reschedule'])->name('visits.reschedule');
+    Route::post('/visits/{id}/complete', [VisitScheduleController::class, 'complete'])->name('visits.complete');
 
     // Packages CRUD
     Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
     Route::post('/packages', [PackageController::class, 'store'])->name('packages.store');
     Route::put('/packages/{id}', [PackageController::class, 'update'])->name('packages.update');
     Route::delete('/packages/{id}', [PackageController::class, 'destroy'])->name('packages.destroy');
+
+    // Chat Admin routes
+    Route::get('/chat', [App\Http\Controllers\ChatController::class, 'adminConversations'])->name('chat.index');
+    Route::get('/chat/json', [App\Http\Controllers\ChatController::class, 'adminConversationsJson'])->name('chat.json');
+    Route::get('/chat/{id}', [App\Http\Controllers\ChatController::class, 'adminOpenChat'])->name('chat.open');
+    Route::post('/chat/reply', [App\Http\Controllers\ChatController::class, 'adminReply'])->name('chat.reply');
+    Route::post('/chat/toggle-status', [App\Http\Controllers\ChatController::class, 'toggleStatus'])->name('chat.toggle-status');
 });
+
+// Chat Client routes
+Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'send'])->name('chat.send');
+Route::get('/chat/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
+Route::get('/chat/admin-status', [App\Http\Controllers\ChatController::class, 'getAdminStatus'])->name('chat.admin-status');

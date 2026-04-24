@@ -35,21 +35,28 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role',
+        'last_active',
+        'is_online',
+    ];
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_online' => 'boolean',
         ];
     }
 
-    protected $fillable = [
-    'name',
-    'email',
-    'password',
-    'role',
-    'last_active',
-];
+    public function conversations()
+    {
+        return $this->hasMany(Conversation::class);
+    }
 
     
 

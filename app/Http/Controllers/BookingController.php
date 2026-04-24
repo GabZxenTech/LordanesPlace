@@ -40,7 +40,10 @@ class BookingController extends Controller
             'end_time'    => 'required|after:start_time',
             'guest_count' => 'required|integer|min:1',
             'notes'       => 'nullable|string|max:1000',
+            'total_amount' => 'required|numeric|min:0',
         ]);
+
+        $downPaymentAmount = $request->total_amount * 0.20;
 
         $package = \App\Models\Package::where('name', $request->package)->first();
         
@@ -60,8 +63,15 @@ class BookingController extends Controller
             return back()->withErrors(['event_date' => 'Sorry, this date is already unavailable for the selected package. Please choose another date or package.'])->withInput();
         }
 
-        Booking::create([
+        // Generate unique booking number: LDP-YYYYMMDD-XXXX
+        $todayStr = now()->format('Ymd');
+        $countToday = Booking::whereDate('created_at', now()->today())->count();
+        $sequence = str_pad($countToday + 1, 4, '0', STR_PAD_LEFT);
+        $bookingNumber = "LDP-{$todayStr}-{$sequence}";
+
+        $booking = Booking::create([
             'user_id'     => Auth::id(),
+            'booking_number' => $bookingNumber,
             'event_type'  => $request->event_type,
             'package'     => $request->package,
             'event_date'  => $request->event_date,
@@ -70,15 +80,22 @@ class BookingController extends Controller
             'guest_count' => $request->guest_count,
             'notes'       => $request->notes,
             'status'      => 'pending',
+            'total_amount' => $request->total_amount,
+            'down_payment_amount' => $downPaymentAmount,
+            'payment_status' => 'unpaid',
         ]);
 
-        return redirect()->route('booking')->with('booking_success', true);
+        return redirect()->route('booking')->with('booking_success', true)->with('new_booking_id', $booking->id)->with('booking_number', $booking->booking_number);
     }
 
     // Booking success page
     public function success()
     {
-        return view('booking-success');
+        $booking = null;
+        if (session('new_booking_id')) {
+            $booking = Booking::find(session('new_booking_id'));
+        }
+        return view('booking-success', compact('booking'));
     }
 
     // My bookings (for logged in user)
@@ -89,5 +106,17 @@ class BookingController extends Controller
             ->get();
 
         return view('my-bookings', compact('bookings'));
+    }
+
+    // Confirm down payment (Admin action)
+    public function confirmDownPayment($id)
+    {
+        $booking = Booking::findOrFail($id);
+        $booking->update([
+            'payment_status' => 'partially_paid',
+            'down_payment_paid_at' => now(),
+        ]);
+
+        return back()->with('success', 'Down payment confirmed for ' . $booking->user->name . '.');
     }
 }
