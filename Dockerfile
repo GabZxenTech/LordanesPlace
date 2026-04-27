@@ -33,7 +33,7 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 
 # Copy Nginx config
 RUN printf 'server {\n\
-    listen ${PORT};\n\
+    listen PORT_PLACEHOLDER;\n\
     root /var/www/html/public;\n\
     add_header X-Frame-Options "SAMEORIGIN";\n\
     add_header X-Content-Type-Options "nosniff";\n\
@@ -57,6 +57,7 @@ RUN printf 'server {\n\
 
 # Start script
 RUN printf '#!/bin/sh\n\
+sed -i "s/PORT_PLACEHOLDER/$PORT/g" /etc/nginx/http.d/default.conf\n\
 php artisan migrate --force\n\
 php-fpm -D\n\
 nginx -g "daemon off;"\n' > /usr/local/bin/start-app.sh && chmod +x /usr/local/bin/start-app.sh
