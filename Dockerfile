@@ -15,11 +15,17 @@ RUN apt-get update && apt-get install -y \
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
 # Set working directory
 WORKDIR /var/www/html
 
 # Copy project files
 COPY . .
+
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader
 
 # Set Apache Document Root to /public
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
