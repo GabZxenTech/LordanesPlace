@@ -1,23 +1,19 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.2-apache
 
 # Install system dependencies
-RUN apk add --no-cache \
-    nginx \
-    supervisor \
-    git \
-    unzip \
-    libzip-dev \
-    icu-dev \
+RUN apt-get update && apt-get install -y \
     libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    bash
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    git \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo_mysql zip
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql zip intl gd
-
-# Get latest Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
 
 # Set working directory
 WORKDIR /var/www/html
@@ -25,43 +21,16 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Set Apache Document Root to /public
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/apache2!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# Update Apache port to listen on $PORT
+RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
 # Setup permissions
-RUN chown -R www-data:www-data storage bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Copy Nginx config
-RUN printf 'server {\n\
-    listen PORT_PLACEHOLDER;\n\
-    root /var/www/html/public;\n\
-    add_header X-Frame-Options "SAMEORIGIN";\n\
-    add_header X-Content-Type-Options "nosniff";\n\
-    index index.php;\n\
-    charset utf-8;\n\
-    location / {\n\
-        try_files $uri $uri/ /index.php?$query_string;\n\
-    }\n\
-    location = /favicon.ico { access_log off; log_not_found off; }\n\
-    location = /robots.txt  { access_log off; log_not_found off; }\n\
-    error_page 404 /index.php;\n\
-    location ~ \.php$ {\n\
-        fastcgi_pass 127.0.0.1:9000;\n\
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;\n\
-        include fastcgi_params;\n\
-    }\n\
-    location ~ /\.(?!well-known).* {\n\
-        deny all;\n\
-    }\n\
-}' > /etc/nginx/http.d/default.conf
-
-# Start script
-RUN printf '#!/bin/sh\n\
-sed -i "s/PORT_PLACEHOLDER/$PORT/g" /etc/nginx/http.d/default.conf\n\
-php artisan migrate --force\n\
-php-fpm -D\n\
-nginx -g "daemon off;"\n' > /usr/local/bin/start-app.sh && chmod +x /usr/local/bin/start-app.sh
-
-EXPOSE 8080
-
-CMD ["/usr/local/bin/start-app.sh"]
+# Start command
+CMD php artisan migrate --force && apache2-foreground
