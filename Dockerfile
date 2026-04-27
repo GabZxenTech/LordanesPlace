@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo_mysql zip
 
+# Fix: Disable mpm_event and enable mpm_prefork
+RUN a2dismod mpm_event || true && a2enmod mpm_prefork || true
+
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
