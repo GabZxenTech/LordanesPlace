@@ -1,22 +1,20 @@
-FROM php:8.2-apache
+FROM php:8.2-fpm-alpine
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libzip-dev \
-    zip \
-    unzip \
+RUN apk add --no-cache \
+    nginx \
+    supervisor \
     git \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo_mysql zip
+    unzip \
+    libzip-dev \
+    icu-dev \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    bash
 
-# Fix: Disable mpm_event and enable mpm_prefork
-RUN a2dismod mpm_event || true && a2enmod mpm_prefork || true
-
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql zip intl gd
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -30,16 +28,46 @@ COPY . .
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set Apache Document Root to /public
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/apache2!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-
-# Update Apache port to listen on $PORT
-RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
-
 # Setup permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Start command
-CMD php artisan migrate --force && apache2-foreground
+# Nginx config
+RUN printf 'server {\n\
+    listen PORT_PLACEHOLDER;\n\
+    server_name _;\n\
+    root /var/www/html/public;\n\
+    index index.php;\n\
+    location / {\n\
+        try_files $uri $uri/ /index.php?$query_string;\n\
+    }\n\
+    location ~ \.php$ {\n\
+        include fastcgi_params;\n\
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n\
+        fastcgi_pass 127.0.0.1:9000;\n\
+    }\n\
+}' > /etc/nginx/http.d/default.conf
+
+# Supervisord config
+RUN printf '[supervisord]\n\
+nodaemon=true\n\
+user=root\n\
+[program:php-fpm]\n\
+command=php-fpm -F\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0\n\
+[program:nginx]\n\
+command=nginx -g "daemon off;"\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0\n' > /etc/supervisord.conf
+
+# Start script
+RUN printf '#!/bin/sh\n\
+sed -i "s/PORT_PLACEHOLDER/$PORT/g" /etc/nginx/http.d/default.conf\n\
+php artisan migrate --force\n\
+/usr/bin/supervisord -c /etc/supervisord.conf\n' > /usr/local/bin/start-app.sh && chmod +x /usr/local/bin/start-app.sh
+
+CMD ["/usr/local/bin/start-app.sh"]
