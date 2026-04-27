@@ -32,8 +32,9 @@ RUN composer install --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data storage bootstrap/cache
 
 # Nginx config
-RUN printf 'server {\n\
-    listen 0.0.0.0:PORT_PLACEHOLDER default_server;\n\
+RUN rm -rf /etc/nginx/http.d/* && printf 'server {\n\
+    listen PORT_PLACEHOLDER default_server;\n\
+    listen [::]:PORT_PLACEHOLDER default_server;\n\
     server_name _;\n\
     root /var/www/html/public;\n\
     index index.php;\n\
@@ -68,6 +69,9 @@ stderr_logfile_maxbytes=0\n' > /etc/supervisord.conf
 RUN printf '#!/bin/sh\n\
 echo "Starting application on port $PORT"\n\
 sed -i "s/PORT_PLACEHOLDER/$PORT/g" /etc/nginx/http.d/default.conf\n\
+echo "--- Nginx Config ---"\n\
+cat /etc/nginx/http.d/default.conf\n\
+echo "--------------------"\n\
 php artisan migrate --force\n\
 /usr/bin/supervisord -c /etc/supervisord.conf\n' > /usr/local/bin/start-app.sh && chmod +x /usr/local/bin/start-app.sh
 
