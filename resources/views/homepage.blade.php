@@ -14,7 +14,8 @@
 @include('partials._navbar')
 
 <!-- HERO -->
-<section class="hero-bg min-h-screen flex justify-center items-center text-center text-white px-5 relative" id="home">
+<section class="hero-bg min-h-screen flex justify-center items-center text-center text-white px-5 relative" id="home" 
+         style="background: linear-gradient(rgba(26,18,8,0.4), rgba(26,18,8,0.6)), url('{{ asset('images/LORDANES_BG.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
   <div class="gold-divider absolute bottom-0 left-0 right-0"></div>
   <div class="max-w-[720px]">
     <p class="tracking-[4px] text-gold-light text-[12px] md:text-[15px] font-bold mb-5">WELCOME TO LORDANE'S PLACE</p>
@@ -108,7 +109,7 @@
       </button>
     </div>
     <div class="flex-[1.2] min-w-[280px] lg:min-w-[350px] relative">
-      <img src="Event.jpg" alt="Virtual Tour Preview" class="w-full h-[280px] md:h-[380px] object-cover rounded-lg shadow-sm">
+      <img src="{{ asset('images/360_BG.png') }}" alt="Virtual Tour Preview" class="w-full h-[280px] md:h-[380px] object-cover rounded-lg shadow-sm">
       <div class="play-btn w-14 h-14 md:w-16 md:h-16 bg-gold-deep text-white rounded-full flex items-center justify-center text-lg md:text-xl cursor-pointer hover:bg-gold-mid"
         onclick="window.location.href='{{ url('/tour') }}'">▶</div>
     </div>

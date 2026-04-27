@@ -48,8 +48,8 @@
 
     .hero-bg {
         background:
-            linear-gradient(rgba(26,18,8,0.58), rgba(26,18,8,0.68)),
-            url("/swimmingpoolbg.jpg");
+            linear-gradient(rgba(26,18,8,0.4), rgba(26,18,8,0.5)),
+            url("/images/LORDANES_BG.jpg");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;

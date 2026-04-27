@@ -98,14 +98,15 @@ class BookingController extends Controller
         return view('booking-success', compact('booking'));
     }
 
-    // My bookings (for logged in user)
-    public function myBookings()
+    // Profile and Bookings page
+    public function profile()
     {
-        $bookings = Booking::where('user_id', Auth::id())
+        $user = Auth::user();
+        $bookings = Booking::where('user_id', $user->id)
             ->orderBy('event_date', 'desc')
             ->get();
 
-        return view('my-bookings', compact('bookings'));
+        return view('profile', compact('user', 'bookings'));
     }
 
     // Confirm down payment (Admin action)
@@ -118,5 +119,39 @@ class BookingController extends Controller
         ]);
 
         return back()->with('success', 'Down payment confirmed for ' . $booking->user->name . '.');
+    }
+
+    // Submit reschedule request (Client action)
+    public function submitReschedule(Request $request, $id)
+    {
+        $booking = Booking::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        // Prevent submitting if a reschedule is already pending
+        if ($booking->reschedule_status === 'pending') {
+            return back()->withErrors(['reschedule' => 'A reschedule request is already pending for this booking.']);
+        }
+
+        $request->validate([
+            'requested_event_date' => 'required|date|after:today',
+            'requested_visit_date' => 'required|date|after:today|before:requested_event_date',
+            'reschedule_reason'    => 'nullable|string|max:1000',
+        ], [
+            'requested_visit_date.before' => 'The visit date must be before the event date.',
+        ]);
+
+        // Fee: FREE for first reschedule, ₱5,000 for subsequent
+        $fee = $booking->reschedule_count == 0 ? 0 : 5000;
+
+        $booking->update([
+            'reschedule_status'      => 'pending',
+            'requested_event_date'   => $request->requested_event_date,
+            'requested_visit_date'   => $request->requested_visit_date,
+            'reschedule_reason'      => $request->reschedule_reason,
+            'reschedule_fee'         => $fee,
+        ]);
+
+        return back()->with('success', 'Reschedule request submitted successfully.');
     }
 }

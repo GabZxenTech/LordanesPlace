@@ -90,4 +90,68 @@ class BlockedDateController extends Controller
         Booking::findOrFail($id)->delete();
         return back()->with('success', 'Booking deleted successfully.');
     }
+
+    // Show all pending reschedule requests
+    public function rescheduleRequests()
+    {
+        $reschedules = Booking::with('user', 'visitSchedules')
+            ->where('reschedule_status', 'pending')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return view('admin.reschedules', compact('reschedules'));
+    }
+
+    // Approve a reschedule request
+    public function approveReschedule($id)
+    {
+        $booking = Booking::with('visitSchedules')->findOrFail($id);
+
+        if ($booking->reschedule_status !== 'pending') {
+            return back()->withErrors(['error' => 'This reschedule request is not pending.']);
+        }
+
+        // Update the event date
+        $booking->event_date = $booking->requested_event_date;
+
+        // Update or create visit schedule if requested
+        if ($booking->requested_visit_date) {
+            $visit = $booking->visitSchedules->first();
+            if ($visit) {
+                $visit->update([
+                    'visit_date' => $booking->requested_visit_date,
+                    'status'     => 'rescheduled',
+                ]);
+            }
+        }
+
+        // Finalize reschedule
+        $booking->reschedule_count += 1;
+        $booking->reschedule_status = 'approved';
+        $booking->requested_event_date = null;
+        $booking->requested_visit_date = null;
+        $booking->reschedule_reason = null;
+        $booking->save();
+
+        return back()->with('success', 'Reschedule approved. Booking dates updated.');
+    }
+
+    // Reject a reschedule request
+    public function rejectReschedule($id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        if ($booking->reschedule_status !== 'pending') {
+            return back()->withErrors(['error' => 'This reschedule request is not pending.']);
+        }
+
+        $booking->update([
+            'reschedule_status'    => 'rejected',
+            'requested_event_date' => null,
+            'requested_visit_date' => null,
+            'reschedule_reason'    => null,
+        ]);
+
+        return back()->with('success', 'Reschedule request rejected.');
+    }
 }

@@ -127,22 +127,37 @@
                     @endif
                   </td>
                   <td class="p-3 md:px-4 md:py-3.5">
-                    <div class="flex gap-1.5 flex-wrap mb-1">
-                      @if($booking->status === 'pending')
-                        <form method="POST" action="{{ route('admin.booking.approve', $booking->id) }}">@csrf <button type="submit" class="bg-green-400/15 border border-admin-green text-admin-green px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-admin-green hover:text-admin-dark">Approve</button></form>
-                        <form method="POST" action="{{ route('admin.booking.reject', $booking->id) }}">@csrf <button type="submit" class="bg-red-400/15 border border-admin-red text-admin-red px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-admin-red hover:text-white">Reject</button></form>
-                      @endif
-                      @if($booking->payment_status === 'unpaid')
-                        <form method="POST" action="{{ route('admin.booking.confirm-downpayment', $booking->id) }}">
-                          @csrf
-                          <button type="submit" class="bg-admin-gold/20 border border-admin-gold text-admin-gold px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-admin-gold hover:text-admin-dark">Confirm DP</button>
-                        </form>
-                      @endif
+                    <div class="flex gap-1.5 items-center">
                       <button type="button" class="bg-blue-400/15 border border-admin-blue text-admin-blue px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-blue-400 hover:text-white" onclick="openEditModal({{ $booking->id }}, '{{ $booking->package }}', '{{ $booking->event_date->format('Y-m-d') }}', '{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}', '{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}', '{{ $booking->guest_count }}', '{{ addslashes($booking->notes) }}', '{{ $booking->total_amount }}')">Edit</button>
                       <form method="POST" action="{{ route('admin.booking.destroy', $booking->id) }}" onsubmit="return confirm('Are you sure you want to delete this booking?');">
                         @csrf @method('DELETE')
                         <button type="submit" class="bg-transparent border border-admin-red text-admin-red px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-admin-red hover:text-white">Delete</button>
                       </form>
+
+                      {{-- 3-dot menu for status actions --}}
+                      @if($booking->status === 'pending' || $booking->payment_status === 'unpaid')
+                        <div class="relative" id="dotMenu{{ $booking->id }}">
+                          <button type="button" class="bg-admin-gold/10 border border-admin-gold/30 text-admin-gold w-7 h-7 rounded flex items-center justify-center text-[16px] cursor-pointer transition-all hover:bg-admin-gold hover:text-admin-dark" onclick="toggleDotMenu({{ $booking->id }})">⋯</button>
+                          <div class="hidden absolute right-0 top-full mt-1 bg-admin-card border border-admin-gold/30 rounded-lg shadow-lg min-w-[160px] py-1.5 z-[100]" id="dotMenuDropdown{{ $booking->id }}">
+                            @if($booking->status === 'pending')
+                              <form method="POST" action="{{ route('admin.booking.approve', $booking->id) }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-2 text-[13px] text-admin-green bg-transparent border-none cursor-pointer transition-colors hover:bg-admin-gold/10 flex items-center gap-2"><span>✓</span> Approve</button>
+                              </form>
+                              <form method="POST" action="{{ route('admin.booking.reject', $booking->id) }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-2 text-[13px] text-admin-red bg-transparent border-none cursor-pointer transition-colors hover:bg-admin-gold/10 flex items-center gap-2"><span>✕</span> Reject</button>
+                              </form>
+                            @endif
+                            @if($booking->payment_status === 'unpaid')
+                              <form method="POST" action="{{ route('admin.booking.confirm-downpayment', $booking->id) }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-2 text-[13px] text-admin-gold bg-transparent border-none cursor-pointer transition-colors hover:bg-admin-gold/10 flex items-center gap-2"><span>💰</span> Confirm DP</button>
+                              </form>
+                            @endif
+                          </div>
+                        </div>
+                      @endif
                     </div>
                   </td>
                 </tr>
@@ -222,6 +237,29 @@
       document.getElementById('edit_total_amount').value = total;
       document.getElementById('editModal').style.display = 'flex';
     }
+
+    function toggleDotMenu(id) {
+      const dropdown = document.getElementById('dotMenuDropdown' + id);
+      const isHidden = dropdown.classList.contains('hidden');
+      
+      // Close all other dot menus first
+      document.querySelectorAll('[id^="dotMenuDropdown"]').forEach(el => {
+        el.classList.add('hidden');
+      });
+
+      if (isHidden) {
+        dropdown.classList.remove('hidden');
+      }
+    }
+
+    // Close dot menus when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('[id^="dotMenu"]')) {
+        document.querySelectorAll('[id^="dotMenuDropdown"]').forEach(el => {
+          el.classList.add('hidden');
+        });
+      }
+    });
   </script>
 </body>
 </html>

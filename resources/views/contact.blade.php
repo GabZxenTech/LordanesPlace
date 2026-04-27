@@ -13,7 +13,8 @@
 @include('partials._navbar')
 
 <!-- CONTACT HERO -->
-<section class="contact-hero-bg h-[280px] md:h-[350px] flex justify-center items-center text-center text-white px-5 relative">
+<section class="contact-hero-bg h-[280px] md:h-[350px] flex justify-center items-center text-center text-white px-5 relative"
+         style="background: linear-gradient(rgba(26,18,8,0.5), rgba(26,18,8,0.7)), url('{{ asset('images/LORDANES_BG.jpg') }}'); background-size: cover; background-position: center;">
   <div class="gold-divider absolute bottom-0 left-0 right-0"></div>
   <div>
     <p class="text-[11px] md:text-[12px] tracking-[4px] text-gold-light font-bold mb-3">GET IN TOUCH</p>

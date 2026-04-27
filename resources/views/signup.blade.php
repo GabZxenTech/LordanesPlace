@@ -10,7 +10,8 @@
 </head>
 <body class="bg-off-white text-warm-black font-body">
 
-  <section class="auth-bg min-h-screen relative flex items-center justify-center px-5 py-10">
+  <section class="auth-bg min-h-screen relative flex items-center justify-center px-5 py-10"
+           style="background: linear-gradient(rgba(26,18,8,0.7), rgba(26,18,8,0.7)), url('{{ asset('images/LORDANES_BG.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
     <div class="absolute inset-0 bg-gradient-to-r from-warm-black/40 to-warm-black/20"></div>
 
     <div class="relative z-10 w-full max-w-[1150px] grid grid-cols-1 lg:grid-cols-[1fr_470px] gap-10 items-center">

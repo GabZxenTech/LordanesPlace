@@ -314,7 +314,7 @@
         </form>
 
         <div class="mt-6 flex justify-center gap-6">
-            <a href="{{ route('my.bookings') }}" class="text-[13px] text-warm-black/40 hover:text-gold-deep transition-colors font-medium">Skip for now</a>
+            <a href="{{ route('profile') }}" class="text-[13px] text-warm-black/40 hover:text-gold-deep transition-colors font-medium">Skip for now</a>
             <a href="{{ route('home') }}" class="text-[13px] text-warm-black/40 hover:text-gold-deep transition-colors font-medium">Back to Home</a>
         </div>
     </div>
@@ -323,12 +323,13 @@
 
 <!-- FINAL VISIT SUCCESS MODAL -->
 <div class="modal-overlay hidden fixed inset-0 bg-black/70 z-[9999] items-center justify-center {{ session('visit_success') ? 'open' : '' }}" id="visitSuccessModal" style="display:none; {{ session('visit_success') ? 'display:flex;' : '' }}">
-  <div class="modal-box bg-off-white border border-gold-deep/25 rounded-2xl p-10 md:p-12 text-center max-w-[460px] w-[90%]">
+  <div class="modal-box bg-off-white border border-gold-deep/25 rounded-2xl p-10 md:p-12 text-center max-w-[460px] w-[90%] relative">
+    <button type="button" onclick="document.getElementById('visitSuccessModal').style.display='none'" class="absolute top-4 right-4 text-warm-black/40 hover:text-warm-black text-[22px] bg-transparent border-none cursor-pointer leading-none transition-colors">✕</button>
     <div class="text-[56px] mb-4">✨</div>
-    <h2 class="font-heading text-[26px] md:text-[28px] font-bold text-gold-deep mb-3">All Set!</h2>
+    <h2 class="font-heading text-[26px] md:text-[28px] font-bold text-gold-deep mb-3">Thank You!</h2>
     <p class="text-warm-black/90 text-[16px] leading-[1.7] mb-6">Thank you! Your visit has been scheduled. We look forward to seeing you at LorDane's Place soon!</p>
     <div class="flex gap-3 justify-center flex-wrap">
-      <a href="{{ route('my.bookings') }}" class="bg-gold-deep text-white px-6 py-2.5 rounded-md no-underline font-bold text-[15px] tracking-[1px] transition-all hover:bg-gold-mid">GO TO MY BOOKINGS</a>
+      <a href="{{ route('profile') }}" class="bg-gold-deep text-white px-6 py-2.5 rounded-md no-underline font-bold text-[15px] tracking-[1px] transition-all hover:bg-gold-mid">GO TO MY PROFILE</a>
     </div>
   </div>
 </div>

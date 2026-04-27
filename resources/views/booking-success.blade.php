@@ -31,7 +31,7 @@
       </div>
     @endif
     <div class="flex gap-3 justify-center flex-wrap">
-      <a href="{{ route('my.bookings') }}" class="bg-gold-deep text-white px-5 md:px-6 py-3 rounded-md no-underline font-bold text-[15px] tracking-[1px] transition-all hover:bg-gold-mid">VIEW MY BOOKINGS</a>
+      <a href="{{ route('profile') }}" class="bg-gold-deep text-white px-5 md:px-6 py-3 rounded-md no-underline font-bold text-[15px] tracking-[1px] transition-all hover:bg-gold-mid">VIEW MY PROFILE</a>
       <a href="{{ route('home') }}" class="bg-transparent border border-warm-black/25 text-warm-black/90 px-5 md:px-6 py-3 rounded-md no-underline text-[15px] transition-all hover:border-warm-black hover:text-warm-black">Back to Home</a>
     </div>
   </div>

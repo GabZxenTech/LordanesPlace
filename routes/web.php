@@ -53,7 +53,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/booking', [BookingController::class, 'index'])->name('booking');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/success', [BookingController::class, 'success'])->name('booking.success');
-    Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('my.bookings');
+    Route::get('/profile', [BookingController::class, 'profile'])->name('profile');
+    Route::get('/terms-and-conditions', function() { return view('terms'); })->name('terms');
 
     // Visit Schedule routes
     Route::get('/visit-schedule/create', [VisitScheduleController::class, 'create'])->name('visit-schedule.create');
@@ -62,6 +63,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Receipt route
     Route::get('/bookings/{booking}/receipt', [ReceiptController::class, 'download'])->name('booking.receipt');
+
+    // Reschedule request (client)
+    Route::post('/booking/{id}/reschedule', [BookingController::class, 'submitReschedule'])->name('booking.reschedule');
 });
 
 use App\Http\Controllers\Admin\PackageController;
@@ -88,6 +92,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/packages', [PackageController::class, 'store'])->name('packages.store');
     Route::put('/packages/{id}', [PackageController::class, 'update'])->name('packages.update');
     Route::delete('/packages/{id}', [PackageController::class, 'destroy'])->name('packages.destroy');
+
+    // Reschedule management (admin)
+    Route::get('/reschedules', [BlockedDateController::class, 'rescheduleRequests'])->name('reschedules.index');
+    Route::post('/reschedule/{id}/approve', [BlockedDateController::class, 'approveReschedule'])->name('reschedule.approve');
+    Route::post('/reschedule/{id}/reject', [BlockedDateController::class, 'rejectReschedule'])->name('reschedule.reject');
 
     // Chat Admin routes
     Route::get('/chat', [App\Http\Controllers\ChatController::class, 'adminConversations'])->name('chat.index');

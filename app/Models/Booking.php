@@ -21,11 +21,19 @@ class Booking extends Model
         'payment_status',
         'down_payment_paid_at',
         'booking_number',
+        'reschedule_count',
+        'reschedule_status',
+        'requested_event_date',
+        'requested_visit_date',
+        'reschedule_reason',
+        'reschedule_fee',
     ];
 
     protected $casts = [
         'event_date' => 'date',
         'down_payment_paid_at' => 'datetime',
+        'requested_event_date' => 'date',
+        'requested_visit_date' => 'date',
     ];
 
     public function user()
