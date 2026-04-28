@@ -41,6 +41,7 @@ class BookingController extends Controller
             'guest_count' => 'required|integer|min:1',
             'notes'       => 'nullable|string|max:1000',
             'total_amount' => 'required|numeric|min:0',
+            'terms'        => 'accepted',
         ]);
 
         $downPaymentAmount = $request->total_amount * 0.20;

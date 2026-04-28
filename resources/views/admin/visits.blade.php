@@ -6,128 +6,142 @@
   <title>Visit Schedules | Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
+  <style>
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+  </style>
 </head>
-<body class="admin-page bg-admin-dark text-admin-cream font-body min-h-screen">
+<body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
 
-  @include('partials._admin-header')
+  @include('partials._admin-sidebar')
 
-  <div class="p-5 md:p-10">
-    <div class="flex justify-between items-center mb-8">
-        <h2 class="font-heading text-[24px] md:text-[28px] text-admin-gold">Visit Schedules</h2>
+  <main style="flex: 1; padding: 40px 48px; min-height: 100vh; overflow-y: auto;">
+    <div style="margin-bottom: 32px;">
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; color: #2c1a0e; margin: 0 0 4px;">Visit Schedules</h1>
+      <p style="font-size: 12px; letter-spacing: 3px; color: #8a6a40; text-transform: uppercase; font-weight: 600; margin: 0;">Manage Venue Walkthroughs</p>
     </div>
 
     @if(session('success'))
-      <div class="bg-green-400/15 border border-admin-green text-admin-green px-5 py-3 rounded-md mb-6 text-[16px]">✓ {{ session('success') }}</div>
+      <div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 15px;">✓ {{ session('success') }}</div>
     @endif
 
-    <div class="bg-admin-card border border-admin-gold/20 rounded-lg overflow-hidden">
-      <div class="p-4 md:p-5 border-b border-admin-gold/20 bg-admin-secondary">
-        <h2 class="text-[12px] md:text-[15px] tracking-[2px] text-admin-gold font-bold">ALL SCHEDULED VISITS</h2>
+    <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; overflow: hidden;">
+      <div style="padding: 18px 24px; border-bottom: 1px solid #d4c4a0; background: #f5edd8;">
+        <h2 style="font-size: 12px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0;">All Scheduled Visits</h2>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full border-collapse">
-          <thead class="bg-admin-secondary">
-            <tr>
-              <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">CLIENT</th>
-              <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">BOOKING</th>
-              <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">VISIT DATE</th>
-              <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">NOTES</th>
-              <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">STATUS</th>
-              <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">ACTION</th>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 1px solid #d4c4a0;">
+              <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">CLIENT</th>
+              <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">BOOKING</th>
+              <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">VISIT DATE</th>
+              <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">STATUS</th>
+              <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">ACTION</th>
             </tr>
           </thead>
           <tbody>
             @forelse($visits as $visit)
-              <tr class="border-b border-admin-gold/10 transition-colors hover:bg-admin-gold/5">
-                <td class="p-3 md:px-4 md:py-3.5">
-                    <div class="text-[15px] text-admin-cream font-bold">{{ $visit->user->name }}</div>
-                    <div class="text-[12px] text-admin-cream-dim">{{ $visit->user->email }}</div>
+              <tr style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
+                <td style="padding: 14px 20px;">
+                  <div style="font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $visit->user->name }}</div>
+                  <div style="font-size: 12px; color: #8a6a40;">{{ $visit->user->email }}</div>
                 </td>
-                <td class="p-3 md:px-4 md:py-3.5">
-                    <div class="text-[14px] text-admin-cream">{{ $visit->booking->event_type }}</div>
-                    <div class="text-[12px] text-admin-gold font-bold">Event: {{ $visit->booking->event_date->format('M d, Y') }}</div>
+                <td style="padding: 14px 20px;">
+                  <div style="font-size: 14px; color: #2c1a0e;">{{ $visit->booking->event_type }}</div>
+                  <div style="font-size: 11px; color: #c9a84c; font-weight: 700;">Event: {{ $visit->booking->event_date->format('M d, Y') }}</div>
                 </td>
-                <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream">
-                    {{ $visit->visit_date->format('M d, Y') }}<br>
-                    <span class="text-[12px] text-admin-cream-dim">{{ $visit->visit_date->format('h:i A') }}</span>
+                <td style="padding: 14px 20px;">
+                  <div style="font-size: 14px; color: #2c1a0e; font-weight: 600;">{{ $visit->visit_date->format('M d, Y') }}</div>
+                  <div style="font-size: 11px; color: #8a6a40;">{{ $visit->visit_date->format('h:i A') }}</div>
                 </td>
-                <td class="p-3 md:px-4 md:py-3.5 text-[14px] text-admin-cream-dim">
-                    <div class="max-w-[200px] whitespace-normal">{{ $visit->notes ?? 'None' }}</div>
+                <td style="padding: 14px 20px;">
+                  @php
+                    $visitStatusColors = [
+                      'pending' => ['bg' => '#fff3cd', 'text' => '#856404', 'border' => '#ffeeba'],
+                      'confirmed' => ['bg' => '#d4edda', 'text' => '#155724', 'border' => '#c3e6cb'],
+                      'rescheduled' => ['bg' => '#e1f5fe', 'text' => '#0277bd', 'border' => '#b3e5fc'],
+                      'completed' => ['bg' => '#f5f0e8', 'text' => '#8a6a40', 'border' => '#d4c4a0']
+                    ];
+                    $vColors = $visitStatusColors[$visit->status] ?? $visitStatusColors['pending'];
+                  @endphp
+                  <span style="display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; background: {{ $vColors['bg'] }}; color: {{ $vColors['text'] }}; border: 1px solid {{ $vColors['border'] }}; text-transform: capitalize;">
+                    {{ $visit->status }}
+                  </span>
                 </td>
-                <td class="p-3 md:px-4 md:py-3.5">
+                <td style="padding: 14px 20px;">
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     @if($visit->status === 'pending')
-                      <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold bg-yellow-400/15 text-admin-yellow border border-admin-yellow">⏳ Pending</span>
-                    @elseif($visit->status === 'confirmed')
-                      <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-400/15 text-admin-green border border-admin-green">✓ Confirmed</span>
-                    @elseif($visit->status === 'rescheduled')
-                      <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-400/15 text-admin-blue border border-admin-blue">🔄 Rescheduled</span>
-                    @else
-                      <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/10 text-admin-cream-dim border border-admin-cream-dim">Completed</span>
+                      <form method="POST" action="{{ route('admin.visits.confirm', $visit->id) }}">
+                        @csrf
+                        <button type="submit" style="background: transparent; border: 1px solid #28a745; color: #28a745; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#28a745'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#28a745';">Confirm</button>
+                      </form>
                     @endif
-                </td>
-                <td class="p-3 md:px-4 md:py-3.5">
-                    <div class="flex gap-2 flex-wrap">
-                        @if($visit->status === 'pending')
-                          <form method="POST" action="{{ route('admin.visits.confirm', $visit->id) }}">
-                            @csrf
-                            <button type="submit" class="bg-green-400/15 border border-admin-green text-admin-green px-2.5 py-1 rounded text-[11px] cursor-pointer hover:bg-admin-green hover:text-admin-dark transition-all">Confirm</button>
-                          </form>
-                        @endif
-                        
-                        @if($visit->status !== 'completed')
-                          <button type="button" class="bg-blue-400/15 border border-admin-blue text-admin-blue px-2.5 py-1 rounded text-[11px] cursor-pointer hover:bg-admin-blue hover:text-white transition-all" 
-                            onclick="openRescheduleModal({{ $visit->id }}, '{{ $visit->visit_date->format('Y-m-d\TH:i') }}', '{{ $visit->booking->event_date->format('Y-m-d') }}')">
-                            Reschedule
-                          </button>
-                          <form method="POST" action="{{ route('admin.visits.complete', $visit->id) }}">
-                             @csrf
-                             <button type="submit" class="bg-white/10 border border-admin-cream-dim text-admin-cream-dim px-2.5 py-1 rounded text-[11px] cursor-pointer hover:bg-admin-cream-dim hover:text-admin-dark transition-all">Complete</button>
-                          </form>
-                        @endif
-                    </div>
+                    
+                    @if($visit->status !== 'completed')
+                      <button type="button" 
+                        class="open-visit-modal-btn"
+                        style="background: transparent; border: 1px solid #3498db; color: #3498db; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;" 
+                        data-id="{{ $visit->id }}"
+                        data-current="{{ $visit->visit_date->format('Y-m-d\TH:i') }}"
+                        data-event-date="{{ $visit->booking->event_date->format('Y-m-d') }}"
+                        onmouseover="this.style.background='#3498db'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#3498db';">
+                        Reschedule
+                      </button>
+                      
+                      <form method="POST" action="{{ route('admin.visits.complete', $visit->id) }}">
+                        @csrf
+                        <button type="submit" style="background: transparent; border: 1px solid #8a6a40; color: #8a6a40; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#8a6a40'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#8a6a40';">Complete</button>
+                      </form>
+                    @endif
+                  </div>
                 </td>
               </tr>
             @empty
-              <tr><td colspan="6" class="text-center py-10 text-admin-cream-dim text-[16px]">No scheduled visits yet.</td></tr>
+              <tr><td colspan="5" style="text-align: center; padding: 60px; color: #8a6a40; font-size: 16px;">No visits scheduled.</td></tr>
             @endforelse
           </tbody>
         </table>
       </div>
     </div>
-  </div>
+  </main>
 
-  <!-- RESCHEDULE MODAL -->
-  <div class="modal-overlay hidden fixed inset-0 bg-black/80 z-[1000] items-center justify-center flex" id="rescheduleModal" style="display:none;">
-    <div class="bg-admin-card border border-admin-gold/30 rounded-lg p-6 md:p-8 w-[90%] max-w-[400px]">
-      <div class="text-[18px] text-admin-gold mb-5 font-bold font-heading uppercase tracking-[1px]">Reschedule Visit</div>
-      <form method="POST" action="" id="rescheduleForm">
+  {{-- VISIT RESCHEDULE MODAL --}}
+  <div id="visitModal" class="modal-overlay">
+    <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 40px; width: 100%; max-width: 400px;">
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 700; color: #2c1a0e; margin: 0 0 24px; text-transform: uppercase; letter-spacing: 1px;">Reschedule Visit</h2>
+      <form method="POST" action="" id="visitForm">
         @csrf
-        <div class="mb-5">
-          <label class="block text-[12px] tracking-[1px] text-admin-gold mb-2 font-bold uppercase">New Visit Date & Time</label>
-          <input type="datetime-local" name="visit_date" id="reschedule_date" required class="w-full bg-admin-secondary border border-admin-gold/30 text-admin-cream px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-admin-gold font-body" />
-          <p id="reschedule_warning" class="mt-2 text-[11px] text-admin-red hidden">Must be before the event date.</p>
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">New Date & Time</label>
+          <input type="datetime-local" name="visit_date" id="visit_date_input" required 
+            style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
         </div>
-        <div class="flex gap-3 justify-end">
-          <button type="button" class="bg-transparent border border-admin-cream-dim text-admin-cream-dim px-5 py-2.5 rounded-md cursor-pointer text-[15px]" onclick="document.getElementById('rescheduleModal').style.display='none'">Cancel</button>
-          <button type="submit" class="bg-admin-gold text-admin-dark border-none px-5 py-2.5 rounded-md font-bold cursor-pointer text-[15px]">Save New Date</button>
+        <div style="display: flex; gap: 12px;">
+          <button type="submit" style="flex: 1; background: #c9a84c; color: #2c1a0e; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif;">Save Date</button>
+          <button type="button" style="flex: 1; border: 1px solid #d4c4a0; background: transparent; color: #8a6a40; padding: 14px; border-radius: 6px; font-size: 14px; cursor: pointer;" onclick="document.getElementById('visitModal').classList.remove('open')">Cancel</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    function openRescheduleModal(id, current, eventDate) {
-      const modal = document.getElementById('rescheduleModal');
-      const form = document.getElementById('rescheduleForm');
-      const dateInput = document.getElementById('reschedule_date');
-      
-      form.action = '/admin/visits/' + id + '/reschedule';
-      dateInput.value = current;
-      dateInput.max = eventDate + 'T00:00';
-      
-      modal.style.display = 'flex';
+  <script>
+    document.querySelectorAll('.open-visit-modal-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        const current = this.getAttribute('data-current');
+        const eventDate = this.getAttribute('data-event-date');
+        openVisitModal(id, current, eventDate);
+      });
+    });
+
+    function openVisitModal(id, current, eventDate) {
+      document.getElementById('visitForm').action = '{{ url("admin/visits") }}/' + id + '/reschedule';
+      document.getElementById('visit_date_input').value = current;
+      document.getElementById('visit_date_input').max = eventDate + 'T23:59';
+      document.getElementById('visitModal').classList.add('open');
     }
   </script>
-
 </body>
 </html>

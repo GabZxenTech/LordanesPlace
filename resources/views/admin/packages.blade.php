@@ -7,122 +7,151 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="admin-page bg-admin-dark text-admin-cream font-body min-h-screen">
+<body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
 
-  @include('partials._admin-header')
+  @include('partials._admin-sidebar')
 
-  <div class="p-5 md:p-10">
-    <h2 class="font-heading text-[24px] md:text-[28px] text-admin-gold mb-6 md:mb-8">Packages Management</h2>
+  <main style="flex: 1; padding: 40px 48px; min-height: 100vh; overflow-y: auto;">
+    <div style="margin-bottom: 32px;">
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; color: #2c1a0e; margin: 0 0 4px;">Packages Management</h1>
+      <p style="font-size: 12px; letter-spacing: 3px; color: #8a6a40; text-transform: uppercase; font-weight: 600; margin: 0;">Create and manage event packages</p>
+    </div>
 
     @if(session('success'))
-      <div class="bg-green-400/15 border border-green-400 text-green-400 px-5 py-3 rounded-md mb-5 text-[16px]">✓ {{ session('success') }}</div>
+      <div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 15px;">✓ {{ session('success') }}</div>
     @endif
     @if($errors->any())
-      <div class="bg-red-500/15 border border-red-500 text-red-400 p-3 rounded-md mb-5">
-        @foreach($errors->all() as $err) <div class="text-[15px]">{{ $err }}</div> @endforeach
+      <div style="background: #f8d7da; border: 1px solid #dc3545; color: #721c24; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px;">
+        @foreach($errors->all() as $err) <div style="font-size: 14px;">{{ $err }}</div> @endforeach
       </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 md:gap-8">
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 28px;">
 
-      <!-- CREATE PACKAGE FORM -->
-      <div>
-        <div class="bg-admin-card border border-admin-gold/20 rounded-lg overflow-hidden" id="form-card">
-          <div class="p-4 md:p-5 border-b border-admin-gold/20 bg-admin-secondary">
-            <h2 class="text-[12px] md:text-[15px] tracking-[2px] text-admin-gold font-bold uppercase" id="form-title">ADD NEW PACKAGE</h2>
-          </div>
-          <div class="p-5 md:p-6">
-            <form method="POST" action="{{ route('admin.packages.store') }}" id="package-form">
-              @csrf
-              <input type="hidden" name="_method" id="form-method" value="POST">
-              <div class="mb-4">
-                <label class="block text-[12px] tracking-[1px] text-admin-gold mb-2 font-bold">Package Name</label>
-                <input type="text" name="name" id="pkg-name" required placeholder="e.g. Basic, Standard"
-                  class="w-full bg-admin-secondary border border-admin-gold/30 text-admin-cream px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-admin-gold font-body placeholder:text-admin-cream-dim" />
-              </div>
-              <div class="mb-4">
-                <label class="block text-[12px] tracking-[1px] text-admin-gold mb-2 font-bold">Price (₱)</label>
-                <input type="number" name="price" id="pkg-price" required min="0" step="0.01"
-                  class="w-full bg-admin-secondary border border-admin-gold/30 text-admin-cream px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-admin-gold font-body" />
-              </div>
-              <div class="mb-4">
-                <label class="block text-[12px] tracking-[1px] text-admin-gold mb-2 font-bold">Max Guests</label>
-                <input type="number" name="max_guests" id="pkg-guests" required min="1"
-                  class="w-full bg-admin-secondary border border-admin-gold/30 text-admin-cream px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-admin-gold font-body" />
-              </div>
-              <div class="mb-4">
-                <label class="block text-[12px] tracking-[1px] text-admin-gold mb-2 font-bold">Duration</label>
-                <input type="text" name="duration" id="pkg-duration" placeholder="e.g. 4 hours"
-                  class="w-full bg-admin-secondary border border-admin-gold/30 text-admin-cream px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-admin-gold font-body placeholder:text-admin-cream-dim" />
-              </div>
-              <div class="mb-5">
-                <label class="block text-[12px] tracking-[1px] text-admin-gold mb-2 font-bold">Description</label>
-                <textarea name="description" id="pkg-desc" rows="3" placeholder="Brief details..."
-                  class="w-full bg-admin-secondary border border-admin-gold/30 text-admin-cream px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-admin-gold font-body resize-y placeholder:text-admin-cream-dim"></textarea>
-              </div>
-              <button type="submit" class="w-full bg-admin-gold text-admin-dark border-none py-3 rounded-md font-bold text-[15px] tracking-[1px] cursor-pointer transition-opacity hover:opacity-85" id="submit-btn">CREATE PACKAGE</button>
-              <button type="button" id="cancel-edit-btn" onclick="cancelEdit()" class="w-full bg-transparent border border-admin-gold text-admin-gold py-3 rounded-md font-bold text-[15px] tracking-[1px] cursor-pointer mt-2.5 hidden">CANCEL EDIT</button>
-            </form>
-          </div>
+      {{-- CREATE/EDIT FORM --}}
+      <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; overflow: hidden; align-self: start;" id="form-card">
+        <div style="padding: 18px 24px; border-bottom: 1px solid #d4c4a0; background: #f5edd8;">
+          <h2 style="font-size: 12px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0;" id="form-title">ADD NEW PACKAGE</h2>
+        </div>
+        <div style="padding: 24px;">
+          <form method="POST" action="{{ route('admin.packages.store') }}" id="package-form">
+            @csrf
+            <input type="hidden" name="_method" id="form-method" value="POST">
+            <div style="margin-bottom: 16px;">
+              <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Package Name</label>
+              <input type="text" name="name" id="pkg-name" required placeholder="e.g. Basic, Standard"
+                style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
+                onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
+            </div>
+            <div style="margin-bottom: 16px;">
+              <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Price (₱)</label>
+              <input type="number" name="price" id="pkg-price" required min="0" step="0.01"
+                style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
+                onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
+            </div>
+            <div style="margin-bottom: 16px;">
+              <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Max Guests</label>
+              <input type="number" name="max_guests" id="pkg-guests" required min="1"
+                style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
+                onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
+            </div>
+            <div style="margin-bottom: 16px;">
+              <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Duration</label>
+              <input type="text" name="duration" id="pkg-duration" placeholder="e.g. 4 hours"
+                style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
+                onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
+            </div>
+            <div style="margin-bottom: 20px;">
+              <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Description</label>
+              <textarea name="description" id="pkg-desc" rows="3" placeholder="Brief details..."
+                style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; resize: vertical; box-sizing: border-box;"
+                onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'"></textarea>
+            </div>
+            <button type="submit" style="width: 100%; background: #c9a84c; color: #2c1a0e; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 14px; letter-spacing: 1px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif;" id="submit-btn" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">CREATE PACKAGE</button>
+            <button type="button" id="cancel-edit-btn" onclick="cancelEdit()" style="width: 100%; border: 1px solid #c9a84c; background: transparent; color: #c9a84c; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 14px; letter-spacing: 1px; cursor: pointer; margin-top: 10px; display: none; font-family: 'Jost', sans-serif;">CANCEL EDIT</button>
+          </form>
         </div>
       </div>
 
-      <!-- PACKAGES TABLE -->
-      <div class="bg-admin-card border border-admin-gold/20 rounded-lg overflow-hidden">
-        <div class="p-4 md:p-5 border-b border-admin-gold/20 bg-admin-secondary">
-          <h2 class="text-[12px] md:text-[15px] tracking-[2px] text-admin-gold font-bold">ALL PACKAGES</h2>
+      {{-- PACKAGES TABLE --}}
+      <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; overflow: hidden; align-self: start;">
+        <div style="padding: 18px 24px; border-bottom: 1px solid #d4c4a0; background: #f5edd8;">
+          <h2 style="font-size: 12px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0;">ALL PACKAGES</h2>
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse">
-            <thead class="bg-admin-secondary">
-              <tr>
-                <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">NAME</th>
-                <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">PRICE</th>
-                <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold hidden md:table-cell">CAPACITY</th>
-                <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold hidden md:table-cell">DURATION</th>
-                <th class="p-3 md:px-4 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">ACTIONS</th>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 1px solid #d4c4a0;">
+                <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">NAME</th>
+                <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">PRICE</th>
+                <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">CAPACITY</th>
+                <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">DURATION</th>
+                <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               @forelse($packages as $pkg)
-                <tr class="border-b border-admin-gold/10 transition-colors hover:bg-admin-gold/5">
-                  <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream font-bold">{{ $pkg->name }}</td>
-                  <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream-dim">₱{{ number_format($pkg->price, 2) }}</td>
-                  <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream-dim hidden md:table-cell">{{ $pkg->max_guests }}</td>
-                  <td class="p-3 md:px-4 md:py-3.5 text-[15px] text-admin-cream-dim hidden md:table-cell">{{ $pkg->duration ?? 'N/A' }}</td>
-                  <td class="p-3 md:px-4 md:py-3.5">
-                    <div class="flex gap-1.5">
-                      <button type="button" class="bg-blue-400/15 border border-admin-blue text-admin-blue px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-admin-blue hover:text-white" onclick="editPackage({{ $pkg->id }}, '{{ addslashes($pkg->name) }}', '{{ $pkg->price }}', '{{ $pkg->max_guests }}', '{{ addslashes($pkg->duration) }}', '{{ addslashes($pkg->description) }}')">Edit</button>
-                      <form method="POST" action="{{ route('admin.packages.destroy', $pkg->id) }}" onsubmit="return confirm('Are you sure you want to delete this package?');">
+                <tr style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
+                  <td style="padding: 14px 20px; font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $pkg->name }}</td>
+                  <td style="padding: 14px 20px; font-size: 15px; color: #8a6a40;">₱{{ number_format($pkg->price, 2) }}</td>
+                  <td style="padding: 14px 20px; font-size: 15px; color: #8a6a40;">{{ $pkg->max_guests }}</td>
+                  <td style="padding: 14px 20px; font-size: 15px; color: #8a6a40;">{{ $pkg->duration ?? 'N/A' }}</td>
+                  <td style="padding: 14px 20px;">
+                    <div style="display: flex; gap: 6px;">
+                      <button type="button" 
+                        class="edit-pkg-btn"
+                        style="background: transparent; border: 1px solid #c9a84c; color: #c9a84c; padding: 6px 14px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Jost', sans-serif;" 
+                        data-id="{{ $pkg->id }}"
+                        data-name="{{ $pkg->name }}"
+                        data-price="{{ $pkg->price }}"
+                        data-guests="{{ $pkg->max_guests }}"
+                        data-duration="{{ $pkg->duration }}"
+                        data-desc="{{ $pkg->description }}"
+                        onmouseover="this.style.background='#c9a84c'; this.style.color='#fff9ef';" onmouseout="this.style.background='transparent'; this.style.color='#c9a84c';">
+                        Edit
+                      </button>
+                      <form method="POST" action="{{ route('admin.packages.destroy', $pkg->id) }}" onsubmit="return confirm('Delete this package?');">
                         @csrf @method('DELETE')
-                        <button type="submit" class="bg-red-400/15 border border-admin-red text-admin-red px-2.5 py-1 rounded text-[11px] cursor-pointer transition-all hover:bg-admin-red hover:text-white">Delete</button>
+                        <button type="submit" style="background: transparent; border: 1px solid #e74c3c; color: #e74c3c; padding: 6px 14px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Jost', sans-serif;" onmouseover="this.style.background='#e74c3c'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#e74c3c';">Delete</button>
                       </form>
                     </div>
                   </td>
                 </tr>
               @empty
-                <tr><td colspan="5" class="text-center py-10 text-admin-cream-dim text-[16px]">No packages found.</td></tr>
+                <tr><td colspan="5" style="text-align: center; padding: 50px; color: #8a6a40; font-size: 15px;">No packages found.</td></tr>
               @endforelse
             </tbody>
           </table>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
   <script>
+    document.querySelectorAll('.edit-pkg-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        const name = this.getAttribute('data-name');
+        const price = this.getAttribute('data-price');
+        const maxGuests = this.getAttribute('data-guests');
+        const duration = this.getAttribute('data-duration');
+        const desc = this.getAttribute('data-desc');
+        editPackage(id, name, price, maxGuests, duration, desc);
+      });
+    });
+
     function editPackage(id, name, price, maxGuests, duration, desc) {
       document.getElementById('form-title').innerText = 'EDIT PACKAGE';
       document.getElementById('submit-btn').innerText = 'UPDATE PACKAGE';
       const form = document.getElementById('package-form');
-      form.action = '/admin/packages/' + id;
+      form.action = '{{ url("admin/packages") }}/' + id;
       document.getElementById('form-method').value = 'PUT';
       document.getElementById('pkg-name').value = name;
       document.getElementById('pkg-price').value = price;
       document.getElementById('pkg-guests').value = maxGuests;
       document.getElementById('pkg-duration').value = duration;
       document.getElementById('pkg-desc').value = desc;
-      document.getElementById('cancel-edit-btn').classList.remove('hidden');
+      document.getElementById('cancel-edit-btn').style.display = 'block';
       window.scrollTo(0, 0);
     }
 
@@ -133,7 +162,7 @@
       form.action = '{{ route("admin.packages.store") }}';
       document.getElementById('form-method').value = 'POST';
       form.reset();
-      document.getElementById('cancel-edit-btn').classList.add('hidden');
+      document.getElementById('cancel-edit-btn').style.display = 'none';
     }
   </script>
 </body>

@@ -52,7 +52,7 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; padding: 0 0.5rem;">
-      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 700; color: #1a1a1a; margin: 0;">My Bookings</h2>
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2.25rem; font-weight: 700; color: #1a1a1a; margin: 0;">My Bookings</h2>
       <p style="font-size: 11px; font-weight: 900; color: #a88a4c90; text-transform: uppercase; letter-spacing: 0.2em; border-bottom: 2px solid #a88a4c40; padding-bottom: 0.5rem;">{{ $bookings->count() }} TOTAL RECORDS</p>
     </div>
 
@@ -72,7 +72,7 @@
                 $sColor = $booking->status === 'approved' ? '#10b981' : ($booking->status === 'pending' ? '#f59e0b' : '#ef4444');
                 $pColor = $booking->payment_status === 'fully_paid' ? '#3b82f6' : ($booking->payment_status === 'partially_paid' ? '#10b981' : '#ef4444');
               @endphp
-              <span style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; background: {{ $sColor }}10; color: {{ $sColor }}; border: 1px solid {{ $sColor }}20;">{{ $booking->status }}</span>
+              <span style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; background: {{ $sColor }}10; color: {{ $sColor }}; border: 1px solid {{ $sColor }}20;">{{ $booking->status === 'pending' ? 'Awaiting Confirmation' : $booking->status }}</span>
               <span style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; background: {{ $pColor }}10; color: {{ $pColor }}; border: 1px solid {{ $pColor }}20;">{{ str_replace('_', ' ', $booking->payment_status) }}</span>
             </div>
           </div>
@@ -81,35 +81,35 @@
           <div style="padding: 3rem;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem; margin-bottom: 4rem;">
               <div>
-                <p style="font-size: 11px; font-weight: 900; color: #a88a4c; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">The Event Package</p>
-                <p style="font-size: 20px; font-weight: 700; color: #1a1a1a;">{{ $booking->event_type }} ({{ $booking->package }})</p>
+                <p style="font-size: 11px; font-weight: 700; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 0.75rem;">The Event Package</p>
+                <p style="font-family: 'Jost', sans-serif; font-size: 18px; font-weight: 600; color: #1a1a1a;">{{ $booking->event_type }} ({{ $booking->package }})</p>
               </div>
               <div>
-                <p style="font-size: 11px; font-weight: 900; color: #a88a4c; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Date of Celebration</p>
-                <p style="font-size: 20px; font-weight: 700; color: #1a1a1a;">{{ $booking->event_date->format('F d, Y') }}</p>
+                <p style="font-size: 11px; font-weight: 700; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 0.75rem;">Date of Celebration</p>
+                <p style="font-family: 'Jost', sans-serif; font-size: 18px; font-weight: 600; color: #1a1a1a;">{{ $booking->event_date->format('F d, Y') }}</p>
               </div>
               <div>
-                <p style="font-size: 11px; font-weight: 900; color: #a88a4c; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Event Schedule</p>
-                <p style="font-size: 20px; font-weight: 700; color: #1a1a1a;">{{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}</p>
+                <p style="font-size: 11px; font-weight: 700; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 0.75rem;">Event Schedule</p>
+                <p style="font-family: 'Jost', sans-serif; font-size: 18px; font-weight: 600; color: #1a1a1a;">{{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}</p>
               </div>
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem; padding-bottom: 3rem; border-bottom: 1px solid #a88a4c08;">
               <div>
-                <p style="font-size: 11px; font-weight: 900; color: #a88a4c; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Guest Accommodation</p>
-                <p style="font-size: 20px; font-weight: 700; color: #1a1a1a;">{{ $booking->guest_count }} Guests Expected</p>
+                <p style="font-size: 11px; font-weight: 700; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 0.75rem;">Guest Accommodation</p>
+                <p style="font-family: 'Jost', sans-serif; font-size: 18px; font-weight: 600; color: #1a1a1a;">{{ $booking->guest_count }} Guests Expected</p>
               </div>
               <div>
-                <p style="font-size: 11px; font-weight: 900; color: #a88a4c; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Total Investment</p>
-                <p style="font-size: 20px; font-weight: 700; color: #a88a4c;">₱{{ number_format($booking->total_amount, 2) }}</p>
+                <p style="font-size: 11px; font-weight: 700; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 0.75rem;">Total Investment</p>
+                <p style="font-family: 'Jost', sans-serif; font-size: 18px; font-weight: 700; color: #a88a4c;">₱{{ number_format($booking->total_amount, 2) }}</p>
               </div>
               <div>
-                <p style="font-size: 11px; font-weight: 900; color: #a88a4c; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Venue Visit</p>
+                <p style="font-size: 11px; font-weight: 700; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 0.75rem;">Venue Visit</p>
                 @php $visit = $booking->visitSchedules->first(); @endphp
                 @if($visit)
                   <p style="font-size: 18px; font-weight: 700; color: #1a1a1a;">{{ $visit->visit_date->format('M d, Y @ h:i A') }}</p>
-                  <p style="font-size: 10px; font-weight: 900; text-transform: uppercase; color: {{ $visit->status === 'confirmed' ? '#a88a4c' : '#1a1a1a40' }}; letter-spacing: 0.05em; margin-top: 0.25rem;">
-                    {{ $visit->status === 'confirmed' ? '✦ Appointment Confirmed' : 'Awaiting confirmation' }}
+                  <p style="font-size: 10px; font-weight: 900; text-transform: uppercase; color: {{ $visit->status === 'confirmed' ? '#a88a4c' : '#C9A84C' }}; letter-spacing: 0.05em; margin-top: 0.25rem;">
+                    {{ $visit->status === 'confirmed' ? '✦ Appointment Confirmed' : '✦ Awaiting Confirmation' }}
                   </p>
                 @else
                   <a href="{{ route('visit-schedule.create', ['booking' => $booking->id]) }}" style="color: #a88a4c; font-weight: 900; font-size: 13px; text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 2px solid #a88a4c30; padding-bottom: 2px;">Schedule Walkthrough &rarr;</a>
@@ -118,11 +118,15 @@
             </div>
 
             <div style="margin-top: 2.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
-              <a href="{{ route('booking.receipt', $booking->id) }}" style="background: #1a1a1a; color: white; padding: 0.85rem 2rem; border-radius: 2px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; transition: 0.3s;">Receipt PDF</a>
+              <a href="{{ route('booking.receipt', $booking->id) }}" style="border: 2px solid #B8860B; color: #B8860B; background: transparent; padding: 0.85rem 2rem; border-radius: 2px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; transition: 0.3s; display: inline-block;" onmouseover="this.style.background='#B8860B'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#B8860B';">Receipt PDF</a>
               @if($booking->status === 'approved' && $booking->reschedule_status !== 'pending')
                 <button type="button" 
+                  class="open-reschedule-btn"
                   style="background: #a88a4c; color: white; padding: 0.85rem 2rem; border-radius: 2px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border: none; cursor: pointer; transition: 0.3s;"
-                  onclick="openRescheduleModal({{ $booking->id }}, '{{ $booking->event_date->format('F d, Y') }}', '{{ optional($booking->visitSchedules->first())->visit_date ? $booking->visitSchedules->first()->visit_date->format('F d, Y') : 'Not scheduled' }}', {{ $booking->reschedule_count }})">
+                  data-booking-id="{{ $booking->id }}"
+                  data-event-date="{{ $booking->event_date->format('F d, Y') }}"
+                  data-visit-date="{{ optional($booking->visitSchedules->first())->visit_date ? $booking->visitSchedules->first()->visit_date->format('F d, Y') : 'Not scheduled' }}"
+                  data-reschedule-count="{{ $booking->reschedule_count }}">
                   Reschedule
                 </button>
               @endif
@@ -158,7 +162,7 @@
 
         <div style="display: flex; flex-direction: column; gap: 30px;">
             {{-- Current info --}}
-            <div style="border: 1px solid #a88a4c20; padding: 25px; background: rgba(168,138,76,0.02); border-radius: 4px;">
+            <div style="border: 1px solid #B8860B40; padding: 25px; background: #faf6ed; border-radius: 4px;">
                 <p style="font-size: 10px; color: #a88a4c; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 15px 0; font-weight: 700;">CURRENT RESERVATION TIMING</p>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 16px; font-weight: 600; color: #1a1a1a;">Event: <span id="currentEventDate" style="color: #a88a4c;">--</span></span>
@@ -173,25 +177,25 @@
                 @csrf
                 <div style="display: flex; flex-direction: column; gap: 24px;">
                     <div>
-                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.5); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-weight: 600;">NEW EVENT DATE</label>
+                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; font-weight: 700;">NEW EVENT DATE</label>
                         <input type="date" name="requested_event_date" id="reschedule_event_date" required min="{{ date('Y-m-d', strtotime('+1 day')) }}"
-                            style="width: 100%; height: 54px; border: 1px solid #a88a4c30; padding: 0 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; transition: 0.3s;" 
-                            onfocus="this.style.borderColor='#a88a4c'" onblur="this.style.borderColor='#a88a4c30'" />
+                            style="width: 100%; height: 54px; border: 1px solid #B8860B4D; padding: 0 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; transition: 0.3s; font-family: 'Jost', sans-serif;" 
+                            onfocus="this.style.borderColor='#B8860B'" onblur="this.style.borderColor='#B8860B4D'" />
                     </div>
                     
                     <div>
-                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.5); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-weight: 600;">NEW WALKTHROUGH DATE</label>
+                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; font-weight: 700;">NEW WALKTHROUGH DATE</label>
                         <input type="date" name="requested_visit_date" id="reschedule_visit_date" required min="{{ date('Y-m-d', strtotime('+1 day')) }}"
-                            style="width: 100%; height: 54px; border: 1px solid #a88a4c30; padding: 0 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; transition: 0.3s;"
-                            onfocus="this.style.borderColor='#a88a4c'" onblur="this.style.borderColor='#a88a4c30'" />
+                            style="width: 100%; height: 54px; border: 1px solid #B8860B4D; padding: 0 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; transition: 0.3s; font-family: 'Jost', sans-serif;"
+                            onfocus="this.style.borderColor='#B8860B'" onblur="this.style.borderColor='#B8860B4D'" />
                         <p style="font-size: 11px; color: rgba(168,138,76,0.6); margin: 10px 0 0 0; font-style: italic; font-weight: 500;">* Note: Walkthrough should be prior to the event date.</p>
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.5); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-weight: 600;">RESCHEDULING REASON</label>
+                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; font-weight: 700;">RESCHEDULING REASON</label>
                         <textarea name="reschedule_reason" rows="3" placeholder="Explain the reason for this change..."
-                            style="width: 100%; border: 1px solid #a88a4c30; padding: 15px 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; resize: none; transition: 0.3s;"
-                            onfocus="this.style.borderColor='#a88a4c'" onblur="this.style.borderColor='#a88a4c30'"></textarea>
+                            style="width: 100%; border: 1px solid #B8860B4D; padding: 15px 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; resize: none; transition: 0.3s; font-family: 'Jost', sans-serif;"
+                            onfocus="this.style.borderColor='#B8860B'" onblur="this.style.borderColor='#B8860B4D'"></textarea>
                     </div>
                 </div>
 
@@ -218,8 +222,18 @@
 @include('partials._footer')
 
 <script>
+  document.querySelectorAll('.open-reschedule-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const bookingId = this.getAttribute('data-booking-id');
+      const eventDate = this.getAttribute('data-event-date');
+      const visitDate = this.getAttribute('data-visit-date');
+      const rescheduleCount = parseInt(this.getAttribute('data-reschedule-count'));
+      openRescheduleModal(bookingId, eventDate, visitDate, rescheduleCount);
+    });
+  });
+
   function openRescheduleModal(bookingId, eventDate, visitDate, rescheduleCount) {
-    document.getElementById('rescheduleForm').action = '/booking/' + bookingId + '/reschedule';
+    document.getElementById('rescheduleForm').action = '{{ url("booking") }}/' + bookingId + '/reschedule';
     document.getElementById('currentEventDate').textContent = eventDate;
     document.getElementById('currentVisitDate').textContent = visitDate;
     const eventField = document.getElementById('reschedule_event_date');

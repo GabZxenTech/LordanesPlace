@@ -92,8 +92,11 @@
         {{-- Reschedule Button —  only for approved bookings with no pending reschedule --}}
         @if($booking->status === 'approved' && $booking->reschedule_status !== 'pending')
           <button type="button"
-            class="mt-1 inline-block bg-blue-500/10 border border-blue-500 text-blue-600 px-3.5 py-1.5 rounded-full text-[12px] font-bold tracking-[0.5px] cursor-pointer transition-all hover:bg-blue-500 hover:text-white"
-            onclick="openRescheduleModal({{ $booking->id }}, '{{ $booking->event_date->format('F d, Y') }}', '{{ optional($booking->visitSchedules->first())->visit_date ? $booking->visitSchedules->first()->visit_date->format('F d, Y') : 'Not scheduled' }}', {{ $booking->reschedule_count }})">
+            class="mt-1 inline-block bg-blue-500/10 border border-blue-500 text-blue-600 px-3.5 py-1.5 rounded-full text-[12px] font-bold tracking-[0.5px] cursor-pointer transition-all hover:bg-blue-500 hover:text-white open-reschedule-btn"
+            data-booking-id="{{ $booking->id }}"
+            data-event-date="{{ $booking->event_date->format('F d, Y') }}"
+            data-visit-date="{{ optional($booking->visitSchedules->first())->visit_date ? $booking->visitSchedules->first()->visit_date->format('F d, Y') : 'Not scheduled' }}"
+            data-reschedule-count="{{ $booking->reschedule_count }}">
             🔄 Reschedule
           </button>
         @endif
@@ -123,7 +126,7 @@
 
         <div style="display: flex; flex-direction: column; gap: 30px;">
             {{-- Current info --}}
-            <div style="border: 1px solid #a88a4c20; padding: 25px; background: rgba(168,138,76,0.02); border-radius: 4px;">
+            <div style="border: 1px solid #B8860B40; padding: 25px; background: #faf6ed; border-radius: 4px;">
                 <p style="font-size: 10px; color: #a88a4c; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 15px 0; font-weight: 700;">CURRENT RESERVATION TIMING</p>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 16px; font-weight: 600; color: #1a1a1a;">Event: <span id="currentEventDate" style="color: #a88a4c;">--</span></span>
@@ -138,25 +141,25 @@
                 @csrf
                 <div style="display: flex; flex-direction: column; gap: 24px;">
                     <div>
-                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.5); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-weight: 600;">NEW EVENT DATE</label>
+                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; font-weight: 700;">NEW EVENT DATE</label>
                         <input type="date" name="requested_event_date" id="reschedule_event_date" required min="{{ date('Y-m-d', strtotime('+1 day')) }}"
-                            style="width: 100%; height: 54px; border: 1px solid #a88a4c30; padding: 0 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; transition: 0.3s;" 
-                            onfocus="this.style.borderColor='#a88a4c'" onblur="this.style.borderColor='#a88a4c30'" />
+                            style="width: 100%; height: 54px; border: 1px solid #B8860B4D; padding: 0 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; transition: 0.3s; font-family: 'Jost', sans-serif;" 
+                            onfocus="this.style.borderColor='#B8860B'" onblur="this.style.borderColor='#B8860B4D'" />
                     </div>
                     
                     <div>
-                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.5); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-weight: 600;">NEW WALKTHROUGH DATE</label>
+                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; font-weight: 700;">NEW WALKTHROUGH DATE</label>
                         <input type="date" name="requested_visit_date" id="reschedule_visit_date" required min="{{ date('Y-m-d', strtotime('+1 day')) }}"
-                            style="width: 100%; height: 54px; border: 1px solid #a88a4c30; padding: 0 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; transition: 0.3s;"
-                            onfocus="this.style.borderColor='#a88a4c'" onblur="this.style.borderColor='#a88a4c30'" />
+                            style="width: 100%; height: 54px; border: 1px solid #B8860B4D; padding: 0 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; transition: 0.3s; font-family: 'Jost', sans-serif;"
+                            onfocus="this.style.borderColor='#B8860B'" onblur="this.style.borderColor='#B8860B4D'" />
                         <p style="font-size: 11px; color: rgba(168,138,76,0.6); margin: 10px 0 0 0; font-style: italic; font-weight: 500;">* Note: Walkthrough should be prior to the event date.</p>
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.5); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-weight: 600;">RESCHEDULING REASON</label>
+                        <label style="display: block; font-size: 11px; color: rgba(26,26,26,0.6); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; font-weight: 700;">RESCHEDULING REASON</label>
                         <textarea name="reschedule_reason" rows="3" placeholder="Explain the reason for this change..."
-                            style="width: 100%; border: 1px solid #a88a4c30; padding: 15px 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; resize: none; transition: 0.3s;"
-                            onfocus="this.style.borderColor='#a88a4c'" onblur="this.style.borderColor='#a88a4c30'"></textarea>
+                            style="width: 100%; border: 1px solid #B8860B4D; padding: 15px 18px; border-radius: 4px; font-size: 15px; outline: none; background: white; color: #1a1a1a; resize: none; transition: 0.3s; font-family: 'Jost', sans-serif;"
+                            onfocus="this.style.borderColor='#B8860B'" onblur="this.style.borderColor='#B8860B4D'"></textarea>
                     </div>
                 </div>
 
@@ -183,8 +186,18 @@
 @include('partials._footer')
  
  <script>
+  document.querySelectorAll('.open-reschedule-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const bookingId = this.getAttribute('data-booking-id');
+      const eventDate = this.getAttribute('data-event-date');
+      const visitDate = this.getAttribute('data-visit-date');
+      const rescheduleCount = parseInt(this.getAttribute('data-reschedule-count'));
+      openRescheduleModal(bookingId, eventDate, visitDate, rescheduleCount);
+    });
+  });
+
   function openRescheduleModal(bookingId, eventDate, visitDate, rescheduleCount) {
-    document.getElementById('rescheduleForm').action = '/booking/' + bookingId + '/reschedule';
+    document.getElementById('rescheduleForm').action = '{{ url("booking") }}/' + bookingId + '/reschedule';
     document.getElementById('currentEventDate').textContent = eventDate;
     document.getElementById('currentVisitDate').textContent = visitDate;
     

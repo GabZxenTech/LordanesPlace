@@ -232,6 +232,7 @@
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body resize-y">{{ old('notes') }}</textarea>
         </div>
 
+        {{-- Please Note Box --}}
         <div class="bg-blue-500/10 border border-blue-400/30 rounded-lg p-4 mb-6 flex gap-3.5 items-start">
             <span class="text-[20px] mt-0.5">📌</span>
             <div class="text-[13.5px] text-warm-black/80 leading-relaxed">
@@ -239,7 +240,16 @@
             </div>
         </div>
 
-        <button type="submit" class="w-full bg-gold-deep text-white border-none py-3 rounded-md font-bold text-[16px] tracking-[1px] cursor-pointer transition-all hover:bg-gold-mid">CONFIRM BOOKING</button>
+        {{-- Checkbox + Terms --}}
+        <div class="mb-6 flex items-start gap-3">
+          <input type="checkbox" name="terms" id="termsCheckbox" required class="mt-1 w-4 h-4 accent-gold-deep cursor-pointer" />
+          <label for="termsCheckbox" class="text-[13.5px] text-warm-black/80 leading-relaxed cursor-pointer">
+            I have read and agree to the <a href="{{ route('terms') }}" target="_blank" class="text-gold-deep font-bold underline hover:text-gold-mid">Terms and Conditions</a> of LorDane's Place.
+          </label>
+        </div>
+
+        {{-- Confirm Booking Button --}}
+        <button type="submit" class="w-full bg-gold-deep text-white border-none py-3.5 rounded-md font-bold text-[16px] tracking-[2px] cursor-pointer transition-all duration-300 hover:bg-gold-mid hover:shadow-lg">CONFIRM BOOKING</button>
       </form>
     </div>
   </div>

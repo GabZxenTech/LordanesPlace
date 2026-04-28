@@ -13,8 +13,7 @@
 @include('partials._navbar')
 
 <!-- PAGE HERO -->
-<section class="discover-hero-bg h-[280px] md:h-[350px] flex justify-center items-center text-center text-white px-5 relative"
-         style="background: linear-gradient(rgba(26,18,8,0.5), rgba(26,18,8,0.7)), url('{{ asset('images/LORDANES_BG.jpg') }}'); background-size: cover; background-position: center;">
+<section class="discover-hero-bg flex justify-center items-center text-center text-white px-5 relative" style="min-height: 400px; padding: 100px 5%; background: linear-gradient(rgba(26,18,8,0.5), rgba(26,18,8,0.7)), url('{{ asset('images/LORDANES_BG.jpg') }}'); background-size: cover; background-position: center;">
   <div class="gold-divider absolute bottom-0 left-0 right-0"></div>
   <div>
     <p class="text-[11px] md:text-[12px] tracking-[4px] text-gold-light font-bold mb-3">EXPLORE LORDANE'S PLACE</p>
@@ -187,9 +186,9 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
     <!-- STANDARD ROOM -->
     <div class="border border-gold-deep/20 rounded-xl overflow-hidden bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-md">
-      <div class="h-[200px] md:h-[220px] bg-cream flex items-center justify-center overflow-hidden">
+      <div class="h-[200px] md:h-[220px] flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, #F2EDE4, #E8C96D22);">
         <img src="{{ asset('images/room-standard.jpg') }}" alt="Standard Room" class="w-full h-full object-cover"
-             onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'flex items-center justify-center w-full h-full text-warm-black/30 text-[16px]\'>Image Coming Soon</div>';">
+             onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#F2EDE4,#E8C96D33);\' ><span style=\'font-size:36px;opacity:0.15;font-family:Cormorant Garamond,serif;font-weight:700;color:#B8860B;margin-bottom:8px;\'>LD</span><svg width=\'32\' height=\'32\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'#B8860B\' stroke-width=\'1.5\' opacity=\'0.4\' style=\'margin-bottom:8px;\'><circle cx=\'12\' cy=\'12\' r=\'3.5\'/><path d=\'M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2\'/></svg><span style=\'font-size:11px;color:#B8860B;opacity:0.5;letter-spacing:2px;text-transform:uppercase;font-weight:600;\'>Photo Coming Soon</span></div>';">
       </div>
       <div class="p-5 md:p-6">
         <h4 class="text-[16px] md:text-[18px] font-bold text-warm-black mb-2">Standard Room</h4>
@@ -204,9 +203,9 @@
 
     <!-- FAMILY ROOM -->
     <div class="border border-gold-deep/20 rounded-xl overflow-hidden bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-md">
-      <div class="h-[200px] md:h-[220px] bg-cream flex items-center justify-center overflow-hidden">
+      <div class="h-[200px] md:h-[220px] flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, #F2EDE4, #E8C96D22);">
         <img src="{{ asset('images/room-family.jpg') }}" alt="Family Room" class="w-full h-full object-cover"
-             onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'flex items-center justify-center w-full h-full text-warm-black/30 text-[16px]\'>Image Coming Soon</div>';">
+             onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#F2EDE4,#E8C96D33);\' ><span style=\'font-size:36px;opacity:0.15;font-family:Cormorant Garamond,serif;font-weight:700;color:#B8860B;margin-bottom:8px;\'>LD</span><svg width=\'32\' height=\'32\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'#B8860B\' stroke-width=\'1.5\' opacity=\'0.4\' style=\'margin-bottom:8px;\'><circle cx=\'12\' cy=\'12\' r=\'3.5\'/><path d=\'M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2\'/></svg><span style=\'font-size:11px;color:#B8860B;opacity:0.5;letter-spacing:2px;text-transform:uppercase;font-weight:600;\'>Photo Coming Soon</span></div>';">
       </div>
       <div class="p-5 md:p-6">
         <h4 class="text-[16px] md:text-[18px] font-bold text-warm-black mb-2">Family Room</h4>
@@ -221,9 +220,9 @@
 
     <!-- DORMITORY ROOM -->
     <div class="border border-gold-deep/20 rounded-xl overflow-hidden bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-md">
-      <div class="h-[200px] md:h-[220px] bg-cream flex items-center justify-center overflow-hidden">
+      <div class="h-[200px] md:h-[220px] flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, #F2EDE4, #E8C96D22);">
         <img src="{{ asset('images/room-dormitory.jpg') }}" alt="Dormitory Room" class="w-full h-full object-cover"
-             onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'flex items-center justify-center w-full h-full text-warm-black/30 text-[16px]\'>Image Coming Soon</div>';">
+             onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#F2EDE4,#E8C96D33);\' ><span style=\'font-size:36px;opacity:0.15;font-family:Cormorant Garamond,serif;font-weight:700;color:#B8860B;margin-bottom:8px;\'>LD</span><svg width=\'32\' height=\'32\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'#B8860B\' stroke-width=\'1.5\' opacity=\'0.4\' style=\'margin-bottom:8px;\'><circle cx=\'12\' cy=\'12\' r=\'3.5\'/><path d=\'M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2\'/></svg><span style=\'font-size:11px;color:#B8860B;opacity:0.5;letter-spacing:2px;text-transform:uppercase;font-weight:600;\'>Photo Coming Soon</span></div>';">
       </div>
       <div class="p-5 md:p-6">
         <h4 class="text-[16px] md:text-[18px] font-bold text-warm-black mb-2">Dormitory Room</h4>
@@ -240,9 +239,9 @@
   <!-- VENUE HALL (full-width) -->
   <div class="mt-6 border border-gold-deep/20 rounded-xl overflow-hidden bg-off-white transition-all duration-300 hover:border-gold-deep hover:shadow-md">
     <div class="grid grid-cols-1 md:grid-cols-2">
-      <div class="h-[220px] md:h-full bg-cream flex items-center justify-center overflow-hidden">
+      <div class="h-[220px] md:h-full flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, #F2EDE4, #E8C96D22);">
         <img src="{{ asset('images/venue-hall.jpg') }}" alt="Venue Hall / Pavilion" class="w-full h-full object-cover"
-             onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'flex items-center justify-center w-full h-full text-warm-black/30 text-[16px]\'>Image Coming Soon</div>';">
+             onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#F2EDE4,#E8C96D33);\' ><span style=\'font-size:36px;opacity:0.15;font-family:Cormorant Garamond,serif;font-weight:700;color:#B8860B;margin-bottom:8px;\'>LD</span><svg width=\'32\' height=\'32\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'#B8860B\' stroke-width=\'1.5\' opacity=\'0.4\' style=\'margin-bottom:8px;\'><circle cx=\'12\' cy=\'12\' r=\'3.5\'/><path d=\'M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2\'/></svg><span style=\'font-size:11px;color:#B8860B;opacity:0.5;letter-spacing:2px;text-transform:uppercase;font-weight:600;\'>Photo Coming Soon</span></div>';">
       </div>
       <div class="p-6 md:p-8 flex flex-col justify-center">
         <h4 class="text-[18px] md:text-[22px] font-bold text-warm-black mb-2">Venue Hall / Pavilion</h4>

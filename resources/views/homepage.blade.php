@@ -128,27 +128,27 @@
     <p class="text-warm-black/90 text-[15px] md:text-[16px] font-normal">All the essentials — beautifully handled, all in one place.</p>
   </div>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-sm bg-cream">
+    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(184,134,11,0.15)] bg-cream">
       <h4 class="text-[15px] md:text-[16px] font-bold text-gold-deep mb-3 tracking-[0.5px]">In-House Catering</h4>
       <p class="text-[16px] md:text-[15px] text-warm-black/90 font-normal leading-[1.65]">Customizable menus crafted to satisfy every guest.</p>
     </div>
-    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-sm bg-cream">
+    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(184,134,11,0.15)] bg-cream">
       <h4 class="text-[15px] md:text-[16px] font-bold text-gold-deep mb-3 tracking-[0.5px]">Event Decoration</h4>
       <p class="text-[16px] md:text-[15px] text-warm-black/90 font-normal leading-[1.65]">Elegant setups tailored to your theme and vision.</p>
     </div>
-    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-sm bg-cream">
+    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(184,134,11,0.15)] bg-cream">
       <h4 class="text-[15px] md:text-[16px] font-bold text-gold-deep mb-3 tracking-[0.5px]">Sound & Lighting</h4>
       <p class="text-[16px] md:text-[15px] text-warm-black/90 font-normal leading-[1.65]">Professional equipment for a truly immersive atmosphere.</p>
     </div>
-    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-sm bg-cream">
+    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(184,134,11,0.15)] bg-cream">
       <h4 class="text-[15px] md:text-[16px] font-bold text-gold-deep mb-3 tracking-[0.5px]">Photo & Video</h4>
       <p class="text-[16px] md:text-[15px] text-warm-black/90 font-normal leading-[1.65]">Every precious moment captured with care and artistry.</p>
     </div>
-    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-sm bg-cream">
+    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(184,134,11,0.15)] bg-cream">
       <h4 class="text-[15px] md:text-[16px] font-bold text-gold-deep mb-3 tracking-[0.5px]">Host / Emcee</h4>
       <p class="text-[16px] md:text-[15px] text-warm-black/90 font-normal leading-[1.65]">An experienced host to keep your event lively and on track.</p>
     </div>
-    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-sm bg-cream">
+    <div class="border border-gold-deep/25 rounded-lg px-5 md:px-6 py-7 md:py-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(184,134,11,0.15)] bg-cream">
       <h4 class="text-[15px] md:text-[16px] font-bold text-gold-deep mb-3 tracking-[0.5px]">LED Wall & Projector</h4>
       <p class="text-[16px] md:text-[15px] text-warm-black/90 font-normal leading-[1.65]">Large displays for presentations, slideshows, and tributes.</p>
     </div>
@@ -168,7 +168,7 @@
       Reserve Your Date
     </a>
     <a href="{{ route('discover') }}"
-      class="inline-block no-underline px-7 md:px-9 py-3 md:py-4 text-[16px] md:text-[15px] font-bold tracking-wide rounded-[3px] border border-warm-black/30 text-warm-black transition-all duration-300 hover:border-gold-deep hover:text-gold-deep hover:-translate-y-0.5">
+      class="inline-block no-underline px-7 md:px-9 py-3 md:py-4 text-[16px] md:text-[15px] font-bold tracking-wide rounded-[3px] border-2 border-gold-deep text-warm-black transition-all duration-300 hover:bg-gold-deep hover:text-white hover:-translate-y-0.5">
       Discover the Venue
     </a>
   </div>

@@ -7,88 +7,91 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="admin-page bg-admin-dark text-admin-cream font-body min-h-screen">
+<body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
 
-  @include('partials._admin-header')
+  @include('partials._admin-sidebar')
 
-  <div class="p-5 md:p-10">
+  {{-- MAIN CONTENT --}}
+  <main style="flex: 1; padding: 40px 48px; min-height: 100vh; overflow-y: auto;">
+
+    {{-- Page Header --}}
+    <div style="margin-bottom: 32px;">
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; color: #2c1a0e; margin: 0 0 4px;">User Management</h1>
+      <p style="font-size: 12px; letter-spacing: 3px; color: #8a6a40; text-transform: uppercase; font-weight: 600; margin: 0;">Manage Registered Accounts</p>
+    </div>
 
     @if(session('success'))
-      <div class="bg-green-400/15 border border-green-400 text-green-400 px-5 py-3 rounded-md mb-5 text-[16px]">✓ {{ session('success') }}</div>
+      <div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 15px;">✓ {{ session('success') }}</div>
     @endif
 
-    <!-- Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5 mb-8 md:mb-10">
-      <div class="bg-admin-card border border-admin-gold/25 rounded-lg p-5 md:p-6 text-center">
-        <h3 class="text-[32px] md:text-[36px] font-bold text-admin-gold">{{ $users->count() }}</h3>
-        <p class="text-[15px] text-admin-cream-dim mt-1 tracking-[1px]">TOTAL USERS</p>
+    {{-- Stats Cards --}}
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 36px;">
+      <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 28px 24px; text-align: center;">
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $users->count() }}</h3>
+        <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 10px 0 0; text-transform: uppercase; font-weight: 700;">Total Users</p>
       </div>
-      <div class="bg-admin-card border border-admin-gold/25 rounded-lg p-5 md:p-6 text-center">
-        <h3 class="text-[32px] md:text-[36px] font-bold text-admin-gold">{{ $users->filter(fn($u) => $u->last_active && \Carbon\Carbon::parse($u->last_active)->diffInMinutes(now()) <= 30)->count() }}</h3>
-        <p class="text-[15px] text-admin-cream-dim mt-1 tracking-[1px]">ACTIVE NOW</p>
+      <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 28px 24px; text-align: center;">
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $users->filter(fn($u) => $u->last_active && \Carbon\Carbon::parse($u->last_active)->diffInMinutes(now()) <= 30)->count() }}</h3>
+        <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 10px 0 0; text-transform: uppercase; font-weight: 700;">Active Now</p>
       </div>
-      <div class="bg-admin-card border border-admin-gold/25 rounded-lg p-5 md:p-6 text-center">
-        <h3 class="text-[32px] md:text-[36px] font-bold text-admin-gold">{{ $users->filter(fn($u) => $u->created_at->isToday())->count() }}</h3>
-        <p class="text-[15px] text-admin-cream-dim mt-1 tracking-[1px]">NEW TODAY</p>
+      <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 28px 24px; text-align: center;">
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $users->filter(fn($u) => $u->created_at->isToday())->count() }}</h3>
+        <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 10px 0 0; text-transform: uppercase; font-weight: 700;">New Today</p>
       </div>
     </div>
 
-    <!-- Users Table -->
-    <div class="bg-admin-card border border-admin-gold/20 rounded-lg overflow-hidden">
-      <div class="p-5 border-b border-admin-gold/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <h2 class="text-[15px] md:text-[16px] font-bold text-admin-cream tracking-[1px]">USER MANAGEMENT</h2>
+    {{-- Users Table --}}
+    <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; overflow: hidden;">
+      <div style="padding: 20px 28px; border-bottom: 1px solid #d4c4a0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <h2 style="font-size: 13px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0;">All Users</h2>
         <input type="text" id="searchInput" placeholder="Search user..." onkeyup="searchTable()"
-          class="bg-admin-secondary border border-admin-gold/30 text-admin-cream px-3.5 py-2 rounded text-[15px] outline-none w-full sm:w-[220px] transition-colors focus:border-admin-gold placeholder:text-admin-cream-dim font-body" />
+          style="background: #2c1a0e; border: none; color: #f5f0e8; padding: 12px 20px; border-radius: 6px; font-size: 14px; outline: none; width: 260px; font-family: 'Jost', sans-serif;" />
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full border-collapse" id="usersTable">
-          <thead class="bg-admin-secondary">
-            <tr>
-              <th class="p-3.5 md:px-5 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">#</th>
-              <th class="p-3.5 md:px-5 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">NAME</th>
-              <th class="p-3.5 md:px-5 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold hidden md:table-cell">EMAIL</th>
-              <th class="p-3.5 md:px-5 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold hidden lg:table-cell">REGISTERED</th>
-              <th class="p-3.5 md:px-5 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold hidden lg:table-cell">LAST ACTIVE</th>
-              <th class="p-3.5 md:px-5 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">STATUS</th>
-              <th class="p-3.5 md:px-5 md:py-3.5 text-left text-[11px] tracking-[2px] text-admin-gold font-bold">ACTIONS</th>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;" id="usersTable">
+          <thead>
+            <tr style="border-bottom: 1px solid #d4c4a0;">
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">#</th>
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">NAME</th>
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">EMAIL</th>
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">REGISTERED</th>
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">STATUS</th>
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">ACTIONS</th>
             </tr>
           </thead>
           <tbody>
             @forelse($users as $index => $user)
-              <tr class="border-b border-admin-gold/10 transition-colors hover:bg-admin-gold/5">
-                <td class="p-3.5 md:px-5 md:py-3.5 text-[15px] text-admin-cream-dim">{{ $index + 1 }}</td>
-                <td class="p-3.5 md:px-5 md:py-3.5 text-[15px] text-admin-cream font-bold">{{ $user->name }}</td>
-                <td class="p-3.5 md:px-5 md:py-3.5 text-[15px] text-admin-cream-dim hidden md:table-cell">{{ $user->email }}</td>
-                <td class="p-3.5 md:px-5 md:py-3.5 text-[15px] text-admin-cream-dim hidden lg:table-cell">{{ $user->created_at->format('M d, Y') }}</td>
-                <td class="p-3.5 md:px-5 md:py-3.5 text-[15px] text-admin-cream-dim hidden lg:table-cell">
-                  {{ $user->last_active ? \Carbon\Carbon::parse($user->last_active)->diffForHumans() : 'Never' }}
-                </td>
-                <td class="p-3.5 md:px-5 md:py-3.5">
+              <tr style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
+                <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">{{ $index + 1 }}</td>
+                <td style="padding: 16px 24px; font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $user->name }}</td>
+                <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">{{ $user->email }}</td>
+                <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">{{ $user->created_at->format('M d, Y') }}</td>
+                <td style="padding: 16px 24px;">
                   @if($user->last_active && \Carbon\Carbon::parse($user->last_active)->diffInMinutes(now()) <= 30)
-                    <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-400/15 text-green-400 border border-green-400">● Active</span>
+                    <span style="display: inline-block; padding: 5px 14px; border-radius: 100px; font-size: 11px; font-weight: 700; background: #d4edda; color: #28a745; border: 1px solid #28a745;">● Active</span>
                   @else
-                    <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold bg-admin-cream-dim/10 text-admin-cream-dim border border-admin-cream-dim/30">○ Inactive</span>
+                    <span style="display: inline-block; padding: 5px 14px; border-radius: 100px; font-size: 11px; font-weight: 700; background: #f5f0e8; color: #8a6a40; border: 1px solid #d4c4a0;">○ Inactive</span>
                   @endif
                 </td>
-                <td class="p-3.5 md:px-5 md:py-3.5">
-                  <div class="flex gap-2">
-                    <a href="{{ route('admin.edit', $user->id) }}" class="bg-admin-gold/15 border border-admin-gold text-admin-gold px-3 py-1.5 rounded text-[12px] no-underline transition-all hover:bg-admin-gold hover:text-admin-dark">Edit</a>
+                <td style="padding: 16px 24px;">
+                  <div style="display: flex; gap: 8px;">
+                    <a href="{{ route('admin.edit', $user->id) }}" style="background: transparent; border: 1px solid #c9a84c; color: #c9a84c; padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: 700; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#c9a84c'; this.style.color='#fff9ef';" onmouseout="this.style.background='transparent'; this.style.color='#c9a84c';">Edit</a>
                     <form method="POST" action="{{ route('admin.destroy', $user->id) }}" onsubmit="return confirm('Delete this user?')">
                       @csrf @method('DELETE')
-                      <button type="submit" class="bg-red-500/15 border border-red-500 text-red-500 px-3 py-1.5 rounded text-[12px] cursor-pointer transition-all hover:bg-red-500 hover:text-white">Delete</button>
+                      <button type="submit" style="background: transparent; border: 1px solid #e74c3c; color: #e74c3c; padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Jost', sans-serif;" onmouseover="this.style.background='#e74c3c'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#e74c3c';">Delete</button>
                     </form>
                   </div>
                 </td>
               </tr>
             @empty
-              <tr><td colspan="7" class="text-center py-[60px] text-admin-cream-dim text-[16px]">No users found.</td></tr>
+              <tr><td colspan="6" style="text-align: center; padding: 60px; color: #8a6a40; font-size: 16px;">No users found.</td></tr>
             @endforelse
           </tbody>
         </table>
       </div>
     </div>
-  </div>
+  </main>
 
   <script>
     function searchTable() {
