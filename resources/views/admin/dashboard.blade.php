@@ -6,6 +6,11 @@
   <title>Admin Dashboard | LorDane's Place</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
+  <style>
+    .user-status { display: inline-block; padding: 5px 14px; border-radius: 100px; font-size: 11px; font-weight: 700; }
+    .status-active { background: #d4edda; color: #28a745; border: 1px solid #28a745; }
+    .status-inactive { background: #f5f0e8; color: #8a6a40; border: 1px solid #d4c4a0; }
+  </style>
 </head>
 <body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
 
@@ -69,9 +74,9 @@
                 <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">{{ $user->created_at->format('M d, Y') }}</td>
                 <td style="padding: 16px 24px;">
                   @if($user->last_active && \Carbon\Carbon::parse($user->last_active)->diffInMinutes(now()) <= 30)
-                    <span style="display: inline-block; padding: 5px 14px; border-radius: 100px; font-size: 11px; font-weight: 700; background: #d4edda; color: #28a745; border: 1px solid #28a745;">● Active</span>
+                    <span class="user-status status-active">● Active</span>
                   @else
-                    <span style="display: inline-block; padding: 5px 14px; border-radius: 100px; font-size: 11px; font-weight: 700; background: #f5f0e8; color: #8a6a40; border: 1px solid #d4c4a0;">○ Inactive</span>
+                    <span class="user-status status-inactive">○ Inactive</span>
                   @endif
                 </td>
                 <td style="padding: 16px 24px;">

@@ -9,6 +9,11 @@
   <style>
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
     .modal-overlay.open { display: flex; }
+    .visit-status { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: capitalize; }
+    .v-pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .v-confirmed { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .v-rescheduled { background: #e1f5fe; color: #0277bd; border: 1px solid #b3e5fc; }
+    .v-completed { background: #f5f0e8; color: #8a6a40; border: 1px solid #d4c4a0; }
   </style>
 </head>
 <body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
@@ -56,16 +61,7 @@
                   <div style="font-size: 11px; color: #8a6a40;">{{ $visit->visit_date->format('h:i A') }}</div>
                 </td>
                 <td style="padding: 14px 20px;">
-                  @php
-                    $visitStatusColors = [
-                      'pending' => ['bg' => '#fff3cd', 'text' => '#856404', 'border' => '#ffeeba'],
-                      'confirmed' => ['bg' => '#d4edda', 'text' => '#155724', 'border' => '#c3e6cb'],
-                      'rescheduled' => ['bg' => '#e1f5fe', 'text' => '#0277bd', 'border' => '#b3e5fc'],
-                      'completed' => ['bg' => '#f5f0e8', 'text' => '#8a6a40', 'border' => '#d4c4a0']
-                    ];
-                    $vColors = $visitStatusColors[$visit->status] ?? $visitStatusColors['pending'];
-                  @endphp
-                  <span style="display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; background: {{ $vColors['bg'] }}; color: {{ $vColors['text'] }}; border: 1px solid {{ $vColors['border'] }}; text-transform: capitalize;">
+                  <span class="visit-status v-{{ $visit->status }}">
                     {{ $visit->status }}
                   </span>
                 </td>
@@ -125,8 +121,12 @@
     </div>
   </div>
 
+  <div id="visit-data" class="hidden" data-base-url="{{ url('admin/visits') }}"></div>
+
   <script>
-  <script>
+    const visitData = document.getElementById('visit-data');
+    const visitBaseUrl = visitData.getAttribute('data-base-url');
+
     document.querySelectorAll('.open-visit-modal-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const id = this.getAttribute('data-id');
@@ -137,7 +137,7 @@
     });
 
     function openVisitModal(id, current, eventDate) {
-      document.getElementById('visitForm').action = '{{ url("admin/visits") }}/' + id + '/reschedule';
+      document.getElementById('visitForm').action = visitBaseUrl + '/' + id + '/reschedule';
       document.getElementById('visit_date_input').value = current;
       document.getElementById('visit_date_input').max = eventDate + 'T23:59';
       document.getElementById('visitModal').classList.add('open');

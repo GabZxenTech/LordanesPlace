@@ -6,6 +6,17 @@
   <title>My Bookings | LorDane's Place</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
+  <style>
+    .booking-status-badge { display: inline-block; padding: 0.375rem 0.875rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; }
+    .b-pending { background: rgba(234, 179, 8, 0.15); color: #ca8a04; border: 1px solid #eab308; }
+    .b-approved { background: rgba(34, 197, 94, 0.15); color: #16a34a; border: 1px solid #22c55e; }
+    .b-rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444; }
+    
+    .pay-status { display: inline-block; padding: 0.25rem 0.625rem; border-radius: 0.375rem; font-size: 0.6875rem; font-weight: 700; }
+    .p-unpaid { background: rgba(248, 113, 113, 0.15); color: #ef4444; border: 1px solid #f87171; }
+    .p-partially_paid { background: rgba(74, 222, 128, 0.15); color: #16a34a; border: 1px solid #4ade80; }
+    .p-fully_paid { background: rgba(96, 165, 250, 0.15); color: #2563eb; border: 1px solid #60a840; }
+  </style>
 </head>
 <body class="bg-off-white text-warm-black font-body">
 
@@ -35,13 +46,12 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 border-t border-gold-deep/10 pt-4">
             <div>
                 <div class="text-[11px] text-warm-black/50 font-bold uppercase mb-1">Payment Status</div>
-                @if($booking->payment_status === 'unpaid')
-                  <span class="inline-block px-2.5 py-1 rounded-md text-[11px] font-bold bg-red-400/15 text-red-500 border border-red-400">Unpaid</span>
-                @elseif($booking->payment_status === 'partially_paid')
-                  <span class="inline-block px-2.5 py-1 rounded-md text-[11px] font-bold bg-green-400/15 text-green-600 border border-green-400">Partially Paid (20%)</span>
-                @else
-                  <span class="inline-block px-2.5 py-1 rounded-md text-[11px] font-bold bg-blue-400/15 text-blue-600 border border-blue-400">Fully Paid</span>
-                @endif
+                @php
+                  $pClass = 'p-' . $booking->payment_status;
+                @endphp
+                <span class="pay-status {{ $pClass }}">
+                  {{ $booking->payment_status === 'unpaid' ? 'Unpaid' : ($booking->payment_status === 'partially_paid' ? 'Partially Paid (20%)' : 'Fully Paid') }}
+                </span>
                 <div class="text-[13px] mt-1 text-warm-black/60">Total: ₱{{ number_format($booking->total_amount, 2) }}</div>
             </div>
             <div>
@@ -70,13 +80,9 @@
       </div>
       <div class="shrink-0 flex flex-col items-end gap-2">
         <div class="text-[11px] text-warm-black/50 font-bold uppercase">Booking Status</div>
-        @if($booking->status === 'pending')
-          <span class="inline-block px-3.5 py-1.5 rounded-full text-[12px] font-bold tracking-[0.5px] bg-yellow-400/15 text-yellow-600 border border-yellow-400">⏳ Pending</span>
-        @elseif($booking->status === 'approved')
-          <span class="inline-block px-3.5 py-1.5 rounded-full text-[12px] font-bold tracking-[0.5px] bg-green-400/15 text-green-600 border border-green-400">✓ Approved</span>
-        @else
-          <span class="inline-block px-3.5 py-1.5 rounded-full text-[12px] font-bold tracking-[0.5px] bg-red-400/15 text-red-500 border border-red-400">✕ Rejected</span>
-        @endif
+        <span class="booking-status-badge b-{{ $booking->status }}">
+          {{ $booking->status === 'pending' ? '⏳ Pending' : ($booking->status === 'approved' ? '✓ Approved' : '✕ Rejected') }}
+        </span>
 
         {{-- Reschedule Status Badge --}}
         @if($booking->reschedule_status === 'pending')
@@ -182,6 +188,7 @@
         </div>
     </div>
 </div>
+<div id="booking-data" class="hidden" data-reschedule-url="{{ url('booking') }}"></div>
 
 @include('partials._footer')
  
@@ -197,7 +204,9 @@
   });
 
   function openRescheduleModal(bookingId, eventDate, visitDate, rescheduleCount) {
-    document.getElementById('rescheduleForm').action = '{{ url("booking") }}/' + bookingId + '/reschedule';
+    const bookingData = document.getElementById('booking-data');
+    const baseUrl = bookingData.getAttribute('data-reschedule-url');
+    document.getElementById('rescheduleForm').action = baseUrl + '/' + bookingId + '/reschedule';
     document.getElementById('currentEventDate').textContent = eventDate;
     document.getElementById('currentVisitDate').textContent = visitDate;
     

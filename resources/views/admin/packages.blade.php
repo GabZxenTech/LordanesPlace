@@ -127,7 +127,16 @@
     </div>
   </main>
 
+  <div id="pkg-data" class="hidden" 
+       data-base-url="{{ url('admin/packages') }}"
+       data-store-url="{{ route('admin.packages.store') }}">
+  </div>
+
   <script>
+    const pkgData = document.getElementById('pkg-data');
+    const pkgBaseUrl = pkgData.getAttribute('data-base-url');
+    const pkgStoreUrl = pkgData.getAttribute('data-store-url');
+
     document.querySelectorAll('.edit-pkg-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const id = this.getAttribute('data-id');
@@ -144,7 +153,7 @@
       document.getElementById('form-title').innerText = 'EDIT PACKAGE';
       document.getElementById('submit-btn').innerText = 'UPDATE PACKAGE';
       const form = document.getElementById('package-form');
-      form.action = '{{ url("admin/packages") }}/' + id;
+      form.action = pkgBaseUrl + '/' + id;
       document.getElementById('form-method').value = 'PUT';
       document.getElementById('pkg-name').value = name;
       document.getElementById('pkg-price').value = price;
@@ -159,7 +168,7 @@
       document.getElementById('form-title').innerText = 'ADD NEW PACKAGE';
       document.getElementById('submit-btn').innerText = 'CREATE PACKAGE';
       const form = document.getElementById('package-form');
-      form.action = '{{ route("admin.packages.store") }}';
+      form.action = pkgStoreUrl;
       document.getElementById('form-method').value = 'POST';
       form.reset();
       document.getElementById('cancel-edit-btn').style.display = 'none';

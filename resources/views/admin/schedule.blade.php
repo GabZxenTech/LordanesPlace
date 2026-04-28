@@ -9,6 +9,10 @@
   <style>
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
     .modal-overlay.open { display: flex; }
+    .status-dot { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: capitalize; }
+    .status-pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .status-approved { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .status-rejected { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
   </style>
 </head>
 <body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
@@ -65,7 +69,7 @@
             </div>
             <div style="padding: 12px 24px;">
               @foreach($blockedDates as $blocked)
-                <div style="display: flex; justify-content: space-between; align-items: center; py: 12px; border-bottom: 1px solid #e8dcc8; padding: 12px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e8dcc8; padding: 12px 0;">
                   <div style="padding-bottom: 12px;">
                     <div style="font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $blocked->date->format('F d, Y') }}</div>
                     @if($blocked->reason)
@@ -117,15 +121,7 @@
                     <div style="font-size: 10px; color: #8a6a40; text-transform: uppercase; font-weight: 700;">{{ str_replace('_', ' ', $booking->payment_status) }}</div>
                   </td>
                   <td style="padding: 14px 20px;">
-                    @php
-                      $statusColors = [
-                        'pending' => ['bg' => '#fff3cd', 'text' => '#856404', 'border' => '#ffeeba'],
-                        'approved' => ['bg' => '#d4edda', 'text' => '#155724', 'border' => '#c3e6cb'],
-                        'rejected' => ['bg' => '#f8d7da', 'text' => '#721c24', 'border' => '#f5c6cb']
-                      ];
-                      $colors = $statusColors[$booking->status] ?? $statusColors['pending'];
-                    @endphp
-                    <span style="display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; background: {{ $colors['bg'] }}; color: {{ $colors['text'] }}; border: 1px solid {{ $colors['border'] }}; text-transform: capitalize;">
+                    <span class="status-dot status-{{ $booking->status }}">
                       {{ $booking->status }}
                     </span>
                   </td>
@@ -148,7 +144,7 @@
                       
                       {{-- Action Menu --}}
                       <div style="position: relative;">
-                        <button type="button" style="background: #2c1a0e; color: #c9a84c; width: 28px; height: 28px; border-radius: 4px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" onclick="toggleActionMenu({{ $booking->id }}, event)">⋮</button>
+                        <button type="button" class="action-menu-btn" style="background: #2c1a0e; color: #c9a84c; width: 28px; height: 28px; border-radius: 4px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" data-id="{{ $booking->id }}">⋮</button>
                         <div id="menu-{{ $booking->id }}" style="display: none; position: absolute; right: 0; top: 100%; background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 50; min-width: 140px; margin-top: 5px;">
                           @if($booking->status === 'pending')
                             <form method="POST" action="{{ route('admin.booking.approve', $booking->id) }}">
@@ -246,7 +242,12 @@
     </div>
   </div>
 
+  <div id="admin-data" class="hidden" data-base-url="{{ url('admin/booking') }}"></div>
+
   <script>
+    const adminData = document.getElementById('admin-data');
+    const bookingBaseUrl = adminData.getAttribute('data-base-url');
+
     document.querySelectorAll('.edit-booking-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const id = this.getAttribute('data-id');
@@ -258,6 +259,13 @@
         const notes = this.getAttribute('data-notes');
         const total = this.getAttribute('data-total');
         openEditModal(id, pkg, date, start, end, guests, notes, total);
+      });
+    });
+
+    document.querySelectorAll('.action-menu-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-id');
+        toggleActionMenu(id, e);
       });
     });
 
@@ -275,7 +283,7 @@
     }
 
     function openEditModal(id, pkg, date, start, end, guests, notes, total) {
-      document.getElementById('editBookingForm').action = '{{ url("admin/booking") }}/' + id;
+      document.getElementById('editBookingForm').action = bookingBaseUrl + '/' + id;
       document.getElementById('edit_package').value = pkg;
       document.getElementById('edit_event_date').value = date;
       document.getElementById('edit_start_time').value = start;

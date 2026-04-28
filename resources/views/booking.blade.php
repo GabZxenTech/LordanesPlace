@@ -147,6 +147,16 @@
       <form method="POST" action="{{ route('booking.store') }}" id="bookingForm">
         @csrf
         <input type="hidden" name="event_date" id="eventDateInput" value="{{ old('event_date') }}" required />
+        
+        {{-- Hidden data container for JS --}}
+        <div id="booking-data" class="hidden" 
+             data-blocked-dates='{!! json_encode($blockedDates ?? []) !!}'
+             data-booked-dates='{!! json_encode($bookedDatesByPackage ?? []) !!}'
+             data-unavailable-dates='{!! json_encode($unavailableDates ?? []) !!}'
+             data-old-date="{{ old('event_date') }}"
+             data-booking-success="{{ session('booking_success') ? 'true' : 'false' }}"
+             data-visit-success="{{ session('visit_success') ? 'true' : 'false' }}">
+        </div>
 
         <div class="mb-4">
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Event Type</label>
@@ -256,7 +266,7 @@
 </section>
 
 <!-- SUCCESS MODAL + VISIT SCHEDULING -->
-<div class="modal-overlay hidden fixed inset-0 bg-black/70 z-[9999] items-center justify-center {{ session('booking_success') ? 'open' : '' }}" id="successModal" style="display:none; {{ session('booking_success') ? 'display:flex;' : '' }}">
+<div class="modal-overlay hidden fixed inset-0 bg-black/70 z-[9999] items-center justify-center" id="successModal">
   <div class="modal-box bg-off-white border border-gold-deep/25 rounded-2xl p-8 md:p-10 max-w-[650px] w-[95%] overflow-y-auto max-h-[90vh]">
     <div class="text-center mb-6">
         <div class="text-[48px] mb-2">🎉</div>
@@ -332,7 +342,7 @@
 </div>
 
 <!-- FINAL VISIT SUCCESS MODAL -->
-<div class="modal-overlay hidden fixed inset-0 bg-black/70 z-[9999] items-center justify-center {{ session('visit_success') ? 'open' : '' }}" id="visitSuccessModal" style="display:none; {{ session('visit_success') ? 'display:flex;' : '' }}">
+<div class="modal-overlay hidden fixed inset-0 bg-black/70 z-[9999] items-center justify-center" id="visitSuccessModal">
   <div class="modal-box bg-off-white border border-gold-deep/25 rounded-2xl p-10 md:p-12 text-center max-w-[460px] w-[90%] relative">
     <button type="button" onclick="document.getElementById('visitSuccessModal').style.display='none'" class="absolute top-4 right-4 text-warm-black/40 hover:text-warm-black text-[22px] bg-transparent border-none cursor-pointer leading-none transition-colors">✕</button>
     <div class="text-[56px] mb-4">✨</div>
@@ -347,9 +357,24 @@
 @include('chat-assistant')
 
 <script>
-  const blockedDates = @json($blockedDates ?? []);
-  const bookedDatesByPackage = @json($bookedDatesByPackage ?? []);
-  const unavailableDatesLegacy = @json($unavailableDates ?? []);
+  const dataEl = document.getElementById('booking-data');
+  const blockedDates = JSON.parse(dataEl.getAttribute('data-blocked-dates'));
+  const bookedDatesByPackage = JSON.parse(dataEl.getAttribute('data-booked-dates'));
+  const unavailableDatesLegacy = JSON.parse(dataEl.getAttribute('data-unavailable-dates'));
+  const bookingSuccess = dataEl.getAttribute('data-booking-success') === 'true';
+  const visitSuccess = dataEl.getAttribute('data-visit-success') === 'true';
+
+  // Modal Initial Visibility
+  if (bookingSuccess) {
+    const m = document.getElementById('successModal');
+    m.style.display = 'flex';
+    m.classList.add('open');
+  }
+  if (visitSuccess) {
+    const m = document.getElementById('visitSuccessModal');
+    m.style.display = 'flex';
+    m.classList.add('open');
+  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -358,7 +383,7 @@
   let selectedDate = null;
   let selectedPackage = document.getElementById('packageSelect').value;
 
-  const oldDate = "{{ old('event_date') }}";
+  const oldDate = dataEl.getAttribute('data-old-date');
   if (oldDate) {
     selectedDate = oldDate;
     document.getElementById('selectedDateDisplay').textContent = '📅 Selected: ' + formatDisplay(oldDate);
