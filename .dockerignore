@@ -1,0 +1,14 @@
+.env
+.git
+.gitignore
+.vscode
+/vendor
+/node_modules
+/storage/*.key
+/public/storage
+/public/hot
+/public/build
+.phpunit.result.cache
+docker-compose.yml
+Dockerfile
+README.md

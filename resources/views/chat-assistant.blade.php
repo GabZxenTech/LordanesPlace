@@ -243,7 +243,7 @@
   const quickResponses = {
     pricing: "Our packages start at ₱5,000 for basic events and ₱15,000 for overnight stays. Contact us for detailed package inclusion!",
     booking: "You can book by filling out our booking form here: <a href='/booking' style='color: #D4A017;'>Click Here to Book</a>",
-    location: "We are located at Pulong Buhangin, Santa Maria, Bulacan, Philippines. Near the municipal hall.",
+    location: "We are located at Pulong Buhangin, Santa Maria, Bulacan, Philippines. Near the McDonald's Pulong Buhangin.",
     amenities: "We offer: Olympic-size swimming pool, Air-conditioned Function Hall (200 pax), Outdoor Garden, Full Kitchen, and Free Parking."
   };
 
