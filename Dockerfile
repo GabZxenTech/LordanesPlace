@@ -13,10 +13,11 @@ RUN apk add --no-cache \
     freetype-dev \
     bash \
     nodejs \
-    npm
+    npm \
+    postgresql-dev
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql zip intl gd
+RUN docker-php-ext-install pdo_mysql pdo_pgsql pgsql zip intl gd
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
