@@ -18,12 +18,14 @@ class BookingController extends Controller
         $bookings = Booking::where('status', '!=', 'rejected')->get();
         $bookedDatesByPackage = [];
         foreach ($bookings as $booking) {
-            $bookedDatesByPackage[$booking->package][] = $booking->event_date->format('Y-m-d');
+            $bookedDatesByPackage[$booking->package][] = $booking->event_date->timezone('Asia/Manila')->format('Y-m-d');
         }
 
-        // Get all blocked dates (apply globally)
-        $blockedDates = BlockedDate::pluck('date')
-            ->map(fn($date) => $date->format('Y-m-d'))
+        // Get all blocked dates (apply globally) with reasons
+        $blockedDates = BlockedDate::all(['date', 'reason'])
+            ->mapWithKeys(fn($item) => [
+                $item->date->timezone('Asia/Manila')->format('Y-m-d') => $item->reason ?? 'This date has been blocked by the venue admin (e.g. maintenance, private hold, or holiday).'
+            ])
             ->toArray();
 
         return view('booking', compact('packages', 'bookedDatesByPackage', 'blockedDates'));

@@ -1,7 +1,7 @@
 <!-- ADMIN HEADER -->
 <div class="bg-admin-dark/[0.98] border-b border-admin-gold/30 px-4 lg:px-10 py-4 flex flex-col lg:flex-row justify-between items-start lg:items-center sticky top-0 z-[100] gap-3 lg:gap-5">
   <div class="flex items-center gap-3">
-    <img src="{{ asset('images/LOGO_LORDANES.png') }}" alt="Logo" style="height: 50px; width: auto; object-fit: contain;">
+    <img src="{{ asset('images/NEWLOGO.png') }}" alt="Logo" style="height: 50px; width: auto; object-fit: contain;">
     <h1 class="font-[Playfair_Display,serif] text-admin-gold text-[20px] lg:text-[22px] whitespace-nowrap">LorDane's Admin</h1>
   </div>
 

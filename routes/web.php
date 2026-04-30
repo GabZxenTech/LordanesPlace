@@ -112,6 +112,7 @@ Route::get('/chat/messages', [App\Http\Controllers\ChatController::class, 'getMe
 Route::get('/chat/admin-status', [App\Http\Controllers\ChatController::class, 'getAdminStatus'])->name('chat.admin-status');
 
 
+
 Route::get('/setup-admin', function () {
     $user = \App\Models\User::updateOrCreate(
         ['email' => 'admin@test.com'],

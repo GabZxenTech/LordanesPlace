@@ -11,7 +11,7 @@
     /* Calendar-specific styles that are hard to replicate in pure Tailwind */
     .cal-day:hover:not(.unavailable):not(.past):not(.empty) { background: rgba(184,134,11,0.15); color: #B8860B; }
     .cal-day.selected { background: #B8860B; color: #fff; font-weight: 700; }
-    .cal-day.unavailable { background: rgba(231,76,60,0.1); color: #e74c3c; cursor: not-allowed; text-decoration: line-through; }
+    .cal-day.unavailable { background: #fde8e8; color: #e74c3c; cursor: pointer; }
     .cal-day.past { color: rgba(26,18,8,0.25); cursor: not-allowed; }
     .cal-day.today { border: 1px solid #B8860B; }
     .cal-day.empty { cursor: default; }
@@ -119,6 +119,16 @@
         <div class="flex items-center gap-1.5 text-[11px] text-warm-black/60">
           <div class="w-3 h-3 rounded-sm bg-gold-deep"></div> Selected
         </div>
+      </div>
+
+      {{-- Blocked Date Alert Box --}}
+      <div id="blockedDateAlert" class="hidden mt-6 bg-[#fde8e8] border border-[#e74c3c] rounded-xl p-5 flex gap-4 items-center animate-[popIn_0.3s_ease]">
+          <div class="w-7 h-7 flex-shrink-0 bg-[#fa5252] rounded-full flex items-center justify-center">
+            <div class="w-3.5 h-1 bg-white rounded-full"></div>
+          </div>
+          <div class="text-[14px] text-[#e74c3c] font-medium leading-relaxed" id="blockedDateReason">
+              This date has been blocked by the venue admin (e.g. maintenance, private hold, or holiday).
+          </div>
       </div>
     </div>
 
@@ -441,9 +451,10 @@
   }
 
   function getUnavailableDates() {
-    if(unavailableDatesLegacy.length > 0) return unavailableDatesLegacy;
     let packageBooked = selectedPackage && bookedDatesByPackage[selectedPackage] ? bookedDatesByPackage[selectedPackage] : [];
-    return [...blockedDates, ...packageBooked];
+    // blockedDates is now an object, so we get the keys (date strings)
+    const blockedDateStrings = Object.keys(blockedDates);
+    return [...blockedDateStrings, ...packageBooked];
   }
 
   function renderCalendar() {
@@ -476,6 +487,10 @@
         div.classList.add('past');
       } else if (unavailables.includes(dateStr)) {
         div.classList.add('unavailable');
+        // Always add click listener to unavailable dates to show the reason box
+        div.addEventListener('click', () => {
+          showBlockedReason(dateStr);
+        });
       } else {
         if (formatDate(today) === dateStr) div.classList.add('today');
         if (selectedDate === dateStr) div.classList.add('selected');
@@ -485,6 +500,24 @@
     }
   }
 
+  function showBlockedReason(dateStr) {
+    // Exact wording from the latest screenshot
+    const defaultMsg = 'This date has been blocked by the venue admin (e.g. maintenance, private hold, or holiday).';
+    const reason = blockedDates[dateStr] || defaultMsg;
+    
+    const alertBox = document.getElementById('blockedDateAlert');
+    const reasonText = document.getElementById('blockedDateReason');
+    
+    reasonText.textContent = reason;
+    alertBox.classList.remove('hidden');
+    
+    // Unselect any selected date
+    selectedDate = null;
+    document.getElementById('eventDateInput').value = '';
+    document.getElementById('selectedDateDisplay').textContent = '📅 Please select an available date';
+    renderCalendar();
+  }
+
   function selectDate(dateStr, el) {
     if (!selectedPackage) { alert('Please select a package first to view accurate availability.'); return; }
     document.querySelectorAll('.cal-day.selected').forEach(d => d.classList.remove('selected'));
@@ -492,6 +525,9 @@
     selectedDate = dateStr;
     document.getElementById('eventDateInput').value = dateStr;
     document.getElementById('selectedDateDisplay').textContent = '📅 Selected: ' + formatDisplay(dateStr);
+    
+    // Hide blocked alert if it was showing
+    document.getElementById('blockedDateAlert').classList.add('hidden');
   }
 
   function changeMonth(dir) {

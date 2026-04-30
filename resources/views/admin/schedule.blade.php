@@ -196,7 +196,7 @@
 
         <div style="margin-bottom: 16px;">
           <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Event Date</label>
-          <input type="date" name="event_date" id="edit_event_date" required 
+          <input type="date" name="event_date" id="edit_event_date" required min="{{ date('Y-m-d') }}"
             style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
         </div>
 
