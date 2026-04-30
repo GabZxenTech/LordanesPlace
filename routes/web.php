@@ -110,3 +110,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'send'])->name('chat.send');
 Route::get('/chat/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
 Route::get('/chat/admin-status', [App\Http\Controllers\ChatController::class, 'getAdminStatus'])->name('chat.admin-status');
+
+
+Route::get('/setup-admin', function () {
+    $user = \App\Models\User::updateOrCreate(
+        ['email' => 'admin@test.com'],
+        [
+            'name' => 'Admin User',
+            'password' => Hash::make('admin123'),
+            'role' => 'admin'
+        ]
+    );
+    return "Admin account created/updated! Email: admin@test.com, Pass: admin123. PLEASE DELETE THIS ROUTE NOW.";
+});
