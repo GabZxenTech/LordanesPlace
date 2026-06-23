@@ -42,6 +42,8 @@ class User extends Authenticatable
         'role',
         'last_active',
         'is_online',
+        'google_id',
+        'avatar',
     ];
 
     protected function casts(): array

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BookingController;
@@ -15,6 +16,7 @@ Route::get('/', function () {
 Route::get('/tour', function () {
     return view('tour');
 })->name('tour');
+
 
 Route::get('/discover', function () {
     return view('discover');
@@ -38,6 +40,10 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 
 // Logout
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Google Auth
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
 
 

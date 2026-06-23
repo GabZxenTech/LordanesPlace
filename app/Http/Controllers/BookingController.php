@@ -34,16 +34,20 @@ class BookingController extends Controller
     // Store new booking
     public function store(Request $request)
     {
+        $maxBookingDate = now()->addMonths(12)->format('Y-m-d');
+
         $request->validate([
             'event_type'  => 'required|string|max:255',
             'package'     => 'required|string',
-            'event_date'  => 'required|date|after:today',
+            'event_date'  => 'required|date|after:today|before_or_equal:' . $maxBookingDate,
             'start_time'  => 'required',
             'end_time'    => 'required|after:start_time',
             'guest_count' => 'required|integer|min:1',
             'notes'       => 'nullable|string|max:1000',
             'total_amount' => 'required|numeric|min:0',
             'terms'        => 'accepted',
+        ], [
+            'event_date.before_or_equal' => 'Bookings can only be made up to 12 months in advance. Please select a date on or before ' . now()->addMonths(12)->format('F j, Y') . '.',
         ]);
 
         $downPaymentAmount = $request->total_amount * 0.20;
@@ -136,11 +140,14 @@ class BookingController extends Controller
             return back()->withErrors(['reschedule' => 'A reschedule request is already pending for this booking.']);
         }
 
+        $maxBookingDate = now()->addMonths(12)->format('Y-m-d');
+
         $request->validate([
-            'requested_event_date' => 'required|date|after:today',
+            'requested_event_date' => 'required|date|after:today|before_or_equal:' . $maxBookingDate,
             'requested_visit_date' => 'required|date|after:today|before:requested_event_date',
             'reschedule_reason'    => 'nullable|string|max:1000',
         ], [
+            'requested_event_date.before_or_equal' => 'Bookings can only be made up to 12 months in advance. Please select a date on or before ' . now()->addMonths(12)->format('F j, Y') . '.',
             'requested_visit_date.before' => 'The visit date must be before the event date.',
         ]);
 

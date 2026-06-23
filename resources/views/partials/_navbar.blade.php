@@ -4,10 +4,10 @@
     <!-- Logo -->
     <div class="shrink-0">
       <a href="{{ route('home') }}" class="no-underline flex items-center gap-3 group">
-        <img src="{{ asset('images/NEWLOGO.png') }}" alt="LorDane's Place Logo" style="height: 60px; width: auto; object-fit: contain; transition: 0.3s;" class="group-hover:scale-105">
+        <img src="{{ asset('images/NEWLOGO.png') }}" alt="LorDane's Place Logo" style="height: 80px; width: auto; object-fit: contain; transition: 0.3s;" class="group-hover:scale-105">
         <div>
-          <h2 class="text-gold-deep font-heading text-[20px] lg:text-[26px] tracking-tight leading-none">LorDane's Place</h2>
-          <p class="text-[9px] tracking-[2px] text-warm-black/50 mt-1 uppercase">PLACE • EVENT VENUE</p>
+          <h2 class="text-gold-deep font-heading text-[24px] lg:text-[30px] tracking-tight leading-none">LorDane's Place</h2>
+          <p class="text-[10px] tracking-[2.5px] text-warm-black/50 mt-1 uppercase">PLACE • EVENT VENUE</p>
         </div>
       </a>
     </div>
@@ -75,13 +75,13 @@
   </div>
 
   <!-- Mobile Menu Drawer -->
-  <div id="mobileMenu" class="lg:hidden hidden border-t border-gold-deep/15 bg-cream">
+  <div id="mobileMenu" class="lg:hidden hidden border-t border-gold-deep/15 bg-cream overflow-y-auto max-h-[calc(100vh-100px)]">
     <div class="flex flex-col px-[5%] py-6 gap-1">
       <div class="px-4 mb-6 flex items-center gap-3">
-        <img src="{{ asset('images/NEWLOGO.png') }}" alt="Logo" style="height: 55px; width: auto; object-fit: contain;">
+        <img src="{{ asset('images/NEWLOGO.png') }}" alt="Logo" style="height: 70px; width: auto; object-fit: contain;">
         <div>
-          <p class="text-gold-deep font-heading text-[18px] leading-tight mb-0">LorDane's Place</p>
-          <p class="text-[8px] tracking-[2px] text-warm-black/40 uppercase">Place • Event Venue</p>
+          <p class="text-gold-deep font-heading text-[22px] leading-tight mb-0">LorDane's Place</p>
+          <p class="text-[9px] tracking-[2px] text-warm-black/40 uppercase">Place • Event Venue</p>
         </div>
       </div>
       <a href="{{ route('home') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline {{ request()->is('/') ? 'text-gold-deep font-bold' : '' }}">Home</a>

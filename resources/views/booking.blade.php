@@ -13,6 +13,7 @@
     .cal-day.selected { background: #B8860B; color: #fff; font-weight: 700; }
     .cal-day.unavailable { background: #fde8e8; color: #e74c3c; cursor: pointer; }
     .cal-day.past { color: rgba(26,18,8,0.25); cursor: not-allowed; }
+    .cal-day.beyond-year { background: #f0f0f0; color: rgba(26,18,8,0.20); cursor: not-allowed; }
     .cal-day.today { border: 1px solid #B8860B; }
     .cal-day.empty { cursor: default; }
     @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -389,6 +390,10 @@
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Booking restriction: only allow dates up to 12 months from today
+  const maxBookingDate = new Date(today.getFullYear(), today.getMonth() + 12, today.getDate());
+  maxBookingDate.setHours(0, 0, 0, 0);
+
   let currentDate = new Date();
   let selectedDate = null;
   let selectedPackage = document.getElementById('packageSelect').value;
@@ -485,6 +490,9 @@
 
       if (dateObj < today) {
         div.classList.add('past');
+      } else if (dateObj > maxBookingDate) {
+        div.classList.add('beyond-year');
+        div.title = 'Booking is only available up to 12 months in advance';
       } else if (unavailables.includes(dateStr)) {
         div.classList.add('unavailable');
         // Always add click listener to unavailable dates to show the reason box
@@ -531,7 +539,13 @@
   }
 
   function changeMonth(dir) {
-    currentDate.setMonth(currentDate.getMonth() + dir);
+    const nextDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + dir, 1);
+    // Prevent navigating beyond the month containing maxBookingDate
+    if (dir > 0 && nextDate.getFullYear() > maxBookingDate.getFullYear()) return;
+    if (dir > 0 && nextDate.getFullYear() === maxBookingDate.getFullYear() && nextDate.getMonth() > maxBookingDate.getMonth()) return;
+    // Prevent navigating before the current month
+    if (dir < 0 && (nextDate.getFullYear() < today.getFullYear() || (nextDate.getFullYear() === today.getFullYear() && nextDate.getMonth() < today.getMonth()))) return;
+    currentDate = nextDate;
     renderCalendar();
   }
 

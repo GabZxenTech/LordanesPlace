@@ -7,6 +7,42 @@
 <meta name="description" content="Get in touch with LorDane's Place. Find our location, opening hours, phone number, and email address.">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 @vite(['resources/css/app.css', 'resources/js/app.js'])
+{{-- Leaflet CSS --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    /* Leaflet map height inside the aspect-ratio container */
+    #lordanes-map {
+        width: 100%;
+        height: 100%;
+        min-height: 400px;
+    }
+
+    /* Match your gold theme for the popup */
+    .leaflet-popup-content-wrapper {
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        border: 1px solid #C9A84C33;
+    }
+
+    .map-popup h3 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 17px;
+        font-weight: 700;
+        color: #1a1208;
+        margin-bottom: 4px;
+    }
+
+    .map-popup p {
+        font-family: 'Jost', sans-serif;
+        font-size: 13px;
+        color: #555;
+        margin: 2px 0;
+    }
+
+    .map-popup .hours {
+        margin-top: 8px;
+    }
+</style>
 </head>
 <body class="bg-off-white text-warm-black font-body">
 
@@ -74,10 +110,7 @@
 
   <div class="flex justify-center items-center">
     <div class="w-full max-w-[900px] rounded-xl overflow-hidden border border-gold-deep/30 shadow-sm" style="aspect-ratio: 16/9;">
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1005.512394744185!2d120.99150997422898!3d14.861853705944357!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397a90028979e19%3A0x97955c24c4d19ac4!2sLorDane&#39;s%20Place!5e1!3m2!1sen!2sph!4v1775222048800!5m2!1sen!2sph"
-        width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy">
-      </iframe>
+      <div id="lordanes-map"></div>
     </div>
   </div>
 </section>
@@ -101,5 +134,112 @@
 
 @include('partials._footer')
 @include('chat-assistant')
+
+{{-- Leaflet JS --}}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // ── Exact coordinates ng LorDane's Place ─────────────────────────
+    const LORDANES = { lat: 14.8617228, lng: 120.9910017 };
+
+    // ── Initialize map ────────────────────────────────────────────────
+    const map = L.map('lordanes-map', {
+        center: [LORDANES.lat, LORDANES.lng],
+        zoom: 17,
+        zoomControl: true,
+        scrollWheelZoom: false
+    });
+
+    // ── Tile layers (Satellite + Street) ──────────────────────────────
+    const satellite = L.tileLayer(
+        'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        { attribution: '© Google Satellite', maxZoom: 21 }
+    );
+    const street = L.tileLayer(
+        'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+        { attribution: '© Google Maps', maxZoom: 21 }
+    );
+
+    satellite.addTo(map); // Default: satellite
+
+    L.control.layers(
+        { "Satellite": satellite, "Street": street },
+        null,
+        { position: 'topright', collapsed: false }
+    ).addTo(map);
+
+    // ── Bubble icon helper ────────────────────────────────────────────
+    function bubbleIcon(emoji, size = 36) {
+        return L.divIcon({
+            html: `<div style="
+                width: ${size}px;
+                height: ${size}px;
+                background: #C9A84C;
+                border: 2.5px solid #fff;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: ${size * 0.45}px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+                line-height: 1;
+            ">${emoji}</div>`,
+            iconSize: [size, size],
+            iconAnchor: [size / 2, size / 2],
+            popupAnchor: [0, -(size / 2 + 4)],
+            className: ''
+        });
+    }
+
+    // ── Markers ───────────────────────────────────────────────────────
+    const locations = [
+        {
+            lat: 14.8617228, lng: 120.9910017,
+            label: "LorDane's Place",
+            desc: "📍 Pulong Buhangin, Santa Maria, Bulacan",
+            extra: "<div class=\"hours\"><p>🕒 Day Tour: 8:00 AM – 3:00 PM</p><p>🌙 Overnight: 5:00 PM – 9:00 AM</p></div>",
+            emoji: "🏡", open: true, main: true
+        },
+        {
+            lat: 14.861744, lng: 120.99081,
+            label: "Main Entrance",
+            desc: "🚪 Main entrance ng LorDane's Place",
+            extra: "", emoji: "🚪", open: false
+        },
+        {
+            lat: 14.862122, lng: 120.990891,
+            label: "Pool Area",
+            desc: "🏊 Swimming pool area",
+            extra: "", emoji: "🏊", open: false
+        },
+        {
+            lat: 14.862078, lng: 120.990784,
+            label: "Venue Hall",
+            desc: "🎉 Events venue hall",
+            extra: "", emoji: "🎉", open: false
+        },
+        {
+            lat: 14.862186, lng: 120.991061,
+            label: "Lobby Area",
+            desc: "🛎️ Lobby / reception area",
+            extra: "", emoji: "🛎️", open: false
+        }
+    ];
+
+    locations.forEach(loc => {
+        const m = L.marker([loc.lat, loc.lng], { icon: bubbleIcon(loc.emoji, loc.main ? 32 : 26) }).addTo(map);
+
+        m.bindPopup(
+            `<div class="map-popup" style="padding:4px 2px;min-width:180px;">
+                <p class="gold-label">LorDane's Place</p>
+                <h3>${loc.emoji} ${loc.label}</h3>
+                <p>${loc.desc}</p>
+                ${loc.extra}
+            </div>`,
+            { maxWidth: 240 }
+        );
+
+        if (loc.open) m.openPopup();
+    });
+</script>
 </body>
 </html>

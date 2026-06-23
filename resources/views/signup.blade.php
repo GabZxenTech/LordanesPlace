@@ -98,10 +98,10 @@
           </form>
 
           <div class="text-center text-white/40 text-[14px] my-3">or</div>
-          <button class="w-full flex items-center justify-center gap-2.5 py-3 rounded-lg border border-white/20 bg-white text-warm-black text-[15px] font-medium cursor-not-allowed opacity-70 mb-4" disabled title="Coming soon!">
+          <a href="{{ route('auth.google') }}" class="w-full flex items-center justify-center gap-2.5 py-3 rounded-lg border border-white/20 bg-white text-warm-black text-[15px] font-medium hover:bg-gray-100 transition-colors mb-4 no-underline">
             <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="w-5 h-5" />
             Continue with Google
-          </button>
+          </a>
 
           <p class="text-center text-[14px] text-white/60 mb-3">
             Already have an account? <a href="{{ route('login') }}" class="text-gold-deep no-underline hover:text-gold-light">Login</a>

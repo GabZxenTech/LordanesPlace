@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -108,5 +110,55 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    // ==================== GOOGLE AUTH ====================
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+            
+            $user = User::where('email', $googleUser->getEmail())->first();
+
+            if ($user) {
+                // User exists, update google_id and avatar if empty
+                if (!$user->google_id) {
+                    $user->update([
+                        'google_id' => $googleUser->getId(),
+                        'avatar' => $googleUser->getAvatar()
+                    ]);
+                }
+            } else {
+                // Create new user
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'password' => Hash::make(Str::random(24)), // Random secure password
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                    // Optionally set email_verified_at if your system uses it
+                    // 'email_verified_at' => now(),
+                ]);
+            }
+
+            Auth::login($user);
+            User::where('id', Auth::id())->update(['last_active' => now()]);
+
+            if (Auth::user()->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+
+            return redirect()->route('home');
+
+        } catch (\Exception $e) {
+            return redirect()->route('login')->withErrors([
+                'email' => 'Google Login failed. Please try again.',
+            ]);
+        }
     }
 }
