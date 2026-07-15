@@ -9,19 +9,6 @@ use App\Http\Controllers\Admin\BlockedDateController;
 use App\Http\Controllers\VisitScheduleController;
 use App\Http\Controllers\ReceiptController;
 
-Route::get('/debug-db', function () {
-    return [
-        'DB_CONNECTION' => env('DB_CONNECTION'),
-        'DB_HOST' => env('DB_HOST'),
-        'DB_PORT' => env('DB_PORT'),
-        'DB_DATABASE' => env('DB_DATABASE'),
-        'DB_USERNAME' => env('DB_USERNAME'),
-        'DB_PASSWORD_LENGTH' => strlen(env('DB_PASSWORD')),
-        'DB_PASSWORD_STARTS_WITH' => substr(env('DB_PASSWORD'), 0, 1),
-        'DB_PASSWORD_ENDS_WITH' => substr(env('DB_PASSWORD'), -1),
-    ];
-});
-
 Route::get('/', function () {
     return view('homepage');
 })->name('home');
