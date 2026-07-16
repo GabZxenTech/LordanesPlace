@@ -29,7 +29,7 @@ WORKDIR /var/www/html
 COPY . .
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-req=php-64bit
 
 # Install Node dependencies and build assets
 RUN npm install && npm run build
