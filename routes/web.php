@@ -75,6 +75,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 use App\Http\Controllers\Admin\PackageController;
+use App\Http\Controllers\Admin\ReportController;
 
 // Admin schedule routes
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
@@ -110,6 +111,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/chat/{id}', [App\Http\Controllers\ChatController::class, 'adminOpenChat'])->name('chat.open');
     Route::post('/chat/reply', [App\Http\Controllers\ChatController::class, 'adminReply'])->name('chat.reply');
     Route::post('/chat/toggle-status', [App\Http\Controllers\ChatController::class, 'toggleStatus'])->name('chat.toggle-status');
+
+    // Reports
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::post('/reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
+    Route::post('/reports/export-excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
 });
 
 // Chat Client routes
