@@ -51,7 +51,7 @@
     <p class="text-warm-black/90 text-[16px] md:text-[16px] font-normal">Experience every corner of LorDane's Place from the comfort of your home.</p>
   </div>
   <div class="relative max-w-[1000px] mx-auto">
-    <a href="{{ asset('lordanes360view/index.html') }}" target="_blank"
+    <a href="{{ url('/tour') }}" target="_blank"
       class="absolute top-4 right-4 z-10 bg-gold-deep/90 text-white px-4 py-2 rounded text-[15px] font-bold no-underline transition-all hover:bg-gold-mid">
       ⛶ Open Fullscreen
     </a>

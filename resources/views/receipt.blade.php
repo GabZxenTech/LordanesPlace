@@ -186,7 +186,7 @@
 
     <div class="footer">
         <p>Thank you for choosing <strong>LorDane's Place</strong>!</p>
-        <p>If you have any questions, please contact us at contact@lordanesplace.com</p>
+        <p>If you have any questions, please contact us at <strong>0917 745 5049</strong> or <strong>lordanesplace@gmail.com</strong></p>
         <p style="font-size: 10px; margin-top: 20px;">Generated on {{ now()->format('F d, Y h:i A') }}</p>
     </div>
 </body>

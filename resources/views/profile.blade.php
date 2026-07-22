@@ -47,7 +47,7 @@
             <p style="font-size: 13px; color: #1a1a1a; margin: 0; opacity: 0.7;">You have currently entrusted us with {{ $bookings->count() }} reservations.</p>
           </div>
         </div>
-        <a href="{{ route('booking') }}" style="background: #a88a4c; color: white; padding: 0.85rem 2rem; border-radius: 2px; text-decoration: none; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; transition: 0.3s; box-shadow: 0 4px 10px rgba(168,138,76,0.15);">+ New Reservation</a>
+        <a href="{{ route('booking') }}" style="background: #B8860B; color: white; padding: 0.85rem 2rem; border-radius: 3px; text-decoration: none; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; transition: 0.3s; box-shadow: 0 4px 10px rgba(184,134,11,0.2);" onmouseover="this.style.background='#C9A84C'" onmouseout="this.style.background='#B8860B'">+ New Reservation</a>
       </div>
     </div>
 
@@ -103,7 +103,7 @@
                 <p style="font-size: 11px; font-weight: 900; color: #a88a4c; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Total Investment</p>
                 <p style="font-size: 20px; font-weight: 700; color: #a88a4c;">₱{{ number_format($booking->total_amount, 2) }}</p>
               </div>
-              <div>git add .
+              <div>
                 <p style="font-size: 11px; font-weight: 900; color: #a88a4c; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Venue Visit</p>
                 @php $visit = $booking->visitSchedules->first(); @endphp
                 @if($visit)
@@ -118,13 +118,21 @@
             </div>
 
             <div style="margin-top: 2.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
-              <a href="{{ route('booking.receipt', $booking->id) }}" style="background: #1a1a1a; color: white; padding: 0.85rem 2rem; border-radius: 2px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; transition: 0.3s;">Receipt PDF</a>
+              <a href="{{ route('booking.receipt', $booking->id) }}" style="background: #1a1a1a; color: white; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; transition: 0.3s;">Receipt PDF</a>
               @if($booking->status === 'approved' && $booking->reschedule_status !== 'pending')
-                <button type="button" 
-                  style="background: #a88a4c; color: white; padding: 0.85rem 2rem; border-radius: 2px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border: none; cursor: pointer; transition: 0.3s;"
-                  onclick="openRescheduleModal({{ $booking->id }}, '{{ $booking->event_date->format('F d, Y') }}', '{{ optional($booking->visitSchedules->first())->visit_date ? $booking->visitSchedules->first()->visit_date->format('F d, Y') : 'Not scheduled' }}', {{ $booking->reschedule_count }})">
-                  Reschedule
-                </button>
+                @if($booking->event_date->format('Y-m-d') >= date('Y-m-d'))
+                  <button type="button" 
+                    style="background: #B8860B; color: white; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border: none; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(184,134,11,0.25);"
+                    onmouseover="this.style.background='#C9A84C'" onmouseout="this.style.background='#B8860B'"
+                    onclick="openRescheduleModal({{ $booking->id }}, '{{ $booking->event_date->format('F d, Y') }}', '{{ optional($booking->visitSchedules->first())->visit_date ? $booking->visitSchedules->first()->visit_date->format('F d, Y') : 'Not scheduled' }}', {{ $booking->reschedule_count }})">
+                    Reschedule
+                  </button>
+                @else
+                  <button type="button" disabled title="Event already completed"
+                    style="background: #e2e8f0; color: #94a3b8; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border: none; cursor: not-allowed; opacity: 0.8;">
+                    Event Completed
+                  </button>
+                @endif
               @endif
             </div>
 
@@ -205,8 +213,8 @@
                         Cancel
                     </button>
                     <button type="submit" 
-                        style="flex: 1; padding: 18px; border: none; background: #a88a4c; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.2em; cursor: pointer; transition: 0.3s; border-radius: 2px; box-shadow: 0 4px 15px rgba(168,138,76,0.25);"
-                        onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                        style="flex: 1; padding: 18px; border: none; background: #B8860B; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.2em; cursor: pointer; transition: 0.3s; border-radius: 3px; box-shadow: 0 4px 15px rgba(184,134,11,0.25);"
+                        onmouseover="this.style.background='#C9A84C'" onmouseout="this.style.background='#B8860B'">
                         Review Change
                     </button>
                 </div>

@@ -1,12 +1,12 @@
 <!-- HEADER / NAVBAR -->
-<header class="sticky top-0 z-50 border-b border-gold-deep/20 shadow-sm bg-cream">
-  <div class="flex justify-between items-center px-[5%] lg:px-[8%] py-[18px] gap-5">
+<header class="sticky top-0 z-[100] border-b border-gold-deep/20 shadow-sm bg-cream">
+  <div class="flex justify-between items-center px-[5%] lg:px-[8%] py-[12px] md:py-[14px] gap-5">
     <!-- Logo -->
     <div class="shrink-0">
-      <a href="{{ route('home') }}" class="no-underline flex items-center gap-3 group">
-        <img src="{{ asset('images/NEWLOGO.png') }}" alt="LorDane's Place Logo" style="height: 80px; width: auto; object-fit: contain; transition: 0.3s;" class="group-hover:scale-105">
+      <a href="{{ route('home') }}" class="no-underline flex items-center gap-3.5 group">
+        <img src="{{ asset('images/NEWLOGO.png') }}" alt="LorDane's Place Logo" style="height: 66px; width: auto; object-fit: contain; transition: 0.3s;" class="group-hover:scale-105">
         <div>
-          <h2 class="text-gold-deep font-heading text-[24px] lg:text-[30px] tracking-tight leading-none">LorDane's Place</h2>
+          <h2 class="text-gold-deep font-heading text-[22px] lg:text-[26px] tracking-tight leading-none">LorDane's Place</h2>
           <p class="text-[10px] tracking-[2.5px] text-warm-black/50 mt-1 uppercase">PLACE • EVENT VENUE</p>
         </div>
       </a>
@@ -27,7 +27,7 @@
         <div class="dropdown-menu hidden absolute top-full left-1/2 -translate-x-1/2 border border-gold-deep/20 rounded-lg shadow-md min-w-[200px] py-2 z-[999] bg-cream">
           <a href="{{ route('discover') }}" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline border-b border-gold-deep/10">Discover Overview</a>
           <a href="{{ route('discover') }}#gallery" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Gallery</a>
-          <a href="{{ url('/tour') }}" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline">360° Virtual Tour</a>
+          <a href="{{ route('discover') }}#virtual-tour" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline">360° Virtual Tour</a>
           <a href="{{ route('discover') }}#packages" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Packages</a>
         </div>
       </div>
@@ -77,11 +77,11 @@
   <!-- Mobile Menu Drawer -->
   <div id="mobileMenu" class="lg:hidden hidden border-t border-gold-deep/15 bg-cream overflow-y-auto max-h-[calc(100vh-100px)]">
     <div class="flex flex-col px-[5%] py-6 gap-1">
-      <div class="px-4 mb-6 flex items-center gap-3">
-        <img src="{{ asset('images/NEWLOGO.png') }}" alt="Logo" style="height: 70px; width: auto; object-fit: contain;">
+      <div class="px-4 mb-6 flex items-center gap-3.5">
+        <img src="{{ asset('images/NEWLOGO.png') }}" alt="Logo" style="height: 58px; width: auto; object-fit: contain;">
         <div>
-          <p class="text-gold-deep font-heading text-[22px] leading-tight mb-0">LorDane's Place</p>
-          <p class="text-[9px] tracking-[2px] text-warm-black/40 uppercase">Place • Event Venue</p>
+          <p class="text-gold-deep font-heading text-[24px] leading-tight mb-0">LorDane's Place</p>
+          <p class="text-[10px] tracking-[2px] text-warm-black/40 uppercase">Place • Event Venue</p>
         </div>
       </div>
       <a href="{{ route('home') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline {{ request()->is('/') ? 'text-gold-deep font-bold' : '' }}">Home</a>
@@ -92,7 +92,7 @@
       <div class="border-t border-gold-deep/10 mt-1 pt-1">
         <a href="{{ route('discover') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline {{ request()->is('discover*') ? 'text-gold-deep font-bold' : '' }}">Discover</a>
         <a href="{{ route('discover') }}#gallery" class="block py-2.5 px-8 text-[16px] text-warm-black/90 rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Gallery</a>
-        <a href="{{ url('/tour') }}" class="block py-2.5 px-8 text-[16px] text-warm-black/90 rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">360° Virtual Tour</a>
+        <a href="{{ route('discover') }}#virtual-tour" class="block py-2.5 px-8 text-[16px] text-warm-black/90 rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">360° Virtual Tour</a>
         <a href="{{ route('discover') }}#packages" class="block py-2.5 px-8 text-[16px] text-warm-black/90 rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Packages</a>
       </div>
 

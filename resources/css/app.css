@@ -46,6 +46,16 @@
         background: linear-gradient(to right, transparent, #B8860B, transparent);
     }
 
+    .no-scrollbar::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
     .hero-bg {
         background:
             linear-gradient(rgba(26,18,8,0.4), rgba(26,18,8,0.5)),

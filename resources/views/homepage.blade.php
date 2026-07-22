@@ -28,7 +28,7 @@
       experience in Santa Maria, Bulacan — where every moment becomes a masterpiece.
     </p>
     <div class="flex flex-wrap justify-center gap-3">
-      <button onclick="window.location.href='{{ url('/tour') }}'"
+      <button onclick="window.location.href='{{ route('discover') }}#virtual-tour'"
         class="bg-gold-deep text-white px-6 md:px-8 py-3 md:py-4 border-none cursor-pointer text-[16px] md:text-[15px] font-bold tracking-wide rounded-[3px] transition-all duration-300 hover:bg-gold-mid hover:-translate-y-0.5">
         Start 360° Tour
       </button>
@@ -103,7 +103,7 @@
         through our immersive 360° virtual tour — see the rooms, the ambiance,
         and the spaces before your big day.
       </p>
-      <button onclick="window.location.href='{{ url('/tour') }}'"
+      <button onclick="window.location.href='{{ route('discover') }}#virtual-tour'"
         class="px-6 md:px-8 py-3 md:py-4 bg-gold-deep text-white border-none font-bold text-[16px] md:text-[15px] tracking-wide cursor-pointer rounded-[3px] transition-all duration-300 hover:bg-gold-mid hover:-translate-y-0.5">
         Start Virtual Tour
       </button>
@@ -111,7 +111,7 @@
     <div class="flex-[1.2] min-w-[280px] lg:min-w-[350px] relative">
       <img src="{{ asset('images/360_BG.png') }}" alt="Virtual Tour Preview" class="w-full h-[280px] md:h-[380px] object-cover rounded-lg shadow-sm">
       <div class="play-btn w-14 h-14 md:w-16 md:h-16 bg-gold-deep text-white rounded-full flex items-center justify-center text-lg md:text-xl cursor-pointer hover:bg-gold-mid"
-        onclick="window.location.href='{{ url('/tour') }}'">▶</div>
+        onclick="window.location.href='{{ route('discover') }}#virtual-tour'">▶</div>
     </div>
   </div>
 </section>
@@ -156,8 +156,287 @@
 </section>
 
 
+<style>
+  .review-card {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+  }
+  @media (min-width: 640px) {
+    .review-card {
+      flex: 0 0 calc((100% - 20px) / 2);
+    }
+  }
+  @media (min-width: 1024px) {
+    .review-card {
+      flex: 0 0 calc((100% - 48px) / 3);
+    }
+  }
+  /* Force-hide the horizontal scrollbar on the reviews track */
+  #reviewsTrack::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  #reviewsTrack {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+</style>
+
+<!-- CUSTOMER REVIEWS / TESTIMONIALS -->
+<section class="px-[5%] lg:px-[8%] relative bg-cream" id="reviews" style="scroll-margin-top: 100px; padding-top: 100px; padding-bottom: 90px;">
+  <div class="gold-divider absolute top-0 left-0 right-0"></div>
+  
+  <div class="text-center relative z-[1]" style="margin-bottom: 40px; padding-top: 8px;">
+    <span class="text-[12px] tracking-[4px] text-gold-deep font-bold mb-3 block uppercase">WHAT OUR GUESTS SAY</span>
+    <h2 class="font-heading text-[30px] md:text-[42px] font-bold text-warm-black" style="line-height: 1.35;">
+      Customer <span class="italic text-gold-deep">Reviews</span>
+    </h2>
+    <p class="text-warm-black/80 text-[15px] md:text-[16px] max-w-[600px] mx-auto mt-2 font-normal">
+      Real feedback from guests who celebrated their special moments at LorDane's Place.
+    </p>
+  </div>
+
+  <!-- Carousel Outer Wrapper -->
+  <div class="relative mx-auto" style="max-width: 1300px; padding-left: 56px; padding-right: 56px; overflow: hidden;">
+    <!-- Left Navigation Arrow -->
+    <button id="reviewsPrevBtn" onclick="scrollReviews(-1)" type="button"
+            class="hover:bg-gold-deep hover:text-white hover:border-gold-deep disabled:hover:bg-white disabled:hover:text-gold-deep"
+            style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); z-index: 10; width: 44px; height: 44px; border-radius: 9999px; background-color: #ffffff; border: 1px solid rgba(184,134,11,0.4); color: #B8860B; font-size: 22px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.12); cursor: pointer; transition: all 0.3s;"
+            aria-label="Previous Reviews">
+      ‹
+    </button>
+
+    <!-- Scrollable Reviews Track -->
+    <div id="reviewsTrack" class="flex no-scrollbar" style="display: flex; overflow-x: auto; overflow-y: hidden; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; gap: 20px; padding: 16px 4px;">
+      
+      <!-- Review 1 -->
+      <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
+              ★★★★★
+            </div>
+            <span class="text-[11px] font-semibold text-gold-deep bg-gold-deep/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+              Google Review
+            </span>
+          </div>
+          <p class="text-warm-black/90 text-[14px] md:text-[15px] leading-[1.65] font-normal italic mb-6">
+            "Attended several events here, and the experience has always been great."
+          </p>
+        </div>
+        <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
+          <div class="w-10 h-10 rounded-full font-bold text-[16px] flex items-center justify-center shrink-0 shadow-sm border border-white/20" style="background-color: #455A64 !important; color: #ffffff !important;">
+            J
+          </div>
+          <div>
+            <h4 class="text-[15px] font-bold text-warm-black leading-tight">Josephine Carlos</h4>
+            <p class="text-[12px] text-warm-black/50">5-Star Guest Review</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review 2 -->
+      <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
+              ★★★★★
+            </div>
+            <span class="text-[11px] font-semibold text-gold-deep bg-gold-deep/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+              Google Review
+            </span>
+          </div>
+          <p class="text-warm-black/90 text-[14px] md:text-[15px] leading-[1.65] font-normal italic mb-6">
+            "Our experience at Lordane's event was great, very accessible for our guest, the place is spacious, and most of all the owner is very nice to us,"
+          </p>
+        </div>
+        <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
+          <div class="w-10 h-10 rounded-full font-bold text-[16px] flex items-center justify-center shrink-0 shadow-sm border border-white/20" style="background-color: #7B1FA2 !important; color: #ffffff !important;">
+            E
+          </div>
+          <div>
+            <h4 class="text-[15px] font-bold text-warm-black leading-tight">Eve Cruz</h4>
+            <p class="text-[12px] text-warm-black/50">5-Star Guest Review</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review 3 -->
+      <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
+              ★★★★★
+            </div>
+            <span class="text-[11px] font-semibold text-gold-deep bg-gold-deep/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+              Google Review
+            </span>
+          </div>
+          <p class="text-warm-black/90 text-[14px] md:text-[15px] leading-[1.65] font-normal italic mb-6">
+            "I love the place. They offer excellent and good service. 😊"
+          </p>
+        </div>
+        <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
+          <div class="w-10 h-10 rounded-full font-bold text-[16px] flex items-center justify-center shrink-0 shadow-sm border border-white/20" style="background-color: #E91E63 !important; color: #ffffff !important;">
+            K
+          </div>
+          <div>
+            <h4 class="text-[15px] font-bold text-warm-black leading-tight">Kiss Niño</h4>
+            <p class="text-[12px] text-warm-black/50">5-Star Guest Review</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review 4 -->
+      <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
+              ★★★★★
+            </div>
+            <span class="text-[11px] font-semibold text-gold-deep bg-gold-deep/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+              Google Review
+            </span>
+          </div>
+          <p class="text-warm-black/90 text-[14px] md:text-[15px] leading-[1.65] font-normal italic mb-6">
+            "Great Experience!"
+          </p>
+        </div>
+        <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
+          <div class="w-10 h-10 rounded-full font-bold text-[16px] flex items-center justify-center shrink-0 shadow-sm border border-white/20" style="background-color: #0288D1 !important; color: #ffffff !important;">
+            M
+          </div>
+          <div>
+            <h4 class="text-[15px] font-bold text-warm-black leading-tight">Michael Tabor</h4>
+            <p class="text-[12px] text-warm-black/50">5-Star Guest Review</p>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
+        <div>
+          <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
+            ★★★★★
+          </div>
+        </div>
+        <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
+          <div class="w-10 h-10 rounded-full font-bold text-[16px] flex items-center justify-center shrink-0 shadow-sm border border-white/20" style="background-color: #2E7D32 !important; color: #ffffff !important;">
+            M
+          </div>
+          <div>
+            <h4 class="text-[15px] font-bold text-warm-black leading-tight">Mae</h4>
+            <p class="text-[12px] text-warm-black/50">5-Star Guest Review</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review 6 (Minimal Google Review Style: Reyna Lim Baquiller) -->
+      <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
+        <div>
+          <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
+            ★★★★★
+          </div>
+        </div>
+        <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
+          <div class="w-10 h-10 rounded-full font-bold text-[16px] flex items-center justify-center shrink-0 shadow-sm border border-white/20" style="background-color: #C2185B !important; color: #ffffff !important;">
+            R
+          </div>
+          <div>
+            <h4 class="text-[15px] font-bold text-warm-black leading-tight">Reyna Lim Baquiller</h4>
+            <p class="text-[12px] text-warm-black/50">5-Star Guest Review</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
+        <div>
+          <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
+            ★★★★★
+          </div>
+        </div>
+        <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
+          <div class="w-10 h-10 rounded-full font-bold text-[16px] flex items-center justify-center shrink-0 shadow-sm border border-white/20" style="background-color: #1565C0 !important; color: #ffffff !important;">
+            A
+          </div>
+          <div>
+            <h4 class="text-[15px] font-bold text-warm-black leading-tight">Ayan Rapada</h4>
+            <p class="text-[12px] text-warm-black/50">5-Star Guest Review</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <button id="reviewsNextBtn" onclick="scrollReviews(1)" type="button"
+            class="hover:bg-gold-deep hover:text-white hover:border-gold-deep disabled:hover:bg-white disabled:hover:text-gold-deep"
+            style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); z-index: 10; width: 44px; height: 44px; border-radius: 9999px; background-color: #ffffff; border: 1px solid rgba(184,134,11,0.4); color: #B8860B; font-size: 22px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.12); cursor: pointer; transition: all 0.3s;"
+            aria-label="Next Reviews">
+      ›
+    </button>
+  </div>
+</section>
+
+<script>
+  function getReviewsGap(track) {
+    const style = window.getComputedStyle(track);
+    const gapValue = style.columnGap || style.gap || '20px';
+    const parsed = parseFloat(gapValue);
+    return isNaN(parsed) ? 20 : parsed;
+  }
+
+  function scrollReviews(direction) {
+    const track = document.getElementById('reviewsTrack');
+    if (!track) return;
+    const card = track.querySelector('.review-card');
+    const cardWidth = card ? card.getBoundingClientRect().width : 300;
+    const gap = getReviewsGap(track);
+    track.scrollBy({ left: direction * (cardWidth + gap), behavior: 'smooth' });
+  }
+
+  function updateReviewArrowStates() {
+    const track = document.getElementById('reviewsTrack');
+    const prevBtn = document.getElementById('reviewsPrevBtn');
+    const nextBtn = document.getElementById('reviewsNextBtn');
+    if (!track || !prevBtn || !nextBtn) return;
+
+    const maxScroll = track.scrollWidth - track.clientWidth;
+
+    function setBtnState(btn, isDisabled) {
+      btn.disabled = isDisabled;
+      btn.style.opacity = isDisabled ? '0.3' : '1';
+      btn.style.cursor = isDisabled ? 'not-allowed' : 'pointer';
+    }
+
+   
+    if (maxScroll <= 1) {
+      setBtnState(prevBtn, true);
+      setBtnState(nextBtn, true);
+      return;
+    }
+
+    setBtnState(prevBtn, track.scrollLeft <= 2);
+    setBtnState(nextBtn, track.scrollLeft >= maxScroll - 2);
+  }
+
+  function initReviewsCarousel() {
+    const track = document.getElementById('reviewsTrack');
+    if (!track) return;
+    track.addEventListener('scroll', updateReviewArrowStates);
+    window.addEventListener('resize', updateReviewArrowStates);
+    
+    requestAnimationFrame(updateReviewArrowStates);
+    window.addEventListener('load', updateReviewArrowStates);
+    updateReviewArrowStates();
+  }
+
+  document.addEventListener('DOMContentLoaded', initReviewsCarousel);
+</script>
+
+
 <!-- CTA BANNER -->
-<section class="py-[60px] md:py-[80px] px-[5%] lg:px-[8%] text-center relative border-y border-gold-deep/25" style="background: linear-gradient(135deg, #E8C96D22, #F2EDE4);">
+<section class="mt-6 py-[60px] md:py-[80px] px-[5%] lg:px-[8%] text-center relative border-t border-b-0 border-gold-deep/25" style="background: linear-gradient(135deg, #E8C96D22, #F2EDE4);">
   <h2 class="font-heading text-[32px] md:text-[46px] mb-4 text-warm-black">
     Ready to Plan Your <span class="italic text-gold-deep">Dream Event?</span>
   </h2>

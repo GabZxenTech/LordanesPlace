@@ -15,6 +15,9 @@
         width: 100%;
         height: 100%;
         min-height: 400px;
+        position: relative;
+        z-index: 1;
+        isolation: isolate;
     }
 
     /* Match your gold theme for the popup */
@@ -84,23 +87,21 @@
     <div class="border border-gold-deep/25 rounded-lg p-6 md:p-7 text-center bg-cream transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-sm">
       <div class="text-[28px] md:text-[30px] mb-3">📞</div>
       <h4 class="text-[16px] font-bold text-gold-deep tracking-[0.5px] mb-2 uppercase">Phone Number</h4>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">+63 912 345 6789</p>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">+63 998 765 4321</p>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">8:00 AM - 8:00 PM</p>
+      <p class="text-[15px] font-bold text-warm-black leading-[1.7]">0917 745 5049</p>
+      <p class="text-[14px] text-warm-black/70 font-normal leading-[1.7]">Available 8:00 AM - 8:00 PM</p>
     </div>
     <div class="border border-gold-deep/25 rounded-lg p-6 md:p-7 text-center bg-cream transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-sm">
       <div class="text-[28px] md:text-[30px] mb-3">✉️</div>
       <h4 class="text-[16px] font-bold text-gold-deep tracking-[0.5px] mb-2 uppercase">Email Address</h4>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">info@lordanesplace.com</p>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">bookings@lordanesplace.com</p>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Reply within 24 hours</p>
+      <p class="text-[15px] font-bold text-warm-black leading-[1.7]">lordanesplace@gmail.com</p>
+      <p class="text-[14px] text-warm-black/70 font-normal leading-[1.7]">Reply within 24 hours</p>
     </div>
   </div>
 </section>
 
 
 <!-- MAP SECTION (centered) -->
-<section class="py-[50px] md:py-[80px] px-[5%] lg:px-[8%] bg-cream relative">
+<section class="py-[50px] md:py-[80px] px-[5%] lg:px-[8%] bg-cream relative z-0">
   <div class="gold-divider absolute top-0 left-0 right-0"></div>
   <div class="text-center mb-8 md:mb-12">
     <span class="text-[12px] tracking-[4px] text-gold-deep font-bold mb-3 block">FIND US</span>
@@ -109,7 +110,7 @@
   </div>
 
   <div class="flex justify-center items-center">
-    <div class="w-full max-w-[900px] rounded-xl overflow-hidden border border-gold-deep/30 shadow-sm" style="aspect-ratio: 16/9;">
+    <div class="w-full max-w-[900px] rounded-xl overflow-hidden border border-gold-deep/30 shadow-sm relative z-0" style="aspect-ratio: 16/9;">
       <div id="lordanes-map"></div>
     </div>
   </div>
@@ -166,6 +167,11 @@
         null,
         { position: 'topright', collapsed: false }
     ).addTo(map);
+
+    // ── Keep map layout and tiles stable on resize ────────────────────
+    window.addEventListener('resize', function() {
+        map.invalidateSize();
+    });
 
     // ── Bubble icon helper ────────────────────────────────────────────
     function bubbleIcon(emoji, size = 36) {
