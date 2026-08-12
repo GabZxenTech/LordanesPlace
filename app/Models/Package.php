@@ -12,5 +12,7 @@ class Package extends Model
         'max_guests',
         'duration',
         'description',
+        'start_time',
+        'end_time',
     ];
 }

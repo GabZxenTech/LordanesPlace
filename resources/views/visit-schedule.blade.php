@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Schedule Visit | LorDane's Place</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -35,9 +37,9 @@
 
       <div class="mb-4">
         <label class="block text-[12px] tracking-[1px] text-warm-black/60 mb-2 font-bold">Visit Date <span class="text-red-500">*</span></label>
-        <input type="date" name="visit_date" required
-          min="{{ date('Y-m-d', strtotime('+1 day')) }}"
-          max="{{ $booking->event_date->subDay()->format('Y-m-d') }}"
+        <input type="date" name="visit_date" id="visit_date_input" required
+          min="{{ date('Y-m-d') }}"
+          max="{{ $booking->event_date->copy()->subDay()->format('Y-m-d') }}"
           value="{{ old('visit_date') }}"
           class="w-full bg-white border border-gold-deep/30 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body" />
         <p class="text-[11px] text-warm-black/40 mt-1">Must be before {{ $booking->event_date->format('F d, Y') }}</p>
@@ -72,5 +74,24 @@
     </form>
   </div>
 
+  <script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+      const visitDate = document.getElementById('visit_date_input').value;
+      const eventDate = "{{ $booking->event_date->format('Y-m-d') }}";
+      const today = "{{ date('Y-m-d') }}";
+
+      if (visitDate < today) {
+        e.preventDefault();
+        alert('The Site Visit date cannot be in the past.');
+        return;
+      }
+
+      if (visitDate >= eventDate) {
+        e.preventDefault();
+        alert('The Site Visit must be scheduled before your event date.');
+        return;
+      }
+    });
+  </script>
 </body>
 </html>

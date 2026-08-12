@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reports | LorDane's Place Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -125,6 +127,9 @@
     .badge-approved { background: #d4edda; color: #28a745; border: 1px solid #28a745; }
     .badge-pending { background: #fff3cd; color: #856404; border: 1px solid #d4a017; }
     .badge-rejected { background: #f8d7da; color: #c0392b; border: 1px solid #e74c3c; }
+    .badge-ongoing { background: #d6e9ff; color: #0d4a91; border: 1px solid #3b82f6; }
+    .badge-completed { background: #f5edd8; color: #8a6a40; border: 1px solid #a88a4c; }
+    .badge-cancelled { background: #e5e7eb; color: #4b5563; border: 1px solid #94a3b8; }
 
     .badge-paid { background: #d4edda; color: #28a745; border: 1px solid #28a745; }
     .badge-partial { background: #fff3cd; color: #856404; border: 1px solid #d4a017; }

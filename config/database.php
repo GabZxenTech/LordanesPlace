@@ -97,6 +97,15 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // The DB is remote (Supabase, ap-southeast-2): a fresh connection
+            // measured ~1.6s just to handshake, vs ~370ms per query on an
+            // already-open one. Apache here reuses a pool of worker threads
+            // (mpm_winnt), so a persistent PDO connection lets most requests
+            // skip that handshake entirely. Toggle via DB_PERSISTENT if this
+            // ever needs disabling without a code change.
+            'options' => array_filter([
+                \PDO::ATTR_PERSISTENT => env('DB_PERSISTENT', true),
+            ]),
         ],
 
         'sqlsrv' => [

@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Visit Schedules | Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <style>
@@ -137,11 +139,40 @@
     });
 
     function openVisitModal(id, current, eventDate) {
-      document.getElementById('visitForm').action = visitBaseUrl + '/' + id + '/reschedule';
+      const form = document.getElementById('visitForm');
+      form.action = visitBaseUrl + '/' + id + '/reschedule';
+      form.setAttribute('data-event-date', eventDate);
       document.getElementById('visit_date_input').value = current;
-      document.getElementById('visit_date_input').max = eventDate + 'T23:59';
+
+      if (eventDate) {
+        const d = new Date(eventDate);
+        d.setDate(d.getDate() - 1);
+        const maxDateStr = d.toISOString().split('T')[0];
+        document.getElementById('visit_date_input').max = maxDateStr + 'T23:59';
+      }
+
       document.getElementById('visitModal').classList.add('open');
     }
+
+    document.getElementById('visitForm')?.addEventListener('submit', function(e) {
+      const inputVal = document.getElementById('visit_date_input').value;
+      if (!inputVal) return;
+      const selectedDate = inputVal.split('T')[0];
+      const eventDate = this.getAttribute('data-event-date');
+      const today = new Date().toISOString().split('T')[0];
+
+      if (selectedDate < today) {
+        e.preventDefault();
+        alert('The Site Visit date cannot be in the past.');
+        return;
+      }
+
+      if (eventDate && selectedDate >= eventDate) {
+        e.preventDefault();
+        alert('The Site Visit must be scheduled before your event date.');
+        return;
+      }
+    });
   </script>
 </body>
 </html>

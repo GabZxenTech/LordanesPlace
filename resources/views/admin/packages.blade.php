@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Packages Management | Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -54,11 +56,25 @@
                 style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
                 onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
             </div>
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 16px;">
               <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Duration</label>
               <input type="text" name="duration" placeholder="e.g. 4 hours"
                 style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
                 onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
+            </div>
+            <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Start Time</label>
+                <input type="time" name="start_time"
+                  style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
+                  onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
+              </div>
+              <div>
+                <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">End Time</label>
+                <input type="time" name="end_time"
+                  style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
+                  onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
+              </div>
             </div>
             <button type="submit" style="width: 100%; background: #c9a84c; color: #2c1a0e; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 14px; letter-spacing: 1px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">CREATE PACKAGE</button>
           </form>
@@ -78,6 +94,7 @@
                 <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">PRICE</th>
                 <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">CAPACITY</th>
                 <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">DURATION</th>
+                <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">SCHEDULE</th>
                 <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">ACTIONS</th>
               </tr>
             </thead>
@@ -111,6 +128,23 @@
                     <span id="view-duration-{{ $pkg->id }}" style="font-size: 15px; color: #8a6a40;">{{ $pkg->duration ?? 'N/A' }}</span>
                     <input id="edit-duration-{{ $pkg->id }}" type="text" value="{{ $pkg->duration }}"
                       style="display:none; width: 100%; background: #f5f0e8; border: 1px solid #c9a84c; color: #2c1a0e; padding: 6px 10px; border-radius: 5px; font-size: 14px; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
+                  </td>
+
+                  {{-- SCHEDULE cell --}}
+                  <td style="padding: 14px 20px;">
+                    <span id="view-schedule-{{ $pkg->id }}" style="font-size: 15px; color: #8a6a40;">
+                      @if($pkg->start_time && $pkg->end_time)
+                        {{ \Carbon\Carbon::parse($pkg->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($pkg->end_time)->format('h:i A') }}
+                      @else
+                        <span style="color: #e74c3c;">Not set</span>
+                      @endif
+                    </span>
+                    <div id="edit-schedule-{{ $pkg->id }}" style="display:none; grid-template-columns: 1fr 1fr; gap: 6px;">
+                      <input id="edit-start_time-{{ $pkg->id }}" type="time" value="{{ $pkg->start_time ? \Carbon\Carbon::parse($pkg->start_time)->format('H:i') : '' }}"
+                        style="width: 100%; background: #f5f0e8; border: 1px solid #c9a84c; color: #2c1a0e; padding: 6px 8px; border-radius: 5px; font-size: 13px; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
+                      <input id="edit-end_time-{{ $pkg->id }}" type="time" value="{{ $pkg->end_time ? \Carbon\Carbon::parse($pkg->end_time)->format('H:i') : '' }}"
+                        style="width: 100%; background: #f5f0e8; border: 1px solid #c9a84c; color: #2c1a0e; padding: 6px 8px; border-radius: 5px; font-size: 13px; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
+                    </div>
                   </td>
 
                   {{-- ACTIONS cell --}}
@@ -163,13 +197,15 @@
                         <input type="hidden" id="form-price-{{ $pkg->id }}" name="price" />
                         <input type="hidden" id="form-guests-{{ $pkg->id }}" name="max_guests" />
                         <input type="hidden" id="form-duration-{{ $pkg->id }}" name="duration" />
+                        <input type="hidden" id="form-start_time-{{ $pkg->id }}" name="start_time" />
+                        <input type="hidden" id="form-end_time-{{ $pkg->id }}" name="end_time" />
                       </form>
 
                     </div>
                   </td>
                 </tr>
               @empty
-                <tr><td colspan="5" style="text-align: center; padding: 50px; color: #8a6a40; font-size: 15px;">No packages found.</td></tr>
+                <tr><td colspan="6" style="text-align: center; padding: 50px; color: #8a6a40; font-size: 15px;">No packages found.</td></tr>
               @endforelse
             </tbody>
           </table>
@@ -186,10 +222,12 @@
     function enableRowEdit(id) {
       // Save originals
       originalValues[id] = {
-        name:     document.getElementById('edit-name-' + id).value,
-        price:    document.getElementById('edit-price-' + id).value,
-        guests:   document.getElementById('edit-guests-' + id).value,
-        duration: document.getElementById('edit-duration-' + id).value,
+        name:       document.getElementById('edit-name-' + id).value,
+        price:      document.getElementById('edit-price-' + id).value,
+        guests:     document.getElementById('edit-guests-' + id).value,
+        duration:   document.getElementById('edit-duration-' + id).value,
+        start_time: document.getElementById('edit-start_time-' + id).value,
+        end_time:   document.getElementById('edit-end_time-' + id).value,
       };
 
       // Hide text spans, show inputs
@@ -197,6 +235,8 @@
         document.getElementById('view-' + field + '-' + id).style.display = 'none';
         document.getElementById('edit-' + field + '-' + id).style.display = 'block';
       });
+      document.getElementById('view-schedule-' + id).style.display = 'none';
+      document.getElementById('edit-schedule-' + id).style.display = 'grid';
 
       // Swap buttons
       document.getElementById('edit-btn-' + id).style.display   = 'none';
@@ -212,6 +252,8 @@
         document.getElementById('edit-price-' + id).value    = originalValues[id].price;
         document.getElementById('edit-guests-' + id).value   = originalValues[id].guests;
         document.getElementById('edit-duration-' + id).value = originalValues[id].duration;
+        document.getElementById('edit-start_time-' + id).value = originalValues[id].start_time;
+        document.getElementById('edit-end_time-' + id).value   = originalValues[id].end_time;
       }
 
       // Show text spans, hide inputs
@@ -219,6 +261,8 @@
         document.getElementById('view-' + field + '-' + id).style.display = '';
         document.getElementById('edit-' + field + '-' + id).style.display = 'none';
       });
+      document.getElementById('view-schedule-' + id).style.display = '';
+      document.getElementById('edit-schedule-' + id).style.display = 'none';
 
       // Swap buttons back
       document.getElementById('edit-btn-' + id).style.display   = 'inline-block';
@@ -233,6 +277,8 @@
       document.getElementById('form-price-' + id).value    = document.getElementById('edit-price-' + id).value;
       document.getElementById('form-guests-' + id).value   = document.getElementById('edit-guests-' + id).value;
       document.getElementById('form-duration-' + id).value = document.getElementById('edit-duration-' + id).value;
+      document.getElementById('form-start_time-' + id).value = document.getElementById('edit-start_time-' + id).value;
+      document.getElementById('form-end_time-' + id).value   = document.getElementById('edit-end_time-' + id).value;
 
       // Submit
       document.getElementById('update-form-' + id).submit();

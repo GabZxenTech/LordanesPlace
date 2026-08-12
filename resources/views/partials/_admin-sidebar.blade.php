@@ -27,6 +27,34 @@
         Schedule
       </a>
 
+      <div class="admin-notif-dropdown" style="position: relative;">
+        <div onclick="toggleAdminNotifDropdown(event)" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; position: relative; color: #b89060; border-left: 3px solid transparent;" onmouseover="this.style.background='#3d2312'; this.style.color='#c9a84c';" onmouseout="this.style.background='transparent'; this.style.color='#b89060';">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          Notifications
+          <span id="adminNotifBadge" style="position: absolute; right: 20px; {{ $adminUnreadCount > 0 ? 'display: inline-flex;' : 'display: none;' }} align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #e74c3c; color: white; font-size: 10px; font-weight: 700;">{{ $adminUnreadCount > 9 ? '9+' : $adminUnreadCount }}</span>
+        </div>
+        <div id="adminNotifPanel" data-notif-base="{{ url('admin/notifications') }}" data-csrf="{{ csrf_token() }}" style="display: none; position: absolute; left: 100%; top: 0; margin-left: 6px; width: 340px; max-height: 440px; overflow-y: auto; background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 500;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid #d4c4a0; background: #f5edd8;">
+            <span style="font-size: 12px; font-weight: 800; color: #2c1a0e; text-transform: uppercase; letter-spacing: 1px;">Notifications</span>
+            <button type="button" id="adminMarkAllBtn" onclick="markAllAdminNotifsRead(event)" style="font-size: 11px; color: #c9a84c; font-weight: 700; background: transparent; border: none; cursor: pointer; {{ $adminUnreadCount > 0 ? '' : 'display: none;' }}" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Mark all read</button>
+          </div>
+          <div id="adminNotifList">
+            @foreach($adminNotifications as $notif)
+              <div class="admin-notif-item" data-notif-id="{{ $notif->id }}" style="display: flex; align-items: flex-start; gap: 8px; padding: 12px 18px; border-bottom: 1px solid #e8dcc8; background: rgba(201,168,76,0.12);">
+                <a href="{{ route('admin.notifications.open', $notif->id) }}" style="display: block; flex: 1; text-decoration: none;">
+                  <p style="font-size: 13px; font-weight: 700; color: #2c1a0e; margin: 0;">{{ $notif->title }}</p>
+                  <p style="font-size: 12px; color: #8a6a40; margin: 4px 0 0; white-space: pre-line;">{{ \Illuminate\Support\Str::limit($notif->message, 90) }}</p>
+                  <p style="font-size: 10px; color: #c9a84c; margin: 4px 0 0; text-transform: uppercase; letter-spacing: 0.5px;">{{ $notif->created_at->diffForHumans() }}</p>
+                </a>
+                <button type="button" onclick="markAdminNotifRead(event, {{ $notif->id }})" title="Mark as read" style="flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #d4c4a0; background: transparent; color: #c9a84c; font-size: 12px; line-height: 1; cursor: pointer;" onmouseover="this.style.background='#c9a84c'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#c9a84c';">&check;</button>
+              </div>
+            @endforeach
+          </div>
+          <p id="adminNotifEmpty" style="padding: 24px 18px; text-align: center; font-size: 13px; color: #8a6a40; margin: 0; {{ $adminUnreadCount > 0 ? 'display: none;' : '' }}">No new notifications.</p>
+          <a href="{{ route('admin.notifications.index') }}" style="display: block; text-align: center; padding: 12px 18px; font-size: 12px; font-weight: 700; color: #c9a84c; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; border-top: 1px solid #e8dcc8;">View All Notifications</a>
+        </div>
+      </div>
+
       <a href="{{ route('admin.reschedules.index') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; position: relative; {{ request()->routeIs('admin.reschedules.*') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
         Reschedules
@@ -65,3 +93,74 @@
 
 {{-- Spacer to push content right --}}
 <div style="width: 260px; flex-shrink: 0;"></div>
+
+<script>
+  function toggleAdminNotifDropdown(e) {
+    e.stopPropagation();
+    const panel = document.getElementById('adminNotifPanel');
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+  }
+
+  document.addEventListener('click', function(e) {
+    const wrapper = document.querySelector('.admin-notif-dropdown');
+    const panel = document.getElementById('adminNotifPanel');
+    if (wrapper && panel && !wrapper.contains(e.target)) {
+      panel.style.display = 'none';
+    }
+  });
+
+  // ---- Mark notifications read without reloading the page ----
+  function adminNotifRefreshUi(unreadCount) {
+    const badge = document.getElementById('adminNotifBadge');
+    const markAllBtn = document.getElementById('adminMarkAllBtn');
+    const empty = document.getElementById('adminNotifEmpty');
+    const remaining = document.querySelectorAll('#adminNotifList .admin-notif-item').length;
+
+    if (badge) {
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+    if (markAllBtn) markAllBtn.style.display = unreadCount > 0 ? '' : 'none';
+    if (empty) empty.style.display = remaining === 0 ? '' : 'none';
+  }
+
+  function adminNotifPost(path, onDone) {
+    const panel = document.getElementById('adminNotifPanel');
+    if (!panel) return;
+    fetch(panel.dataset.notifBase + path, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': panel.dataset.csrf,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (data) { onDone(data.unread_count); })
+      .catch(function () { window.location.reload(); });
+  }
+
+  function markAdminNotifRead(e, id) {
+    e.preventDefault();
+    e.stopPropagation();
+    adminNotifPost('/' + id + '/read', function (unreadCount) {
+      const item = document.querySelector('#adminNotifList .admin-notif-item[data-notif-id="' + id + '"]');
+      if (item) item.remove();
+      adminNotifRefreshUi(unreadCount);
+    });
+  }
+
+  function markAllAdminNotifsRead(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    adminNotifPost('/read-all', function (unreadCount) {
+      const list = document.getElementById('adminNotifList');
+      if (list) list.innerHTML = '';
+      adminNotifRefreshUi(unreadCount);
+    });
+  }
+</script>

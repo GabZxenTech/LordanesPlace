@@ -27,18 +27,23 @@ class VisitScheduleController extends Controller
     {
         $request->validate([
             'booking_id' => 'required|exists:bookings,id',
-            'visit_date' => 'required|date|after:today',
+            'visit_date' => 'required|date|after_or_equal:today',
             'visit_time' => 'required',
             'notes'      => 'nullable|string|max:1000',
+        ], [
+            'visit_date.after_or_equal' => 'The Site Visit date cannot be in the past.',
         ]);
 
         $booking = Booking::findOrFail($request->booking_id);
-        $visitDateTime = \Carbon\Carbon::parse($request->visit_date . ' ' . $request->visit_time);
+        $visitDateOnly = \Carbon\Carbon::parse($request->visit_date)->startOfDay();
+        $eventDateOnly = \Carbon\Carbon::parse($booking->event_date)->startOfDay();
 
-        // Validation: Visit date must be BEFORE event date
-        if ($visitDateTime->format('Y-m-d') >= $booking->event_date->format('Y-m-d')) {
-            return back()->withErrors(['visit_date' => 'The visit date must be before the event date (' . $booking->event_date->format('F d, Y') . ').'])->withInput();
+        // Validation: Visit date must be strictly BEFORE event date (cannot be same day or after)
+        if ($visitDateOnly->greaterThanOrEqualTo($eventDateOnly)) {
+            return back()->withErrors(['visit_date' => 'The Site Visit must be scheduled before your event date.'])->withInput();
         }
+
+        $visitDateTime = \Carbon\Carbon::parse($request->visit_date . ' ' . $request->visit_time);
 
         VisitSchedule::create([
             'booking_id' => $request->booking_id,
@@ -79,14 +84,18 @@ class VisitScheduleController extends Controller
     public function reschedule(Request $request, $id)
     {
         $request->validate([
-            'visit_date' => 'required|date|after:today',
+            'visit_date' => 'required|date|after_or_equal:today',
+        ], [
+            'visit_date.after_or_equal' => 'The Site Visit date cannot be in the past.',
         ]);
 
         $visit = VisitSchedule::findOrFail($id);
+        $visitDateOnly = \Carbon\Carbon::parse($request->visit_date)->startOfDay();
+        $eventDateOnly = \Carbon\Carbon::parse($visit->booking->event_date)->startOfDay();
         
-        // Validation: Visit date must be BEFORE event date
-        if ($request->visit_date >= $visit->booking->event_date->format('Y-m-d')) {
-            return back()->withErrors(['reschedule_date' => 'The reschedule date must be before the event date.']);
+        // Validation: Visit date must be strictly BEFORE event date
+        if ($visitDateOnly->greaterThanOrEqualTo($eventDateOnly)) {
+            return back()->withErrors(['visit_date' => 'The Site Visit must be scheduled before your event date.']);
         }
 
         $visit->update([

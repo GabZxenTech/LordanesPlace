@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Bookings | LorDane's Place</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <style>
@@ -32,10 +34,14 @@
       <div class="flex-1">
         <div class="flex justify-between items-start mb-1.5">
             <h3 class="text-[15px] md:text-[16px] font-bold text-warm-black">{{ $booking->event_type }} — {{ $booking->package }} Package</h3>
-            <a href="{{ route('booking.receipt', $booking->id) }}" class="shrink-0 inline-flex items-center gap-1.5 bg-gold-deep/10 border border-gold-deep/30 text-gold-deep px-3 py-1.5 rounded-md text-[12px] font-bold no-underline transition-all hover:bg-gold-deep hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                PDF Receipt
-            </a>
+            @if($booking->hasConfirmedPayment())
+              <a href="{{ route('booking.receipt', $booking->id) }}" class="shrink-0 inline-flex items-center gap-1.5 bg-gold-deep/10 border border-gold-deep/30 text-gold-deep px-3 py-1.5 rounded-md text-[12px] font-bold no-underline transition-all hover:bg-gold-deep hover:text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  PDF Receipt
+              </a>
+            @else
+              <span class="shrink-0 text-[11px] text-gold-deep/70 italic">Receipt not yet available</span>
+            @endif
         </div>
         <p class="text-[13px] text-gold-deep font-bold mb-2 tracking-[0.5px]">#{{ $booking->booking_number }}</p>
         <p class="text-[15px] text-warm-black/90 mb-0.5">📅 {{ $booking->event_date->format('F d, Y') }}</p>
@@ -50,7 +56,7 @@
                   $pClass = 'p-' . $booking->payment_status;
                 @endphp
                 <span class="pay-status {{ $pClass }}">
-                  {{ $booking->payment_status === 'unpaid' ? 'Unpaid' : ($booking->payment_status === 'partially_paid' ? 'Partially Paid (20%)' : 'Fully Paid') }}
+                  {{ $booking->payment_status === 'unpaid' ? 'Unpaid' : ($booking->payment_status === 'partially_paid' ? 'Partially Paid (' . $booking->downPaymentPercent() . '%)' : 'Fully Paid') }}
                 </span>
                 <div class="text-[13px] mt-1 text-warm-black/60">Total: ₱{{ number_format($booking->total_amount, 2) }}</div>
             </div>
@@ -80,8 +86,9 @@
       </div>
       <div class="shrink-0 flex flex-col items-end gap-2">
         <div class="text-[11px] text-warm-black/50 font-bold uppercase">Booking Status</div>
-        <span class="booking-status-badge b-{{ $booking->status }}">
-          {{ $booking->status === 'pending' ? '⏳ Pending' : ($booking->status === 'approved' ? '✓ Approved' : '✕ Rejected') }}
+        @php $sColor = \App\Models\Booking::statusColor($booking->status); @endphp
+        <span class="booking-status-badge b-{{ $booking->status }}" style="background: {{ $sColor }}1a; color: {{ $sColor }}; border: 1px solid {{ $sColor }}40;">
+          {{ ucfirst($booking->status) }}
         </span>
 
         {{-- Reschedule Status Badge --}}

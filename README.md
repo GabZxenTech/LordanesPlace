@@ -78,7 +78,7 @@ If you are a developer looking to run LorDane's Place on your local machine usin
 ## Project Structure Highlights
 * `routes/web.php` – Houses all public, auth, and admin URLs.
 * `resources/views/` – Contains all the visual pages (Blade files). Includes the `partials/` folder for shared components like the Navigation Bar and Footer.
-* `public/lordanes360view/` – Houses the immersive Javascript-based 360 visual tour plugin.
+* `public/lordanes-place-360/app-files/` – Houses the immersive Javascript-based 360 visual tour plugin.
 * `resources/css/app.css` – Central repository for Tailwind's config and UI styling tokens.
 
 ## Support

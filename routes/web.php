@@ -58,6 +58,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 Route::middleware(['auth'])->group(function () {
     Route::get('/booking', [BookingController::class, 'index'])->name('booking');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+    Route::get('/booking/check-date', [BookingController::class, 'checkDate'])->name('booking.check-date');
     Route::get('/booking/success', [BookingController::class, 'success'])->name('booking.success');
     Route::get('/profile', [BookingController::class, 'profile'])->name('profile');
     Route::get('/terms-and-conditions', function() { return view('terms'); })->name('terms');
@@ -72,6 +73,16 @@ Route::middleware(['auth'])->group(function () {
 
     // Reschedule request (client)
     Route::post('/booking/{id}/reschedule', [BookingController::class, 'submitReschedule'])->name('booking.reschedule');
+
+    // Cancel own booking (client)
+    Route::post('/booking/{id}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
+
+    // Notifications (client)
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{id}/open', [\App\Http\Controllers\NotificationController::class, 'open'])->name('notifications.open');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::delete('/notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
 });
 
 use App\Http\Controllers\Admin\PackageController;
@@ -84,9 +95,20 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::delete('/block-date/{id}', [BlockedDateController::class, 'destroy'])->name('unblock.date');
     Route::post('/booking/{id}/approve', [BlockedDateController::class, 'approveBooking'])->name('booking.approve');
     Route::post('/booking/{id}/reject', [BlockedDateController::class, 'rejectBooking'])->name('booking.reject');
+    Route::post('/booking/{id}/cancel', [BlockedDateController::class, 'cancelBooking'])->name('booking.cancel');
+    Route::post('/booking/{id}/ongoing', [BlockedDateController::class, 'markOngoing'])->name('booking.ongoing');
+    Route::post('/booking/{id}/completed', [BlockedDateController::class, 'markCompleted'])->name('booking.completed');
+    Route::post('/booking/{id}/status', [BlockedDateController::class, 'updateStatus'])->name('booking.status');
     Route::put('/booking/{id}', [BlockedDateController::class, 'updateBooking'])->name('booking.update');
     Route::delete('/booking/{id}', [BlockedDateController::class, 'destroyBooking'])->name('booking.destroy');
-    Route::post('/booking/{id}/confirm-downpayment', [BookingController::class, 'confirmDownPayment'])->name('booking.confirm-downpayment');
+    Route::post('/booking/{id}/record-payment', [BlockedDateController::class, 'recordPayment'])->name('booking.record-payment');
+
+    // Notifications (admin)
+    Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{id}/open', [\App\Http\Controllers\Admin\NotificationController::class, 'open'])->name('notifications.open');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::delete('/notifications/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('notifications.destroy');
 
     // Admin Visit Schedule routes
     Route::get('/visits', [VisitScheduleController::class, 'adminIndex'])->name('visits.index');

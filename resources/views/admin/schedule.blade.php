@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Schedule Management | Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <style>
@@ -13,6 +15,9 @@
     .status-pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
     .status-approved { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .status-rejected { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .status-ongoing { background: #d6e9ff; color: #0d4a91; border: 1px solid #b8d9ff; }
+    .status-completed { background: #f5edd8; color: #8a6a40; border: 1px solid #d4c4a0; }
+    .status-cancelled { background: #e5e7eb; color: #4b5563; border: 1px solid #d1d5db; }
   </style>
 </head>
 <body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
@@ -106,7 +111,7 @@
             </thead>
             <tbody>
               @forelse($bookings as $booking)
-                <tr style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
+                <tr id="booking-{{ $booking->id }}" style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s; scroll-margin-top: 30px;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
                   <td style="padding: 14px 20px; font-size: 13px; color: #c9a84c; font-family: monospace;">{{ $booking->booking_number }}</td>
                   <td style="padding: 14px 20px;">
                     <div style="font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $booking->user->name }}</div>
@@ -114,11 +119,21 @@
                   </td>
                   <td style="padding: 14px 20px;">
                     <div style="font-size: 14px; color: #2c1a0e; font-weight: 600;">{{ $booking->event_date->format('M d, Y') }}</div>
-                    <div style="font-size: 11px; color: #8a6a40;">{{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}</div>
+                    <div style="font-size: 11px; color: #8a6a40;">
+                      @if($booking->start_time && $booking->end_time)
+                        {{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}
+                      @else
+                        <span style="color: #e74c3c;">Schedule not yet assigned</span>
+                      @endif
+                    </div>
                   </td>
                   <td style="padding: 14px 20px;">
                     <div style="font-size: 14px; color: #2c1a0e; font-weight: 700;">₱{{ number_format($booking->total_amount, 2) }}</div>
                     <div style="font-size: 10px; color: #8a6a40; text-transform: uppercase; font-weight: 700;">{{ str_replace('_', ' ', $booking->payment_status) }}</div>
+                    <div style="font-size: 10px; color: #c9a84c; margin-top: 2px;">{{ \App\Models\Booking::paymentOptionLabel($booking->payment_option) }}</div>
+                    @if($booking->hasConfirmedPayment())
+                      <div style="font-size: 10px; color: #28a745; margin-top: 2px;">Paid ₱{{ number_format($booking->amountPaid(), 2) }}@if($booking->remainingBalance() > 0) &middot; ₱{{ number_format($booking->remainingBalance(), 2) }} left @endif</div>
+                    @endif
                   </td>
                   <td style="padding: 14px 20px;">
                     <span class="status-dot status-{{ $booking->status }}">
@@ -133,8 +148,8 @@
                         data-id="{{ $booking->id }}"
                         data-package="{{ $booking->package }}"
                         data-date="{{ $booking->event_date->format('Y-m-d') }}"
-                        data-start="{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}"
-                        data-end="{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}"
+                        data-start="{{ $booking->start_time ? \Carbon\Carbon::parse($booking->start_time)->format('H:i') : '' }}"
+                        data-end="{{ $booking->end_time ? \Carbon\Carbon::parse($booking->end_time)->format('H:i') : '' }}"
                         data-guests="{{ $booking->guest_count }}"
                         data-notes="{{ addslashes($booking->notes) }}"
                         data-total="{{ $booking->total_amount }}"
@@ -146,21 +161,51 @@
                       <div style="position: relative;">
                         <button type="button" class="action-menu-btn" style="background: #2c1a0e; color: #c9a84c; width: 28px; height: 28px; border-radius: 4px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" data-id="{{ $booking->id }}">⋮</button>
                         <div id="menu-{{ $booking->id }}" style="display: none; position: absolute; right: 0; top: 100%; background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 50; min-width: 140px; margin-top: 5px;">
-                          @if($booking->status === 'pending')
+                          {{-- Actions are driven by the model's transition map, so the menu
+                               can never offer a status change the server would reject. --}}
+                          @if($booking->canTransitionTo('approved'))
                             <form method="POST" action="{{ route('admin.booking.approve', $booking->id) }}">
                               @csrf
                               <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #28a745; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Approve</button>
                             </form>
+                          @endif
+                          @if($booking->canTransitionTo('rejected'))
                             <form method="POST" action="{{ route('admin.booking.reject', $booking->id) }}">
                               @csrf
                               <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e74c3c; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Reject</button>
                             </form>
                           @endif
-                          @if($booking->payment_status === 'unpaid')
-                            <form method="POST" action="{{ route('admin.booking.confirm-downpayment', $booking->id) }}">
+                          @if($booking->canTransitionTo('ongoing'))
+                            <form method="POST" action="{{ route('admin.booking.ongoing', $booking->id) }}">
                               @csrf
-                              <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #c9a84c; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Confirm DP</button>
+                              <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #3498db; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Mark Ongoing</button>
                             </form>
+                          @endif
+                          @if($booking->canTransitionTo('completed'))
+                            <form method="POST" action="{{ route('admin.booking.completed', $booking->id) }}">
+                              @csrf
+                              <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #8a6a40; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Mark Completed</button>
+                            </form>
+                          @endif
+                          @if($booking->canTransitionTo('cancelled'))
+                            <form method="POST" action="{{ route('admin.booking.cancel', $booking->id) }}" onsubmit="return confirm('Cancel this booking? The customer will be notified.')">
+                              @csrf
+                              <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e74c3c; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Cancel Booking</button>
+                            </form>
+                          @endif
+                          @if($booking->remainingBalance() > 0)
+                            <button type="button"
+                              class="record-payment-btn"
+                              style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #c9a84c; font-weight: 600; cursor: pointer;"
+                              onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'"
+                              data-id="{{ $booking->id }}"
+                              data-remaining="{{ $booking->remainingBalance() }}"
+                              data-name="{{ addslashes($booking->user->name) }}">
+                              {{ $booking->hasConfirmedPayment() ? 'Record Additional Payment' : 'Record Payment' }}
+                            </button>
+                          @endif
+                          @if($booking->hasConfirmedPayment())
+                            <a href="{{ route('booking.receipt', $booking->id) }}" target="_blank" style="display: block; width: 100%; text-align: left; padding: 10px 16px; font-size: 13px; color: #2c1a0e; font-weight: 600; text-decoration: none; box-sizing: border-box;" onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'">View / Print Receipt</a>
                           @endif
                           <form method="POST" action="{{ route('admin.booking.destroy', $booking->id) }}" onsubmit="return confirm('Delete this booking?')">
                             @csrf @method('DELETE')
@@ -202,14 +247,16 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
           <div>
-            <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Start Time</label>
-            <select name="start_time" id="edit_start_time" required style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-family: 'Jost', sans-serif; box-sizing: border-box;">
+            <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Event Start Time <span style="font-weight: 400;">(optional)</span></label>
+            <select name="start_time" id="edit_start_time" style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-family: 'Jost', sans-serif; box-sizing: border-box;">
+              <option value="">-- Not yet assigned --</option>
               @for($i = 8; $i <= 22; $i++) @foreach(['00', '30'] as $min) @php $val = sprintf('%02d:%s', $i, $min); @endphp <option value="{{ $val }}">{{ \Carbon\Carbon::createFromFormat('H:i', $val)->format('h:i A') }}</option> @endforeach @endfor
             </select>
           </div>
           <div>
-            <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">End Time</label>
-            <select name="end_time" id="edit_end_time" required style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-family: 'Jost', sans-serif; box-sizing: border-box;">
+            <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Event End Time <span style="font-weight: 400;">(optional)</span></label>
+            <select name="end_time" id="edit_end_time" style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-family: 'Jost', sans-serif; box-sizing: border-box;">
+              <option value="">-- Not yet assigned --</option>
               @for($i = 8; $i <= 22; $i++) @foreach(['00', '30'] as $min) @php $val = sprintf('%02d:%s', $i, $min); @endphp <option value="{{ $val }}">{{ \Carbon\Carbon::createFromFormat('H:i', $val)->format('h:i A') }}</option> @endforeach @endfor
             </select>
           </div>
@@ -242,6 +289,36 @@
     </div>
   </div>
 
+  {{-- RECORD PAYMENT MODAL --}}
+  <div id="paymentModal" class="modal-overlay">
+    <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 40px; width: 100%; max-width: 420px;">
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: #2c1a0e; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Record Payment</h2>
+      <p id="payment_customer_name" style="font-size: 13px; color: #8a6a40; margin: 0 0 24px;"></p>
+      <form method="POST" action="" id="paymentForm">
+        @csrf
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Remaining Balance</label>
+          <p id="payment_remaining_display" style="font-size: 20px; font-weight: 700; color: #2c1a0e; margin: 0;">₱0.00</p>
+        </div>
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Amount Actually Received (₱)</label>
+          <input type="number" name="amount" id="payment_amount" required min="0.01" step="0.01"
+            style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
+          <p style="font-size: 11px; color: #8a6a40; margin: 6px 0 0;">Pre-filled with the full remaining balance — lower it if the customer only paid part of it.</p>
+        </div>
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Note <span style="font-weight: 400;">(optional)</span></label>
+          <input type="text" name="note" id="payment_note" placeholder="e.g. GCash reference, cash on-site"
+            style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button type="submit" style="flex: 1; background: #28a745; color: white; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 15px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif;">Confirm Payment</button>
+          <button type="button" style="flex: 1; border: 1px solid #d4c4a0; background: transparent; color: #8a6a40; padding: 14px; border-radius: 6px; font-size: 15px; cursor: pointer;" onclick="document.getElementById('paymentModal').classList.remove('open')">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="admin-data" class="hidden" data-base-url="{{ url('admin/booking') }}"></div>
 
   <script>
@@ -268,6 +345,26 @@
         toggleActionMenu(id, e);
       });
     });
+
+    document.querySelectorAll('.record-payment-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        const remaining = parseFloat(this.getAttribute('data-remaining')) || 0;
+        const name = this.getAttribute('data-name');
+        openPaymentModal(id, remaining, name);
+      });
+    });
+
+    function openPaymentModal(id, remaining, name) {
+      document.getElementById('paymentForm').action = bookingBaseUrl + '/' + id + '/record-payment';
+      document.getElementById('payment_customer_name').textContent = name;
+      document.getElementById('payment_remaining_display').textContent =
+        '₱' + remaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('payment_amount').value = remaining.toFixed(2);
+      document.getElementById('payment_amount').max = remaining.toFixed(2);
+      document.getElementById('payment_note').value = '';
+      document.getElementById('paymentModal').classList.add('open');
+    }
 
     function toggleActionMenu(id, e) {
       e.stopPropagation();
@@ -297,6 +394,16 @@
     document.addEventListener('click', () => {
       document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
     });
+
+    // Highlight the booking row a notification linked to (e.g. #booking-42)
+    if (window.location.hash.startsWith('#booking-')) {
+      const target = document.querySelector(window.location.hash);
+      if (target) {
+        target.style.transition = 'background 0.4s ease';
+        target.style.background = '#f5edd8';
+        setTimeout(() => { target.style.background = ''; }, 2500);
+      }
+    }
   </script>
 
 </body>

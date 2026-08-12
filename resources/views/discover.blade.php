@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Discover — LorDane's Place</title>
 <meta name="description" content="Browse gallery, take a 360° virtual tour, and explore packages at LorDane's Place event venue.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -32,12 +34,12 @@
     <p class="text-warm-black/90 text-[16px] md:text-[16px] font-normal">A glimpse of the celebrations held at LorDane's Place.</p>
   </div>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-    <img src="{{ asset('images/g1.jpg') }}" alt="Event at LorDane's Place" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
-    <img src="{{ asset('images/g2.jpg') }}" alt="Event at LorDane's Place" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
-    <img src="{{ asset('images/g3.jpg') }}" alt="Event at LorDane's Place" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
-    <img src="{{ asset('images/g4.jpg') }}" alt="Event at LorDane's Place" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
-    <img src="{{ asset('images/g5.jpg') }}" alt="Event at LorDane's Place" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
-    <img src="{{ asset('images/g6.jpg') }}" alt="Event at LorDane's Place" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/Wedding.png') }}" alt="Event at LorDane's Place" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/Birthday.png') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/Debut.png') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/Christening.png') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/Thanks Giving.png') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/School Event.png') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
   </div>
 </section>
 
@@ -56,7 +58,8 @@
       ⛶ Open Fullscreen
     </a>
     <iframe
-      src="{{ asset('lordanes360view/index.html') }}"
+      src="{{ asset('lordanes-place-360/app-files/index.html') }}"
+      loading="lazy"
       class="w-full h-[350px] md:h-[500px] lg:h-[600px] rounded-xl border border-gold-deep/20"
       style="border:none;"
       allow="accelerometer; gyroscope; magnetometer; fullscreen">
@@ -187,7 +190,7 @@
     <!-- STANDARD ROOM -->
     <div class="border border-gold-deep/20 rounded-xl overflow-hidden bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-md">
       <div class="h-[200px] md:h-[220px] flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, #F2EDE4, #E8C96D22);">
-        <img src="{{ asset('images/room-standard.jpg') }}" alt="Standard Room" class="w-full h-full object-cover"
+        <img src="{{ asset('images/StandardRoom.jpg') }}" alt="Standard Room" loading="lazy" class="w-full h-full object-cover"
              onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#F2EDE4,#E8C96D33);\' ><span style=\'font-size:36px;opacity:0.15;font-family:Cormorant Garamond,serif;font-weight:700;color:#B8860B;margin-bottom:8px;\'>LD</span><svg width=\'32\' height=\'32\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'#B8860B\' stroke-width=\'1.5\' opacity=\'0.4\' style=\'margin-bottom:8px;\'><circle cx=\'12\' cy=\'12\' r=\'3.5\'/><path d=\'M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2\'/></svg><span style=\'font-size:11px;color:#B8860B;opacity:0.5;letter-spacing:2px;text-transform:uppercase;font-weight:600;\'>Photo Coming Soon</span></div>';">
       </div>
       <div class="p-5 md:p-6">
@@ -204,7 +207,7 @@
     <!-- FAMILY ROOM -->
     <div class="border border-gold-deep/20 rounded-xl overflow-hidden bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-md">
       <div class="h-[200px] md:h-[220px] flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, #F2EDE4, #E8C96D22);">
-        <img src="{{ asset('images/room-family.jpg') }}" alt="Family Room" class="w-full h-full object-cover"
+        <img src="{{ asset('images/FamilyRoom.jpg') }}" alt="Family Room" loading="lazy" class="w-full h-full object-cover"
              onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#F2EDE4,#E8C96D33);\' ><span style=\'font-size:36px;opacity:0.15;font-family:Cormorant Garamond,serif;font-weight:700;color:#B8860B;margin-bottom:8px;\'>LD</span><svg width=\'32\' height=\'32\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'#B8860B\' stroke-width=\'1.5\' opacity=\'0.4\' style=\'margin-bottom:8px;\'><circle cx=\'12\' cy=\'12\' r=\'3.5\'/><path d=\'M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2\'/></svg><span style=\'font-size:11px;color:#B8860B;opacity:0.5;letter-spacing:2px;text-transform:uppercase;font-weight:600;\'>Photo Coming Soon</span></div>';">
       </div>
       <div class="p-5 md:p-6">
@@ -221,7 +224,7 @@
     <!-- DORMITORY ROOM -->
     <div class="border border-gold-deep/20 rounded-xl overflow-hidden bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-md">
       <div class="h-[200px] md:h-[220px] flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, #F2EDE4, #E8C96D22);">
-        <img src="{{ asset('images/room-dormitory.jpg') }}" alt="Dormitory Room" class="w-full h-full object-cover"
+        <img src="{{ asset('images/DormitoryRoom.jpg') }}" alt="Dormitory Room" loading="lazy" class="w-full h-full object-cover"
              onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#F2EDE4,#E8C96D33);\' ><span style=\'font-size:36px;opacity:0.15;font-family:Cormorant Garamond,serif;font-weight:700;color:#B8860B;margin-bottom:8px;\'>LD</span><svg width=\'32\' height=\'32\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'#B8860B\' stroke-width=\'1.5\' opacity=\'0.4\' style=\'margin-bottom:8px;\'><circle cx=\'12\' cy=\'12\' r=\'3.5\'/><path d=\'M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2\'/></svg><span style=\'font-size:11px;color:#B8860B;opacity:0.5;letter-spacing:2px;text-transform:uppercase;font-weight:600;\'>Photo Coming Soon</span></div>';">
       </div>
       <div class="p-5 md:p-6">
@@ -240,7 +243,7 @@
   <div class="mt-6 border border-gold-deep/20 rounded-xl overflow-hidden bg-off-white transition-all duration-300 hover:border-gold-deep hover:shadow-md">
     <div class="grid grid-cols-1 md:grid-cols-2">
       <div class="h-[220px] md:h-full flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, #F2EDE4, #E8C96D22);">
-        <img src="{{ asset('images/venue-hall.jpg') }}" alt="Venue Hall / Pavilion" class="w-full h-full object-cover"
+        <img src="{{ asset('images/Venue Halll.jpg') }}" alt="Venue Hall / Pavilion" loading="lazy" class="w-full h-full object-cover"
              onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#F2EDE4,#E8C96D33);\' ><span style=\'font-size:36px;opacity:0.15;font-family:Cormorant Garamond,serif;font-weight:700;color:#B8860B;margin-bottom:8px;\'>LD</span><svg width=\'32\' height=\'32\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'#B8860B\' stroke-width=\'1.5\' opacity=\'0.4\' style=\'margin-bottom:8px;\'><circle cx=\'12\' cy=\'12\' r=\'3.5\'/><path d=\'M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2\'/></svg><span style=\'font-size:11px;color:#B8860B;opacity:0.5;letter-spacing:2px;text-transform:uppercase;font-weight:600;\'>Photo Coming Soon</span></div>';">
       </div>
       <div class="p-6 md:p-8 flex flex-col justify-center">

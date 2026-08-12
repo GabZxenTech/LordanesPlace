@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LorDane's Place - Event Venue</title>
 <meta name="description" content="LorDane's Place — an elegant event venue in Santa Maria, Bulacan. Book your dream celebration today.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -42,13 +44,26 @@
 
 
 <!-- ABOUT -->
-<section class="py-[60px] md:py-[90px] px-[5%] relative bg-off-white" id="about">
+<section class="py-[60px] md:py-[90px] px-[5%] lg:px-[8%] relative bg-off-white" id="about">
   <div class="gold-divider absolute top-0 left-0 right-0"></div>
   <div class="flex gap-8 md:gap-[60px] items-center flex-wrap w-full">
 
-    <div class="about-img-wrap flex-[1.2] min-w-[280px] lg:min-w-[350px] relative">
-      <img src="Event.jpg" alt="LorDane's Place Event" class="w-full h-[300px] md:h-[450px] object-cover rounded-lg shadow-sm">
-    </div>
+
+<div class="flex-[1.2] min-w-[280px] lg:min-w-[350px] relative">
+    <video
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        class="w-full h-[300px] md:h-[450px] object-cover rounded-lg shadow-sm"
+    >
+        <source src="{{ asset('videos/ABOUT US.mp4') }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+</div>
+
+
 
     <div class="flex-1 min-w-[280px] lg:min-w-[300px]">
       <span class="text-[12px] tracking-[4px] text-gold-deep font-bold mb-3 block">ABOUT US</span>
@@ -109,7 +124,7 @@
       </button>
     </div>
     <div class="flex-[1.2] min-w-[280px] lg:min-w-[350px] relative">
-      <img src="{{ asset('images/360_BG.png') }}" alt="Virtual Tour Preview" class="w-full h-[280px] md:h-[380px] object-cover rounded-lg shadow-sm">
+      <img src="{{ asset('images/360_BG.png') }}" alt="Virtual Tour Preview" loading="lazy" class="w-full h-[280px] md:h-[380px] object-cover rounded-lg shadow-sm">
       <div class="play-btn w-14 h-14 md:w-16 md:h-16 bg-gold-deep text-white rounded-full flex items-center justify-center text-lg md:text-xl cursor-pointer hover:bg-gold-mid"
         onclick="window.location.href='{{ route('discover') }}#virtual-tour'">▶</div>
     </div>

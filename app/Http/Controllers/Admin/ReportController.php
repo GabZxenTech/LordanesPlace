@@ -62,8 +62,10 @@ class ReportController extends Controller
             ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
             ->count();
 
+        // Counts both rejected and customer/admin cancelled bookings.
         $cancellations = $bookings->filter(function ($b) {
-            return $b->status === 'rejected' || !is_null($b->reschedule_status);
+            return in_array($b->status, [Booking::STATUS_CANCELLED, Booking::STATUS_REJECTED], true)
+                || !is_null($b->reschedule_status);
         })->count();
 
         $summary = [

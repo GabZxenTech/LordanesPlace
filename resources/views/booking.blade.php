@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Book Now | LorDane's Place</title>
   <meta name="description" content="Book your event at LorDane's Place. Check availability, choose a package, and reserve your date.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <style>
@@ -40,7 +42,7 @@
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
       <div class="text-[28px] mb-3">💳</div>
       <h4 class="text-[12px] md:text-[15px] font-bold text-gold-deep tracking-[1px] mb-2">PAYMENT POLICY</h4>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">20% downpayment required to confirm booking. Full payment due on event day.</p>
+      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">{{ \App\Models\Booking::downPaymentRatePercent() }}% downpayment required to confirm booking. Full payment due on event day.</p>
     </div>
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
       <div class="text-[28px] mb-3">🔄</div>
@@ -75,7 +77,7 @@
     <div class="text-center p-5 md:p-6 bg-cream border border-gold-deep/15 rounded-lg">
       <div class="w-10 h-10 rounded-full bg-gold-deep text-white font-bold text-[16px] flex items-center justify-center mx-auto mb-3">3</div>
       <h4 class="text-[16px] font-bold text-warm-black mb-2">Pay Deposit</h4>
-      <p class="text-[15px] text-warm-black/60 font-normal leading-[1.6]">Pay the 20% downpayment to confirm your reservation.</p>
+      <p class="text-[15px] text-warm-black/60 font-normal leading-[1.6]">Pay the {{ \App\Models\Booking::downPaymentRatePercent() }}% downpayment to confirm your reservation.</p>
     </div>
     <div class="text-center p-5 md:p-6 bg-cream border border-gold-deep/15 rounded-lg">
       <div class="w-10 h-10 rounded-full bg-gold-deep text-white font-bold text-[16px] flex items-center justify-center mx-auto mb-3">4</div>
@@ -162,18 +164,33 @@
         {{-- Hidden data container for JS --}}
         <div id="booking-data" class="hidden" 
              data-blocked-dates='{!! json_encode($blockedDates ?? []) !!}'
-             data-booked-dates='{!! json_encode($bookedDatesByPackage ?? []) !!}'
-             data-unavailable-dates='{!! json_encode($unavailableDates ?? []) !!}'
+             data-approved-dates='{!! json_encode($approvedDates ?? []) !!}'
              data-old-date="{{ old('event_date') }}"
              data-booking-success="{{ session('booking_success') ? 'true' : 'false' }}"
-             data-visit-success="{{ session('visit_success') ? 'true' : 'false' }}">
+             data-visit-success="{{ session('visit_success') ? 'true' : 'false' }}"
+             data-check-date-url="{{ route('booking.check-date') }}">
         </div>
 
         <div class="mb-4">
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Event Type</label>
-          <input type="text" name="event_type" placeholder="e.g. Birthday, Wedding, Debut" value="{{ old('event_type') }}" required
-            class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body" />
+          <select name="event_type" id="eventTypeSelect" required
+            class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
+            <option value="">Select event type</option>
+            @php
+              $eventTypes = ['Birthday', 'Wedding', 'Debut', 'Baptismal', 'Christening', 'Christmas Party', 'Corporate Event', 'Reunion', 'Others'];
+            @endphp
+            @foreach($eventTypes as $type)
+              <option value="{{ $type }}" {{ old('event_type') == $type || (old('event_type') && !in_array(old('event_type'), $eventTypes) && $type == 'Others') ? 'selected' : '' }}>{{ $type }}</option>
+            @endforeach
+          </select>
           @error('event_type') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
+        </div>
+        <div class="mb-4" id="otherEventTypeContainer" style="display: none;">
+          <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Please Specify Event Type</label>
+          <input type="text" name="event_type_other" id="eventTypeOther" placeholder="Enter your event type"
+            value="{{ old('event_type_other', (old('event_type') && !in_array(old('event_type'), ['Birthday','Wedding','Debut','Baptismal','Christening','Christmas Party','Corporate Event','Reunion','Others',''])) ? old('event_type') : '') }}"
+            class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body" />
+          @error('event_type_other') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
         </div>
 
         <div class="mb-4">
@@ -182,7 +199,7 @@
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
             <option value="">Select a package</option>
             @foreach($packages as $pkg)
-              <option value="{{ $pkg->name }}" data-max="{{ $pkg->max_guests }}" data-price="{{ $pkg->price }}" {{ old('package') == $pkg->name ? 'selected' : '' }}>
+              <option value="{{ $pkg->name }}" data-max="{{ $pkg->max_guests }}" data-price="{{ $pkg->price }}" data-start="{{ $pkg->start_time ? \Carbon\Carbon::parse($pkg->start_time)->format('H:i') : '' }}" data-end="{{ $pkg->end_time ? \Carbon\Carbon::parse($pkg->end_time)->format('H:i') : '' }}" {{ old('package') == $pkg->name ? 'selected' : '' }}>
                 {{ $pkg->name }} — ₱{{ number_format($pkg->price, 0) }} (up to {{ $pkg->max_guests }} guests{{ $pkg->duration ? ', ' . $pkg->duration : '' }})
               </option>
             @endforeach
@@ -190,48 +207,14 @@
           @error('package') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-4">
-          <div>
-            <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Start Time</label>
-            <select name="start_time" required
-              class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
-              <option value="">Select start time</option>
-              @for($i = 8; $i <= 22; $i++)
-                @foreach(['00', '30'] as $min)
-                  @if($i == 22 && $min == '30') @continue @endif
-                  @php
-                    $val24 = sprintf('%02d:%s', $i, $min);
-                    $formatted = \Carbon\Carbon::createFromFormat('H:i', $val24)->format('h:i A');
-                  @endphp
-                  <option value="{{ $val24 }}" {{ old('start_time') == $val24 ? 'selected' : '' }}>{{ $formatted }}</option>
-                @endforeach
-              @endfor
-            </select>
-            @error('start_time') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
-          </div>
-          <div>
-            <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">End Time</label>
-            <select name="end_time" required
-              class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
-              <option value="">Select end time</option>
-              @for($i = 8; $i <= 22; $i++)
-                @foreach(['00', '30'] as $min)
-                  @if($i == 22 && $min == '30') @continue @endif
-                  @php
-                    $val24 = sprintf('%02d:%s', $i, $min);
-                    $formatted = \Carbon\Carbon::createFromFormat('H:i', $val24)->format('h:i A');
-                  @endphp
-                  <option value="{{ $val24 }}" {{ old('end_time') == $val24 ? 'selected' : '' }}>{{ $formatted }}</option>
-                @endforeach
-              @endfor
-            </select>
-            @error('end_time') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
-          </div>
-        </div>
+
 
         <div class="mb-4">
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Number of Guests</label>
           <input type="number" name="guest_count" id="guestCountInput" placeholder="How many guests?" min="1" value="{{ old('guest_count') }}" required
+            inputmode="numeric" pattern="[0-9]*"
+            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+            onkeydown="return (event.key >= '0' && event.key <= '9') || ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'].includes(event.key)"
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body" />
           @error('guest_count') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
         </div>
@@ -239,12 +222,36 @@
         <div class="mb-4">
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Total Amount (₱)</label>
           <input type="number" name="total_amount" id="totalAmountInput" placeholder="0.00" step="0.01" value="{{ old('total_amount') }}" required
-            class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body" />
-          <div class="mt-2 text-[13px] text-warm-black/70 flex justify-between items-center bg-gold-deep/5 p-2.5 rounded border border-gold-deep/10">
-            <span>20% Required Down Payment:</span>
-            <span class="font-bold text-gold-deep" id="downPaymentDisplay">₱0.00</span>
-          </div>
+            readonly
+            class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body cursor-not-allowed opacity-75" />
           @error('total_amount') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Payment Option</label>
+          <select name="payment_option" id="paymentOptionSelect" required
+            class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
+            <option value="">Select a payment option</option>
+            <option value="downpayment" {{ old('payment_option', 'downpayment') === 'downpayment' ? 'selected' : '' }}>{{ \App\Models\Booking::downPaymentRatePercent() }}% Downpayment</option>
+            <option value="full_payment" {{ old('payment_option') === 'full_payment' ? 'selected' : '' }}>Full Payment</option>
+          </select>
+          @error('payment_option') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
+
+          <div class="mt-2 text-[13px] text-warm-black/70 bg-gold-deep/5 p-3 rounded border border-gold-deep/10 flex flex-col gap-1.5">
+            <div class="flex justify-between items-center">
+              <span>Total Booking Amount:</span>
+              <span class="font-bold text-warm-black" id="summaryTotal">₱0.00</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span id="summaryAmountLabel">{{ \App\Models\Booking::downPaymentRatePercent() }}% Downpayment Amount:</span>
+              <span class="font-bold text-gold-deep" id="summaryAmountToPay">₱0.00</span>
+            </div>
+            <div class="flex justify-between items-center" id="summaryRemainingRow">
+              <span>Remaining Balance:</span>
+              <span class="font-bold text-warm-black" id="summaryRemaining">₱0.00</span>
+            </div>
+          </div>
+          <p class="text-[11px] text-warm-black/50 mt-1.5 italic">This selects your preferred payment arrangement only — it does not process or confirm any payment.</p>
         </div>
 
         <div class="mb-5">
@@ -257,7 +264,7 @@
         <div class="bg-blue-500/10 border border-blue-400/30 rounded-lg p-4 mb-6 flex gap-3.5 items-start">
             <span class="text-[20px] mt-0.5">📌</span>
             <div class="text-[13.5px] text-warm-black/80 leading-relaxed">
-                <strong>Please note:</strong> A 20% down payment is required to confirm your reservation. Our admin will contact you with payment instructions after booking.
+                <strong>Please note:</strong> A {{ \App\Models\Booking::downPaymentRatePercent() }}% down payment is required to confirm your reservation. Our admin will contact you with payment instructions after booking.
             </div>
         </div>
 
@@ -289,14 +296,8 @@
           </div>
         @endif
         <p class="text-warm-black/80 text-[15px] leading-relaxed mb-4">Your reservation request has been received and is currently <strong class="text-gold-deep">pending approval</strong>.</p>
-        
-        @if(session('new_booking_id'))
-          <div class="mb-6">
-            <a href="{{ route('booking.receipt', session('new_booking_id')) }}" class="inline-flex items-center gap-2 bg-warm-black text-white px-5 py-2.5 rounded-md no-underline text-[14px] font-bold transition-all hover:bg-gold-deep shadow-sm">
-              <span>📄</span> DOWNLOAD PDF RECEIPT
-            </a>
-          </div>
-        @endif
+
+        <div class="mb-6 text-[13px] text-warm-black/60 italic">Your official receipt will be available here once the admin confirms your payment.</div>
     </div>
 
     <div class="bg-cream border border-gold-deep/15 rounded-xl p-6 md:p-8">
@@ -306,14 +307,22 @@
         </div>
         <p class="text-[14px] text-warm-black/70 mb-6 font-normal">Please select a date and time to visit our venue for final payment and a walkthrough before your event.</p>
 
-        <form action="{{ route('visit-schedule.store') }}" method="POST">
+        @php
+            $newBooking = session('new_booking_id') ? \App\Models\Booking::find(session('new_booking_id')) : null;
+            $maxVisitDate = $newBooking ? $newBooking->event_date->copy()->subDay()->format('Y-m-d') : null;
+            $eventDateVal = $newBooking ? $newBooking->event_date->format('Y-m-d') : null;
+        @endphp
+        <form action="{{ route('visit-schedule.store') }}" method="POST" id="visitModalForm">
             @csrf
             <input type="hidden" name="booking_id" value="{{ session('new_booking_id') }}">
+            <input type="hidden" id="modal_event_date" value="{{ $eventDateVal }}">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                 <div>
                     <label class="block text-[11px] tracking-[1px] text-gold-deep mb-2 font-bold uppercase">Preferred Date</label>
-                    <input type="date" name="visit_date" required min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                    <input type="date" name="visit_date" id="modal_visit_date_input" required
+                        min="{{ date('Y-m-d') }}"
+                        @if($maxVisitDate) max="{{ $maxVisitDate }}" @endif
                         class="w-full bg-off-white border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[14px] outline-none transition-colors focus:border-gold-deep font-body" />
                 </div>
                 <div>
@@ -343,6 +352,25 @@
 
             <button type="submit" class="w-full bg-gold-deep text-white border-none py-3.5 rounded-md font-bold text-[15px] tracking-[1px] cursor-pointer transition-all hover:bg-gold-mid">CONFIRM VISIT SCHEDULE</button>
         </form>
+        <script>
+            document.getElementById('visitModalForm')?.addEventListener('submit', function(e) {
+                const visitVal = document.getElementById('modal_visit_date_input').value;
+                const eventVal = document.getElementById('modal_event_date').value;
+                const today = "{{ date('Y-m-d') }}";
+
+                if (visitVal < today) {
+                    e.preventDefault();
+                    alert('The Site Visit date cannot be in the past.');
+                    return;
+                }
+
+                if (eventVal && visitVal >= eventVal) {
+                    e.preventDefault();
+                    alert('The Site Visit must be scheduled before your event date.');
+                    return;
+                }
+            });
+        </script>
 
         <div class="mt-6 flex justify-center gap-6">
             <a href="{{ route('profile') }}" class="text-[13px] text-warm-black/40 hover:text-gold-deep transition-colors font-medium">Skip for now</a>
@@ -370,8 +398,8 @@
 <script>
   const dataEl = document.getElementById('booking-data');
   const blockedDates = JSON.parse(dataEl.getAttribute('data-blocked-dates'));
-  const bookedDatesByPackage = JSON.parse(dataEl.getAttribute('data-booked-dates'));
-  const unavailableDatesLegacy = JSON.parse(dataEl.getAttribute('data-unavailable-dates'));
+  const approvedDates = JSON.parse(dataEl.getAttribute('data-approved-dates'));
+  const checkDateUrl = dataEl.getAttribute('data-check-date-url');
   const bookingSuccess = dataEl.getAttribute('data-booking-success') === 'true';
   const visitSuccess = dataEl.getAttribute('data-visit-success') === 'true';
 
@@ -390,9 +418,25 @@
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Booking restriction: only allow dates up to 12 months from today
-  const maxBookingDate = new Date(today.getFullYear(), today.getMonth() + 12, today.getDate());
-  maxBookingDate.setHours(0, 0, 0, 0);
+  // Event Type: show/hide "Others" text input
+  const eventTypeSelect = document.getElementById('eventTypeSelect');
+  const otherContainer = document.getElementById('otherEventTypeContainer');
+  const otherInput = document.getElementById('eventTypeOther');
+
+  function toggleOtherEventType() {
+    if (eventTypeSelect.value === 'Others') {
+      otherContainer.style.display = '';
+      otherInput.required = true;
+    } else {
+      otherContainer.style.display = 'none';
+      otherInput.required = false;
+      otherInput.value = '';
+    }
+  }
+
+  eventTypeSelect.addEventListener('change', toggleOtherEventType);
+  // Initialize on load (handles old() after validation failure)
+  toggleOtherEventType();
 
   let currentDate = new Date();
   let selectedDate = null;
@@ -420,21 +464,52 @@
       document.getElementById('guestCountInput').removeAttribute('max');
       document.getElementById('guestCountInput').placeholder = "How many guests?";
     }
-    renderCalendar();
   });
 
-  // Dynamic Down Payment Calculation
+  // Dynamic Payment Option Summary (Full Payment vs. Downpayment)
+  const DOWN_PAYMENT_RATE = {{ \App\Models\Booking::DOWN_PAYMENT_RATE }};
+  const DOWN_PAYMENT_PERCENT = {{ \App\Models\Booking::downPaymentRatePercent() }};
   const totalAmountInput = document.getElementById('totalAmountInput');
-  const downPaymentDisplay = document.getElementById('downPaymentDisplay');
+  const paymentOptionSelect = document.getElementById('paymentOptionSelect');
+  const summaryTotal = document.getElementById('summaryTotal');
+  const summaryAmountLabel = document.getElementById('summaryAmountLabel');
+  const summaryAmountToPay = document.getElementById('summaryAmountToPay');
+  const summaryRemaining = document.getElementById('summaryRemaining');
+  const summaryRemainingRow = document.getElementById('summaryRemainingRow');
+
+  function formatPeso(amount) {
+    return '₱' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
 
   function updateDownPayment() {
     const total = parseFloat(totalAmountInput.value) || 0;
-    const downPayment = total * 0.20;
-    downPaymentDisplay.textContent = '₱' + downPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const option = paymentOptionSelect.value;
+
+    let amountToPay = 0;
+    let remaining = 0;
+
+    if (option === 'full_payment') {
+      amountToPay = total;
+      remaining = 0;
+      summaryAmountLabel.textContent = 'Amount to Pay:';
+      summaryRemainingRow.style.display = 'none';
+    } else {
+      // Default preview (downpayment) shown even before a choice is made, so
+      // the summary is never blank while the customer is still deciding.
+      amountToPay = Math.round(total * DOWN_PAYMENT_RATE * 100) / 100;
+      remaining = Math.round((total - amountToPay) * 100) / 100;
+      summaryAmountLabel.textContent = DOWN_PAYMENT_PERCENT + '% Downpayment Amount:';
+      summaryRemainingRow.style.display = 'flex';
+    }
+
+    summaryTotal.textContent = formatPeso(total);
+    summaryAmountToPay.textContent = formatPeso(amountToPay);
+    summaryRemaining.textContent = formatPeso(remaining);
   }
 
   totalAmountInput.addEventListener('input', updateDownPayment);
-  if (totalAmountInput.value) updateDownPayment();
+  paymentOptionSelect.addEventListener('change', updateDownPayment);
+  updateDownPayment();
 
   const urlParams = new URLSearchParams(window.location.search);
   const packageFromUrl = urlParams.get('package');
@@ -455,11 +530,10 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
+  // One Event Per Day: unavailable = blocked dates + approved booking dates (global, not per-package)
   function getUnavailableDates() {
-    let packageBooked = selectedPackage && bookedDatesByPackage[selectedPackage] ? bookedDatesByPackage[selectedPackage] : [];
-    // blockedDates is now an object, so we get the keys (date strings)
     const blockedDateStrings = Object.keys(blockedDates);
-    return [...blockedDateStrings, ...packageBooked];
+    return [...blockedDateStrings, ...approvedDates];
   }
 
   function renderCalendar() {
@@ -490,12 +564,9 @@
 
       if (dateObj < today) {
         div.classList.add('past');
-      } else if (dateObj > maxBookingDate) {
-        div.classList.add('beyond-year');
-        div.title = 'Booking is only available up to 12 months in advance';
       } else if (unavailables.includes(dateStr)) {
         div.classList.add('unavailable');
-        // Always add click listener to unavailable dates to show the reason box
+        // Click listener to show reason for unavailability
         div.addEventListener('click', () => {
           showBlockedReason(dateStr);
         });
@@ -509,9 +580,15 @@
   }
 
   function showBlockedReason(dateStr) {
-    // Exact wording from the latest screenshot
-    const defaultMsg = 'This date has been blocked by the venue admin (e.g. maintenance, private hold, or holiday).';
-    const reason = blockedDates[dateStr] || defaultMsg;
+    // Determine the reason: blocked by admin or reserved by approved booking
+    let reason;
+    if (blockedDates[dateStr]) {
+      reason = blockedDates[dateStr];
+    } else if (approvedDates.includes(dateStr)) {
+      reason = 'This date is already reserved for another event. Please choose another available date.';
+    } else {
+      reason = 'This date has been blocked by the venue admin (e.g. maintenance, private hold, or holiday).';
+    }
     
     const alertBox = document.getElementById('blockedDateAlert');
     const reasonText = document.getElementById('blockedDateReason');
@@ -527,7 +604,6 @@
   }
 
   function selectDate(dateStr, el) {
-    if (!selectedPackage) { alert('Please select a package first to view accurate availability.'); return; }
     document.querySelectorAll('.cal-day.selected').forEach(d => d.classList.remove('selected'));
     el.classList.add('selected');
     selectedDate = dateStr;
@@ -536,13 +612,36 @@
     
     // Hide blocked alert if it was showing
     document.getElementById('blockedDateAlert').classList.add('hidden');
+
+    // Real-time AJAX validation: double-check with the server
+    fetch(checkDateUrl + '?date=' + dateStr)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.available) {
+          // Date became unavailable (e.g., just approved by admin)
+          selectedDate = null;
+          document.getElementById('eventDateInput').value = '';
+          document.getElementById('selectedDateDisplay').textContent = '📅 Please select an available date';
+          
+          const alertBox = document.getElementById('blockedDateAlert');
+          const reasonText = document.getElementById('blockedDateReason');
+          reasonText.textContent = data.reason;
+          alertBox.classList.remove('hidden');
+
+          // Add to local approved dates so calendar re-renders correctly
+          if (!approvedDates.includes(dateStr)) {
+            approvedDates.push(dateStr);
+          }
+          renderCalendar();
+        }
+      })
+      .catch(() => {
+        // Silently fail — backend validation will still catch it
+      });
   }
 
   function changeMonth(dir) {
     const nextDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + dir, 1);
-    // Prevent navigating beyond the month containing maxBookingDate
-    if (dir > 0 && nextDate.getFullYear() > maxBookingDate.getFullYear()) return;
-    if (dir > 0 && nextDate.getFullYear() === maxBookingDate.getFullYear() && nextDate.getMonth() > maxBookingDate.getMonth()) return;
     // Prevent navigating before the current month
     if (dir < 0 && (nextDate.getFullYear() < today.getFullYear() || (nextDate.getFullYear() === today.getFullYear() && nextDate.getMonth() < today.getMonth()))) return;
     currentDate = nextDate;

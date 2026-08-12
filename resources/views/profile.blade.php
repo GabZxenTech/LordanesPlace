@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Profile | LorDane's Place</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -13,7 +15,7 @@
 
 <section class="py-12 md:py-24 bg-off-white min-h-screen" style="font-family: 'Jost', sans-serif;">
   <div class="max-w-[1200px] mx-auto px-4">
-    
+
     {{-- PROFILE INFORMATION SECTION - BRANDED --}}
     <div style="background: #fdfbf7; border: 1px solid #a88a4c20; border-radius: 12px; margin-bottom: 3rem; overflow: hidden; shadow: 0 4px 20px rgba(168,138,76,0.05);">
       <div style="padding: 3rem; border-bottom: 1px solid #a88a4c10;">
@@ -58,18 +60,18 @@
 
     <div style="display: flex; flex-direction: column; gap: 2rem;">
       @forelse($bookings as $booking)
-        <div style="background: white; border: 1px solid #a88a4c15; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.02); overflow: hidden;">
-          
+        <div id="booking-{{ $booking->id }}" style="background: white; border: 1px solid #a88a4c15; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.02); overflow: hidden; scroll-margin-top: 100px;">
+
           {{-- Header --}}
           <div style="padding: 2rem 3rem; border-bottom: 1px solid #a88a4c08; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1.5rem; background: #fffcf8;">
             <div>
               <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.75rem; font-weight: 700; color: #1a1a1a; margin: 0;">#LDP-{{ $booking->booking_number }}</h3>
               <p style="font-size: 12px; color: #a88a4c; font-weight: 600; margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">Reservation Confirmed on {{ $booking->created_at->format('F d, Y') }}</p>
             </div>
-            
+
             <div style="display: flex; gap: 0.75rem;">
               @php
-                $sColor = $booking->status === 'approved' ? '#10b981' : ($booking->status === 'pending' ? '#f59e0b' : '#ef4444');
+                $sColor = \App\Models\Booking::statusColor($booking->status);
                 $pColor = $booking->payment_status === 'fully_paid' ? '#3b82f6' : ($booking->payment_status === 'partially_paid' ? '#10b981' : '#ef4444');
               @endphp
               <span style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; background: {{ $sColor }}10; color: {{ $sColor }}; border: 1px solid {{ $sColor }}20;">{{ $booking->status }}</span>
@@ -90,7 +92,11 @@
               </div>
               <div>
                 <p style="font-size: 11px; font-weight: 900; color: #a88a4c; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Event Schedule</p>
-                <p style="font-size: 20px; font-weight: 700; color: #1a1a1a;">{{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}</p>
+                @if($booking->start_time && $booking->end_time)
+                  <p style="font-size: 20px; font-weight: 700; color: #1a1a1a;">{{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}</p>
+                @else
+                  <p style="font-size: 15px; font-weight: 600; color: #a88a4c90; font-style: italic;">To be finalized during your venue visit</p>
+                @endif
               </div>
             </div>
 
@@ -117,8 +123,13 @@
               </div>
             </div>
 
-            <div style="margin-top: 2.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
-              <a href="{{ route('booking.receipt', $booking->id) }}" style="background: #1a1a1a; color: white; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; transition: 0.3s;">Receipt PDF</a>
+            <div style="margin-top: 2.5rem; display: flex; justify-content: flex-end; align-items: center; gap: 1rem; flex-wrap: wrap;">
+              @if($booking->hasConfirmedPayment())
+                <a href="{{ route('booking.receipt', $booking->id) }}" style="background: #1a1a1a; color: white; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; transition: 0.3s;">View Receipt</a>
+                <a href="{{ route('booking.receipt', $booking->id) }}" target="_blank" style="background: transparent; color: #1a1a1a; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; border: 1px solid #1a1a1a30; transition: 0.3s;">Print Receipt</a>
+              @else
+                <p style="margin: 0; font-size: 12.5px; color: #a88a4c; font-style: italic; max-width: 320px; text-align: right;">Receipt not yet available. Payment confirmation is required.</p>
+              @endif
               @if($booking->status === 'approved' && $booking->reschedule_status !== 'pending')
                 @if($booking->event_date->format('Y-m-d') >= date('Y-m-d'))
                   <button type="button" 
@@ -133,6 +144,14 @@
                     Event Completed
                   </button>
                 @endif
+              @endif
+              @if($booking->canTransitionTo('cancelled') && $booking->event_date->format('Y-m-d') >= date('Y-m-d'))
+                <form method="POST" action="{{ route('booking.cancel', $booking->id) }}" onsubmit="return confirm('Are you sure you want to cancel this booking? This cannot be undone.');">
+                  @csrf
+                  <button type="submit" style="background: transparent; color: #ef4444; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border: 1px solid #ef444440; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#ef44440a'" onmouseout="this.style.background='transparent'">
+                    Cancel Booking
+                  </button>
+                </form>
               @endif
             </div>
 
@@ -266,37 +285,60 @@
 
     if (!eventDate || !visitDate) {
       errorEl.textContent = 'Please select both dates.';
-      errorEl.classList.remove('hidden');
+      errorEl.style.display = 'block';
       return false;
     }
 
     if (eventDate <= today) {
       errorEl.textContent = 'Event date must be a future date.';
-      errorEl.classList.remove('hidden');
+      errorEl.style.display = 'block';
       return false;
     }
 
-    if (visitDate <= today) {
-      errorEl.textContent = 'Visit date must be a future date.';
-      errorEl.classList.remove('hidden');
+    if (visitDate < today) {
+      errorEl.textContent = 'The Site Visit date cannot be in the past.';
+      errorEl.style.display = 'block';
       return false;
     }
 
     if (visitDate >= eventDate) {
-      errorEl.textContent = 'Visit date must be before the event date.';
-      errorEl.classList.remove('hidden');
+      errorEl.textContent = 'The Site Visit must be scheduled before your event date.';
+      errorEl.style.display = 'block';
       return false;
     }
 
-    errorEl.classList.add('hidden');
+    errorEl.style.display = 'none';
     return true;
   }
+
+  // Dynamically set max visit date when new event date is picked in reschedule modal
+  document.getElementById('reschedule_event_date')?.addEventListener('change', function() {
+    const eventVal = this.value;
+    const visitInput = document.getElementById('reschedule_visit_date');
+    if (eventVal) {
+      const d = new Date(eventVal);
+      d.setDate(d.getDate() - 1);
+      visitInput.max = d.toISOString().split('T')[0];
+    } else {
+      visitInput.removeAttribute('max');
+    }
+  });
 
   // Close modal on backdrop click
   window.addEventListener('click', function(e) {
     const modal = document.getElementById('rescheduleModal');
     if (e.target === modal) closeRescheduleModal();
   });
+
+  // Highlight the booking a notification linked to (e.g. #booking-42)
+  if (window.location.hash.startsWith('#booking-')) {
+    const target = document.querySelector(window.location.hash);
+    if (target) {
+      target.style.transition = 'box-shadow 0.4s ease';
+      target.style.boxShadow = '0 0 0 3px #B8860B';
+      setTimeout(() => { target.style.boxShadow = ''; }, 2500);
+    }
+  }
 </script>
 </body>
 </html>

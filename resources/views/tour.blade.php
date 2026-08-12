@@ -54,7 +54,7 @@
     </a>
 
     <iframe 
-    src="{{ asset('lordanes360view/index.html') }}" 
+    src="{{ asset('lordanes-place-360/app-files/index.html') }}" 
     allowfullscreen>
 </iframe>
 

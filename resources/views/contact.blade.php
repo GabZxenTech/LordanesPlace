@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contact Us - LorDane's Place</title>
 <meta name="description" content="Get in touch with LorDane's Place. Find our location, opening hours, phone number, and email address.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 {{-- Leaflet CSS --}}
@@ -76,7 +78,7 @@
       <div class="text-[28px] md:text-[30px] mb-3">🕒</div>
       <h4 class="text-[16px] font-bold text-gold-deep tracking-[0.5px] mb-2 uppercase">Opening Hours</h4>
       <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Day Tour: 8:00 AM - 3:00 PM</p>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Overnight: 5:00 PM - 9:00 AM</p>
+      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Night Swimming: 5:00 PM - 9:00 AM</p>
       <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Open 7 days a week</p>
     </div>
     <div class="border border-gold-deep/25 rounded-lg p-6 md:p-7 text-center bg-cream transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-sm">
