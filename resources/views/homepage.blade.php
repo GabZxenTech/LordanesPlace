@@ -50,17 +50,11 @@
 
 
 <div class="flex-[1.2] min-w-[280px] lg:min-w-[350px] relative">
-    <video
-        autoplay
-        muted
-        loop
-        playsinline
-        preload="metadata"
+    <img
+        src="{{ asset('images/aboutus.png') }}"
+        alt="About LorDane's Place"
         class="w-full h-[300px] md:h-[450px] object-cover rounded-lg shadow-sm"
-    >
-        <source src="{{ asset('videos/ABOUT US.mp4') }}" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+    />
 </div>
 
 

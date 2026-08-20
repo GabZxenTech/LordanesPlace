@@ -36,6 +36,12 @@
           <h2 class="font-heading text-[30px] md:text-[34px] text-white mb-2">Login</h2>
           <p class="text-white/60 text-[16px] mb-7">Sign in to continue to your account</p>
 
+          @if (session('success'))
+            <div style="background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.35); color: #4ade80; padding: 10px 14px; border-radius: 8px; margin-bottom: 18px; font-size: 13px;">
+              {{ session('success') }}
+            </div>
+          @endif
+
           <form method="POST" action="{{ route('login.post') }}">
             @csrf
 

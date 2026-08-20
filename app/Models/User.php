@@ -38,12 +38,14 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'pending_email',
         'password',
         'role',
         'last_active',
         'is_online',
         'google_id',
         'avatar',
+        'email_verified_at',
     ];
 
     protected function casts(): array
@@ -60,7 +62,27 @@ class User extends Authenticatable
         return $this->hasMany(Conversation::class);
     }
 
-    
+    public function emailOtps()
+    {
+        return $this->hasMany(EmailOtp::class);
+    }
 
-    
+    /**
+     * Send a branded password-reset email instead of Laravel's default
+     * notification mail, matching the rest of the app's transactional emails.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $url = url(route('password.reset', [
+            'token' => $token,
+            'email' => $this->email,
+        ], false));
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($this->email)
+                ->send(new \App\Mail\PasswordResetMail($url, $this->name));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Password reset email failed: ' . $e->getMessage());
+        }
+    }
 }

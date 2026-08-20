@@ -75,6 +75,7 @@
                 </button>
               </div>
               @error('password') <span class="text-red-400 text-[11px] mt-1 block">{{ $message }}</span> @enderror
+              <p class="text-white/40 text-[10px] mt-1.5 leading-relaxed">Min 8 characters, uppercase, lowercase, number, and special character (! @ # $ %)</p>
             </div>
 
             <div class="mb-4">

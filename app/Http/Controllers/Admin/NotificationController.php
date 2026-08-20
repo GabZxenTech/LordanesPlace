@@ -98,7 +98,12 @@ class NotificationController extends Controller
         }
 
         if ($notification->booking_id) {
-            return redirect(route('admin.schedule') . '#booking-' . $notification->booking_id);
+            $eventDate = \App\Models\Booking::whereKey($notification->booking_id)->value('event_date');
+            $params = $eventDate
+                ? ['month' => \Carbon\Carbon::parse($eventDate)->month, 'year' => \Carbon\Carbon::parse($eventDate)->year]
+                : [];
+
+            return redirect(route('admin.schedule', $params) . '#booking-' . $notification->booking_id);
         }
 
         return redirect()->route('admin.schedule');

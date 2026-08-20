@@ -14,15 +14,29 @@ use Illuminate\Validation\Rule;
 class BlockedDateController extends Controller
 {
     // Show all bookings + blocked dates in admin
-    public function index()
+    public function index(Request $request)
     {
+        $month = (int) $request->query('month', now()->month);
+        $year = (int) $request->query('year', now()->year);
+
+        // Guard against garbage query params so the month selector never breaks.
+        if ($month < 1 || $month > 12) {
+            $month = now()->month;
+        }
+
+        $selectedMonth = \Carbon\Carbon::createFromDate($year, $month, 1);
+
         // 'payments' is eager-loaded because the view calls amountPaid()/
         // remainingBalance()/hasConfirmedPayment() several times per row —
         // without this each of those calls re-queries the DB per booking.
-        $bookings = Booking::with(['user', 'payments'])->orderBy('event_date', 'asc')->get();
+        $bookings = Booking::with(['user', 'payments'])
+            ->whereYear('event_date', $selectedMonth->year)
+            ->whereMonth('event_date', $selectedMonth->month)
+            ->orderBy('event_date', 'asc')
+            ->get();
         $blockedDates = BlockedDate::orderBy('date', 'asc')->get();
 
-        return view('admin.schedule', compact('bookings', 'blockedDates'));
+        return view('admin.schedule', compact('bookings', 'blockedDates', 'selectedMonth'));
     }
 
     // Block a date

@@ -1,15 +1,16 @@
 {{-- ADMIN SIDEBAR --}}
-<aside style="position: fixed; top: 0; left: 0; height: 100vh; width: 260px; background: #2c1a0e; font-family: 'Jost', sans-serif; display: flex; flex-direction: column; justify-content: space-between; z-index: 200; box-shadow: 4px 0 15px rgba(0,0,0,0.1);">
-  
+<aside style="position: fixed; top: 0; left: 0; height: 100vh; width: 260px; background: #2c1a0e; font-family: 'Jost', sans-serif; display: flex; flex-direction: column; z-index: 200; box-shadow: 4px 0 15px rgba(0,0,0,0.1);">
+
   {{-- Brand --}}
-  <div>
+  <div style="flex-shrink: 0;">
     <div style="padding: 32px 28px 24px; border-bottom: 1px solid rgba(201,168,76,0.15);">
       <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1.2;">LorDane's Place</h1>
       <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 6px 0 0; text-transform: uppercase; font-weight: 600;">ADMIN PANEL</p>
     </div>
+  </div>
 
     {{-- Navigation --}}
-    <div style="padding: 24px 0;">
+    <div style="padding: 24px 0; flex: 1; overflow-y: auto; overflow-x: hidden;">
       <p style="font-size: 10px; letter-spacing: 3px; color: #8a6a40; padding: 0 28px; margin: 0 0 14px; text-transform: uppercase; font-weight: 700;">Main Menu</p>
 
       <a href="{{ route('admin.dashboard') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('admin.dashboard') || request()->routeIs('admin.edit') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}" onmouseover="if(!this.classList.contains('active-nav')){this.style.background='#3d2312'; this.style.color='#c9a84c';}" onmouseout="if(!this.classList.contains('active-nav')){this.style.background='transparent'; this.style.color='#b89060';}">
@@ -79,10 +80,9 @@
         Reports
       </a>
     </div>
-  </div>
 
   {{-- Footer --}}
-  <div style="padding: 20px 28px 28px; border-top: 1px solid rgba(201,168,76,0.12);">
+  <div style="padding: 20px 28px 28px; border-top: 1px solid rgba(201,168,76,0.12); flex-shrink: 0;">
     <p style="font-size: 13px; color: #8a6a40; margin: 0 0 14px;">Signed in as <span style="color: #c9a84c; font-weight: 700;">{{ Auth::user()->name }}</span></p>
     <form method="POST" action="{{ route('logout') }}">
       @csrf

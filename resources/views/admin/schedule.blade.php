@@ -94,8 +94,25 @@
 
       {{-- RIGHT COLUMN: BOOKINGS TABLE --}}
       <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; overflow: hidden;">
-        <div style="padding: 18px 24px; border-bottom: 1px solid #d4c4a0; background: #f5edd8;">
+        <div style="padding: 18px 24px; border-bottom: 1px solid #d4c4a0; background: #f5edd8; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
           <h2 style="font-size: 12px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0;">BOOKING REQUESTS</h2>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{{ route('admin.schedule', ['month' => $selectedMonth->copy()->subMonth()->month, 'year' => $selectedMonth->copy()->subMonth()->year]) }}"
+              style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 1px solid #d4c4a0; border-radius: 6px; color: #2c1a0e; text-decoration: none; font-size: 13px; background: #fff9ef; transition: all 0.2s;"
+              onmouseover="this.style.background='#2c1a0e'; this.style.color='#f5edd8';" onmouseout="this.style.background='#fff9ef'; this.style.color='#2c1a0e';"
+              aria-label="Previous month">◀</a>
+
+            <div style="min-width: 150px; text-align: center;">
+              <span style="font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 700; color: #2c1a0e;">{{ $selectedMonth->format('F Y') }}</span>
+              <span style="font-size: 11px; color: #8a6a40; font-weight: 600; margin-left: 4px;">({{ $bookings->count() }} {{ \Illuminate\Support\Str::plural('booking', $bookings->count()) }})</span>
+            </div>
+
+            <a href="{{ route('admin.schedule', ['month' => $selectedMonth->copy()->addMonth()->month, 'year' => $selectedMonth->copy()->addMonth()->year]) }}"
+              style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 1px solid #d4c4a0; border-radius: 6px; color: #2c1a0e; text-decoration: none; font-size: 13px; background: #fff9ef; transition: all 0.2s;"
+              onmouseover="this.style.background='#2c1a0e'; this.style.color='#f5edd8';" onmouseout="this.style.background='#fff9ef'; this.style.color='#2c1a0e';"
+              aria-label="Next month">▶</a>
+          </div>
         </div>
         <div style="overflow-x: auto;">
           <table style="width: 100%; border-collapse: collapse;">
@@ -217,7 +234,7 @@
                   </td>
                 </tr>
               @empty
-                <tr><td colspan="6" style="text-align: center; padding: 60px; color: #8a6a40; font-size: 16px;">No bookings found.</td></tr>
+                <tr><td colspan="6" style="text-align: center; padding: 60px; color: #8a6a40; font-size: 16px;">No bookings for {{ $selectedMonth->format('F Y') }}.</td></tr>
               @endforelse
             </tbody>
           </table>

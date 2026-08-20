@@ -8,6 +8,8 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\Admin\BlockedDateController;
 use App\Http\Controllers\VisitScheduleController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\OtpVerificationController;
+use App\Http\Controllers\EmailChangeController;
 
 Route::get('/', function () {
     return view('homepage');
@@ -30,6 +32,16 @@ Route::get('/forgot-password', function () {
     return view('login');
 })->name('password.request');
 
+// Password reset (links are only ever sent by an admin from the user
+// management panel — there is no public "forgot password" form).
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+
+// Confirmation link for an admin-initiated email change, sent to the NEW
+// address. Must stay outside 'auth' — the person clicking it is the target
+// user, not necessarily logged in. Integrity is enforced by the signature.
+Route::get('/confirm-email-change/{user}', [EmailChangeController::class, 'confirm'])->name('email-change.confirm');
+
 // Login
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -45,6 +57,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
+// OTP Email Verification (authenticated but possibly unverified)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/verify-otp', [OtpVerificationController::class, 'show'])->name('otp.show');
+    Route::post('/verify-otp', [OtpVerificationController::class, 'verify'])->name('otp.verify');
+    Route::post('/resend-otp', [OtpVerificationController::class, 'resend'])->name('otp.resend');
+});
+
 
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
@@ -52,10 +71,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/users/{id}/edit', [AdminController::class, 'edit'])->name('edit');
     Route::put('/users/{id}', [AdminController::class, 'update'])->name('update');
     Route::delete('/users/{id}', [AdminController::class, 'destroy'])->name('destroy');
+    Route::post('/users/{id}/send-password-reset', [AdminController::class, 'sendPasswordReset'])->name('users.send-password-reset');
 });
 
-// Booking routes 
-Route::middleware(['auth'])->group(function () {
+// Booking routes (require verified email)
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/booking', [BookingController::class, 'index'])->name('booking');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/check-date', [BookingController::class, 'checkDate'])->name('booking.check-date');

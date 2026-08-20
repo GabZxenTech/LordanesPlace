@@ -72,7 +72,12 @@
               <tr style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
                 <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">{{ $index + 1 }}</td>
                 <td style="padding: 16px 24px; font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $user->name }}</td>
-                <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">{{ $user->email }}</td>
+                <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">
+                  {{ $user->email }}
+                  @if($user->pending_email)
+                    <div style="font-size: 11px; color: #856404; margin-top: 3px;">⏳ Pending: {{ $user->pending_email }}</div>
+                  @endif
+                </td>
                 <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">{{ $user->created_at->format('M d, Y') }}</td>
                 <td style="padding: 16px 24px;">
                   @if($user->last_active && \Carbon\Carbon::parse($user->last_active)->diffInMinutes(now()) <= 30)
