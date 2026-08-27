@@ -31,7 +31,9 @@ class VisitScheduleController extends Controller
             'visit_time' => 'required',
             'notes'      => 'nullable|string|max:1000',
         ], [
+            'visit_date.required'       => 'Please select a visit schedule.',
             'visit_date.after_or_equal' => 'The Site Visit date cannot be in the past.',
+            'visit_time.required'       => 'Please select a visit schedule.',
         ]);
 
         $booking = Booking::findOrFail($request->booking_id);

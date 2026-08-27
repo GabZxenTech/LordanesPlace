@@ -22,6 +22,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Pin every absolute URL (route(), url(), signed links used by password
+        // reset and the admin email-change confirmation) to APP_URL instead of
+        // the current request's Host header. Without this, a link generated
+        // while an admin is browsing the panel via http://localhost/... gets
+        // "localhost" baked into it — which is meaningless to the customer's
+        // device receiving that link in an email.
+        \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
+
         if (config('app.env') === 'production') {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }

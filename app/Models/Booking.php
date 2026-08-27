@@ -162,10 +162,10 @@ class Booking extends Model
     public static function statusColor(?string $status): string
     {
         return match ($status) {
-            self::STATUS_PENDING   => '#f59e0b',
+            self::STATUS_PENDING   => '#B8860B',
             self::STATUS_APPROVED  => '#10b981',
             self::STATUS_ONGOING   => '#3b82f6',
-            self::STATUS_COMPLETED => '#a88a4c',
+            self::STATUS_COMPLETED => '#B8860B',
             self::STATUS_REJECTED  => '#ef4444',
             self::STATUS_CANCELLED => '#94a3b8',
             default                => '#94a3b8',

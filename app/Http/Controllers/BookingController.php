@@ -15,6 +15,16 @@ class BookingController extends Controller
     // Show booking form with calendar
     public function index()
     {
+        // Visit Schedule is a mandatory follow-up step to a just-completed
+        // booking, so keep the "booking just succeeded" flash data alive for
+        // as many round-trips as it takes — otherwise a failed visit-schedule
+        // submission (invalid date, etc.) would redirect back here, the flash
+        // data would have already aged out, and the modal (plus the booking
+        // it needs to attach the visit to) would silently disappear.
+        if (session('booking_success')) {
+            session()->keep(['booking_success', 'new_booking_id', 'booking_number']);
+        }
+
         // Packages only change via admin CRUD (which busts this key), so it's
         // safe to skip the DB round-trip on every booking-page visit.
         $packages = Cache::remember('packages.all', 300, fn () => \App\Models\Package::all());

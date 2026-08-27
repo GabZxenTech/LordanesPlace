@@ -149,7 +149,7 @@
         📅 Please select a date from the calendar
       </div>
 
-      @if($errors->any())
+      @if($errors->any() && !session('booking_success'))
         <div class="bg-red-500/10 border border-red-500 text-red-600 p-3 rounded-md mb-5 text-[15px]">
           @foreach($errors->all() as $error)
             <div>{{ $error }}</div>
@@ -307,6 +307,14 @@
         </div>
         <p class="text-[14px] text-warm-black/70 mb-6 font-normal">Please select a date and time to visit our venue for final payment and a walkthrough before your event.</p>
 
+        @if($errors->any() && session('booking_success'))
+          <div class="bg-red-500/10 border border-red-500 text-red-600 p-3 rounded-md mb-5 text-[14px]">
+            @foreach($errors->all() as $error)
+              <div>{{ $error }}</div>
+            @endforeach
+          </div>
+        @endif
+
         @php
             $newBooking = session('new_booking_id') ? \App\Models\Booking::find(session('new_booking_id')) : null;
             $maxVisitDate = $newBooking ? $newBooking->event_date->copy()->subDay()->format('Y-m-d') : null;
@@ -323,6 +331,7 @@
                     <input type="date" name="visit_date" id="modal_visit_date_input" required
                         min="{{ date('Y-m-d') }}"
                         @if($maxVisitDate) max="{{ $maxVisitDate }}" @endif
+                        value="{{ old('visit_date') }}"
                         class="w-full bg-off-white border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[14px] outline-none transition-colors focus:border-gold-deep font-body" />
                 </div>
                 <div>
@@ -337,7 +346,7 @@
                                     $val24 = sprintf('%02d:%s', $i, $min);
                                     $formatted = \Carbon\Carbon::createFromFormat('H:i', $val24)->format('h:i A');
                                 @endphp
-                                <option value="{{ $val24 }}">{{ $formatted }}</option>
+                                <option value="{{ $val24 }}" {{ old('visit_time') == $val24 ? 'selected' : '' }}>{{ $formatted }}</option>
                             @endforeach
                         @endfor
                     </select>
@@ -347,7 +356,7 @@
             <div class="mb-6">
                 <label class="block text-[11px] tracking-[1px] text-gold-deep mb-2 font-bold uppercase">Optional Notes</label>
                 <textarea name="notes" rows="2" placeholder="e.g. I'll bring my partner..."
-                    class="w-full bg-off-white border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[14px] outline-none transition-colors focus:border-gold-deep font-body resize-y"></textarea>
+                    class="w-full bg-off-white border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[14px] outline-none transition-colors focus:border-gold-deep font-body resize-y">{{ old('notes') }}</textarea>
             </div>
 
             <button type="submit" class="w-full bg-gold-deep text-white border-none py-3.5 rounded-md font-bold text-[15px] tracking-[1px] cursor-pointer transition-all hover:bg-gold-mid">CONFIRM VISIT SCHEDULE</button>
@@ -355,8 +364,15 @@
         <script>
             document.getElementById('visitModalForm')?.addEventListener('submit', function(e) {
                 const visitVal = document.getElementById('modal_visit_date_input').value;
+                const visitTimeVal = document.querySelector('#visitModalForm select[name="visit_time"]').value;
                 const eventVal = document.getElementById('modal_event_date').value;
                 const today = "{{ date('Y-m-d') }}";
+
+                if (!visitVal || !visitTimeVal) {
+                    e.preventDefault();
+                    alert('Please select a visit schedule.');
+                    return;
+                }
 
                 if (visitVal < today) {
                     e.preventDefault();
@@ -371,11 +387,6 @@
                 }
             });
         </script>
-
-        <div class="mt-6 flex justify-center gap-6">
-            <a href="{{ route('profile') }}" class="text-[13px] text-warm-black/40 hover:text-gold-deep transition-colors font-medium">Skip for now</a>
-            <a href="{{ route('home') }}" class="text-[13px] text-warm-black/40 hover:text-gold-deep transition-colors font-medium">Back to Home</a>
-        </div>
     </div>
   </div>
 </div>
