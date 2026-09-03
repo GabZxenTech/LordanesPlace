@@ -34,7 +34,7 @@
           Notifications
           <span id="adminNotifBadge" style="position: absolute; right: 20px; {{ $adminUnreadCount > 0 ? 'display: inline-flex;' : 'display: none;' }} align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #e74c3c; color: white; font-size: 10px; font-weight: 700;">{{ $adminUnreadCount > 9 ? '9+' : $adminUnreadCount }}</span>
         </div>
-        <div id="adminNotifPanel" data-notif-base="{{ url('admin/notifications') }}" data-csrf="{{ csrf_token() }}" style="display: none; position: absolute; left: 100%; top: 0; margin-left: 6px; width: 340px; max-height: 440px; overflow-y: auto; background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 500;">
+        <div id="adminNotifPanel" data-notif-base="{{ url('admin/notifications') }}" data-csrf="{{ csrf_token() }}" style="display: none; position: fixed; width: 340px; max-height: 440px; overflow-y: auto; background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 500;">
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid #d4c4a0; background: #f5edd8;">
             <span style="font-size: 12px; font-weight: 800; color: #2c1a0e; text-transform: uppercase; letter-spacing: 1px;">Notifications</span>
             <button type="button" id="adminMarkAllBtn" onclick="markAllAdminNotifsRead(event)" style="font-size: 11px; color: #c9a84c; font-weight: 700; background: transparent; border: none; cursor: pointer; {{ $adminUnreadCount > 0 ? '' : 'display: none;' }}" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Mark all read</button>
@@ -98,7 +98,25 @@
   function toggleAdminNotifDropdown(e) {
     e.stopPropagation();
     const panel = document.getElementById('adminNotifPanel');
-    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    const isOpen = panel.style.display === 'block';
+
+    if (isOpen) {
+      panel.style.display = 'none';
+      return;
+    }
+
+    // position:fixed (so the panel escapes the scrollable nav's overflow
+    // clipping) means we place it manually next to the button it belongs to.
+    const btnRect = e.currentTarget.getBoundingClientRect();
+    panel.style.left = (btnRect.right + 6) + 'px';
+    panel.style.top = btnRect.top + 'px';
+
+    const maxLeft = window.innerWidth - 340 - 12;
+    if (parseFloat(panel.style.left) > maxLeft) {
+      panel.style.left = Math.max(12, maxLeft) + 'px';
+    }
+
+    panel.style.display = 'block';
   }
 
   document.addEventListener('click', function(e) {
