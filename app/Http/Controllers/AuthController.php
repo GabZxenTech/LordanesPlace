@@ -39,6 +39,14 @@ class AuthController extends Controller
             'changeme', 'changeme1',
         ];
 
+        // An unverified signup (e.g. one whose OTP email never arrived) should
+        // never permanently squat on an email address — treat resubmitting
+        // registration for it as a fresh retry instead of "already taken".
+        // A verified account with that email is untouched by this.
+        User::where('email', $request->input('email'))
+            ->whereNull('email_verified_at')
+            ->delete();
+
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email:dns|unique:users,email',
