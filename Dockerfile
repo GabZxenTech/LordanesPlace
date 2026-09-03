@@ -51,6 +51,7 @@ RUN rm -rf /etc/nginx/http.d/* && printf 'server {\n\
         include fastcgi_params;\n\
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n\
         fastcgi_pass 127.0.0.1:9000;\n\
+        fastcgi_read_timeout 75s;\n\
     }\n\
     location ~ /\.(?!well-known).* {\n\
         deny all;\n\

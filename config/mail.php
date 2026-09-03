@@ -45,7 +45,12 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            // Without a timeout, a slow/blocked path to the SMTP host hangs the
+            // whole request indefinitely — registration then sits until the
+            // reverse proxy kills it with a 504, instead of the app's own
+            // try/catch around Mail::send() ever getting a chance to fail
+            // gracefully and show the "couldn't deliver OTP" warning.
+            'timeout' => (int) env('MAIL_TIMEOUT', 10),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
