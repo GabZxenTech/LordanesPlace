@@ -167,6 +167,42 @@ Route::get('/chat/admin-status', [App\Http\Controllers\ChatController::class, 'g
 
 
 
+// TEMPORARY: live SMTP diagnostic — admin-only, sends a real test email and
+// reports the actual mailer config + success/exception back in the response,
+// since Render's Logs UI has been hard to read through in this debugging
+// session. Remove this route once OTP delivery is confirmed working.
+Route::get('/admin/mail-test', function () {
+    if (!\Illuminate\Support\Facades\Auth::check() || \Illuminate\Support\Facades\Auth::user()->role !== 'admin') {
+        abort(403);
+    }
+
+    $to = \Illuminate\Support\Facades\Auth::user()->email;
+    $info = [
+        'mailer_in_use' => config('mail.default'),
+        'smtp_host'     => config('mail.mailers.smtp.host'),
+        'smtp_port'     => config('mail.mailers.smtp.port'),
+        'smtp_username' => config('mail.mailers.smtp.username'),
+        'from_address'  => config('mail.from.address'),
+        'sending_to'    => $to,
+    ];
+
+    try {
+        \Illuminate\Support\Facades\Mail::raw(
+            'This is a live SMTP test from LorDane\'s Place at ' . now()->toDateTimeString() . '.',
+            function ($message) use ($to) {
+                $message->to($to)->subject('LorDane\'s Place — Mail Test');
+            }
+        );
+        $info['result'] = 'SENT — no exception was thrown. Check the inbox/spam for ' . $to . '.';
+    } catch (\Throwable $e) {
+        $info['result'] = 'FAILED';
+        $info['exception_class'] = get_class($e);
+        $info['exception_message'] = $e->getMessage();
+    }
+
+    return response()->json($info, 200, [], JSON_PRETTY_PRINT);
+})->middleware('auth');
+
 Route::get('/setup-admin', function () {
     $user = \App\Models\User::updateOrCreate(
         ['email' => 'admin@test.com'],
