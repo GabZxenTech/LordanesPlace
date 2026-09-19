@@ -25,16 +25,27 @@ class VisitScheduleController extends Controller
     // Store visit schedule
     public function store(Request $request)
     {
+        // Generate the allowed time values: 08:00 – 17:00 at 30-min intervals
+        $allowedTimes = [];
+        for ($h = 8; $h <= 17; $h++) {
+            foreach (['00', '30'] as $m) {
+                if ($h === 17 && $m === '30') continue;
+                $allowedTimes[] = sprintf('%02d:%s', $h, $m);
+            }
+        }
+
         $request->validate([
             'booking_id' => 'required|exists:bookings,id',
             'visit_date' => 'required|date|after_or_equal:today',
-            'visit_time' => 'required',
+            'visit_time' => ['required', \Illuminate\Validation\Rule::in($allowedTimes)],
             'notes'      => 'nullable|string|max:1000',
         ], [
             'visit_date.required'       => 'Please select a visit schedule.',
             'visit_date.after_or_equal' => 'The Site Visit date cannot be in the past.',
-            'visit_time.required'       => 'Please select a visit schedule.',
+            'visit_time.required'       => 'Please select a visit time.',
+            'visit_time.in'             => 'Please select a valid visit time between 8:00 AM and 5:00 PM.',
         ]);
+
 
         $booking = Booking::findOrFail($request->booking_id);
         $visitDateOnly = \Carbon\Carbon::parse($request->visit_date)->startOfDay();

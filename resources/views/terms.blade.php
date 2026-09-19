@@ -42,7 +42,7 @@
                         <ul class="list-none pl-0 space-y-4">
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
-                                <span>A <strong>non-refundable reservation fee of ₱ 5,000</strong> is required to secure your booking.</span>
+                                <span>A <strong>25% downpayment</strong> is required to secure your booking.</span>
                             </li>
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
@@ -66,7 +66,7 @@
                             </li>
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
-                                <span>Accepted payment methods: <strong>Cash, GCash, and Bank Transfer</strong>.</span>
+                                <span>Accepted payment methods for onsite payment: <strong>Cash, GCash, and Bank Transfer</strong>.</span>
                             </li>
                         </ul>
                     </div>
@@ -86,7 +86,11 @@
                             </li>
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
-                                <span>Failure to pay within <strong>14 days</strong> after filling out the form may result in automatic cancellation.</span>
+                                <span>Once the reservation fee is settled or the booking is fully paid and the client has signed the contract, the reservation date is <strong>officially confirmed and cannot be cancelled</strong>.</span>
+                            </li>
+                            <li class="flex gap-4 items-start">
+                                <span class="text-gold-deep mt-1">✦</span>
+                                <span>Rescheduling requests may be submitted and will be reviewed by the admin.</span>
                             </li>
                         </ul>
                     </div>
@@ -106,11 +110,19 @@
                             </li>
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
-                                <span>Cancellations made <strong>30-60 days</strong> before the event may be rebooked once (subject to availability).</span>
+                                <span>Cancellations made <strong>30–60 days</strong> before the event may be rebooked/rescheduled once, subject to availability.</span>
                             </li>
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
-                                <span>No-shows on the reserved date will result in forfeiture of the reservation fee.</span>
+                                <span>Same-day booking cancellations that remain unpaid will be automatically cancelled.</span>
+                            </li>
+                            <li class="flex gap-4 items-start">
+                                <span class="text-gold-deep mt-1">✦</span>
+                                <span>Failure to visit the venue during your preferred visit schedule will result in <strong>automatic cancellation</strong> of the booking.</span>
+                            </li>
+                            <li class="flex gap-4 items-start">
+                                <span class="text-gold-deep mt-1">✦</span>
+                                <span>No-shows on the reserved event date will result in <strong>forfeiture of the reservation fee</strong>.</span>
                             </li>
                         </ul>
                     </div>
@@ -126,11 +138,15 @@
                         <ul class="list-none pl-0 space-y-4">
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
-                                <span>Requests for rebooking must be made at least <strong>30 days</strong> prior to the reserved date.</span>
+                                <span>Requests for event rebooking must be made at least <strong>30 days</strong> prior to the reserved date for full-package events. For room and amenities rentals only, rescheduling requests must be made before the reserved date.</span>
                             </li>
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
-                                <span>Approval of rebooking depends on availability of schedule.</span>
+                                <span>Approval of rebooking depends on schedule availability and if the conditions for rescheduling have been met.</span>
+                            </li>
+                            <li class="flex gap-4 items-start">
+                                <span class="text-gold-deep mt-1">✦</span>
+                                <span>The client's <strong>first successful rescheduling request is free of charge</strong>. Any additional rescheduling requests may be subject to a penalty fee.</span>
                             </li>
                         </ul>
                     </div>
@@ -146,7 +162,7 @@
                         <ul class="list-none pl-0 space-y-4">
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
-                                <span>Any changes in the number of guests, date, or other details must be communicated at least <strong>14 days</strong> before the event.</span>
+                                <span>Any changes in the number of guests, date, or other details must be communicated on the day of your preferred visit schedule or at least <strong>14 days</strong> before the event.</span>
                             </li>
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
@@ -166,7 +182,7 @@
                         <ul class="list-none pl-0 space-y-4">
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
-                                <span>The client is responsible for providing accurate information on the reservation form.</span>
+                                <span>The client is responsible for providing accurate information.</span>
                             </li>
                             <li class="flex gap-4 items-start">
                                 <span class="text-gold-deep mt-1">✦</span>
@@ -176,9 +192,9 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
+
 
     <div class="text-center mt-20 pt-16 border-t border-gold-deep/10">
         <p style="font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; color: #a88a4c; font-style: italic; margin-bottom: 3rem; letter-spacing: 1px;">Thank you and God Bless you!</p>

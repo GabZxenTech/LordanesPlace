@@ -109,6 +109,64 @@ class Booking extends Model
         return $this->amountPaid() > 0;
     }
 
+    /** A dead booking — nothing further (payment, receipt) should act on it. */
+    public function isCancelledOrRejected(): bool
+    {
+        return in_array($this->status, [self::STATUS_CANCELLED, self::STATUS_REJECTED], true);
+    }
+
+    /**
+     * Fixed physical room numbers behind each room-type package. Lives here
+     * as code (not a `rooms` table/model) since the list is static and not
+     * admin-editable — avoids a second, parallel room-booking system.
+     */
+    public const ROOM_GROUPS = [
+        'Standard Room'  => ['104', '304'],
+        'Family Room'    => ['101', '102', '301', '302'],
+        'Dormitory Room' => ['103', '303'],
+    ];
+
+    public static function isRoomPackage(string $package): bool
+    {
+        return array_key_exists($package, self::ROOM_GROUPS);
+    }
+
+    public static function roomsFor(string $package): array
+    {
+        return self::ROOM_GROUPS[$package] ?? [];
+    }
+
+    /**
+     * A room is unavailable once ANY booking for it on that date is anything
+     * other than cancelled/rejected — including a still-pending request, not
+     * only an admin-approved one. Distinct from the venue-wide "one event per
+     * day" rule, which only blocks on 'approved' (see BookingController).
+     */
+    public static function isRoomAvailable(string $package, string $date, string $roomNumber, ?int $excludeId = null): bool
+    {
+        return !static::where('package', $package)
+            ->where('room_number', $roomNumber)
+            ->where('event_date', $date)
+            ->whereNotIn('status', [self::STATUS_CANCELLED, self::STATUS_REJECTED])
+            ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
+            ->exists();
+    }
+
+    /** Availability of every room in every room-type package, for one date. */
+    public static function roomAvailabilityForDate(string $date): array
+    {
+        $result = [];
+
+        foreach (self::ROOM_GROUPS as $package => $rooms) {
+            $result[$package] = [];
+            foreach ($rooms as $room) {
+                $result[$package][$room] = self::isRoomAvailable($package, $date, $room);
+            }
+        }
+
+        return $result;
+    }
+
     public const STATUS_PENDING   = 'pending';
     public const STATUS_APPROVED  = 'approved';
     public const STATUS_ONGOING   = 'ongoing';
@@ -176,6 +234,7 @@ class Booking extends Model
         'user_id',
         'event_type',
         'package',
+        'room_number',
         'event_date',
         'start_time',
         'end_time',
@@ -194,6 +253,7 @@ class Booking extends Model
         'requested_visit_date',
         'reschedule_reason',
         'reschedule_fee',
+        'cancellation_reason',
     ];
 
     protected $casts = [

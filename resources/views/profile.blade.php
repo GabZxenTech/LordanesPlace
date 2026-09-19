@@ -69,7 +69,7 @@
               <p style="font-size: 12px; color: #B8860B; font-weight: 600; margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">Reservation Confirmed on {{ $booking->created_at->format('F d, Y') }}</p>
             </div>
 
-            <div style="display: flex; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
               @php
                 $sColor = \App\Models\Booking::statusColor($booking->status);
                 $pColor = $booking->payment_status === 'fully_paid' ? '#3b82f6' : ($booking->payment_status === 'partially_paid' ? '#10b981' : '#ef4444');
@@ -79,12 +79,25 @@
             </div>
           </div>
 
+          {{-- Cancellation / Rejection Reason Banner --}}
+          @if(in_array($booking->status, ['rejected', 'cancelled']) && $booking->cancellation_reason)
+            <div style="padding: 14px 3rem; background: #fff3cd; border-bottom: 1px solid #ffc107;">
+              <p style="font-size: 11px; font-weight: 900; color: #856404; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 4px;">
+                ⚠️ {{ $booking->status === 'rejected' ? 'Reason for Rejection' : 'Reason for Cancellation' }}
+              </p>
+              <p style="font-size: 14px; color: #533f03; margin: 0; line-height: 1.5;">{{ $booking->cancellation_reason }}</p>
+            </div>
+          @endif
+
           {{-- Content --}}
           <div style="padding: 3rem;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem; margin-bottom: 4rem;">
               <div>
                 <p style="font-size: 11px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">The Event Package</p>
                 <p style="font-size: 20px; font-weight: 700; color: #1A1208;">{{ $booking->event_type }} ({{ $booking->package }})</p>
+                @if($booking->room_number)
+                  <p style="font-size: 13px; font-weight: 600; color: #8a6a40; margin-top: 0.35rem;">Selected Room: Room {{ $booking->room_number }}</p>
+                @endif
               </div>
               <div>
                 <p style="font-size: 11px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Date of Celebration</p>
@@ -124,9 +137,10 @@
             </div>
 
             <div style="margin-top: 2.5rem; display: flex; justify-content: flex-end; align-items: center; gap: 1rem; flex-wrap: wrap;">
-              @if($booking->hasConfirmedPayment())
+              @if($booking->isCancelledOrRejected())
+                {{-- no receipt/payment actions for a dead booking --}}
+              @elseif($booking->hasConfirmedPayment())
                 <a href="{{ route('booking.receipt', $booking->id) }}" style="background: #1A1208; color: white; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; transition: 0.3s;">View Receipt</a>
-                <a href="{{ route('booking.receipt', $booking->id) }}" target="_blank" style="background: transparent; color: #1A1208; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; border: 1px solid #1A120830; transition: 0.3s;">Print Receipt</a>
               @else
                 <p style="margin: 0; font-size: 12.5px; color: #B8860B; font-style: italic; max-width: 320px; text-align: right;">Receipt not yet available. Payment confirmation is required.</p>
               @endif
@@ -136,7 +150,7 @@
                     style="background: #B8860B; color: white; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border: none; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(184,134,11,0.25);"
                     onmouseover="this.style.background='#C9A84C'" onmouseout="this.style.background='#B8860B'"
                     onclick="openRescheduleModal({{ $booking->id }}, '{{ $booking->event_date->format('F d, Y') }}', '{{ optional($booking->visitSchedules->first())->visit_date ? $booking->visitSchedules->first()->visit_date->format('F d, Y') : 'Not scheduled' }}', {{ $booking->reschedule_count }})">
-                    Reschedule
+                    Request Rescheduling
                   </button>
                 @else
                   <button type="button" disabled title="Event already completed"
@@ -145,7 +159,7 @@
                   </button>
                 @endif
               @endif
-              @if($booking->canTransitionTo('cancelled') && $booking->event_date->format('Y-m-d') >= date('Y-m-d'))
+              @if($booking->canTransitionTo('cancelled') && !$booking->hasConfirmedPayment() && $booking->event_date->format('Y-m-d') >= date('Y-m-d'))
                 <form method="POST" action="{{ route('booking.cancel', $booking->id) }}" onsubmit="return confirm('Are you sure you want to cancel this booking? This cannot be undone.');">
                   @csrf
                   <button type="submit" style="background: transparent; color: #ef4444; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border: 1px solid #ef444440; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#ef44440a'" onmouseout="this.style.background='transparent'">

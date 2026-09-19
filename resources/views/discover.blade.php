@@ -125,6 +125,25 @@
       <p class="text-[12px] text-warm-black/50 mb-5">Extra Guest: ₱300/head</p>
       <button onclick="window.location.href='{{ route('booking', ['package' => '22 Hours Overnight']) }}'" class="w-full bg-gold-deep text-white py-3 rounded font-bold text-[15px] tracking-wide border-none cursor-pointer transition-all duration-300 hover:bg-gold-mid">RESERVE</button>
     </div>
+
+    <!-- FULL EVENT PACKAGE -->
+    <div class="md:col-span-2 lg:col-span-3 border border-gold-deep/25 rounded-xl bg-cream p-6 md:p-8 transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-md">
+      <p class="text-[11px] tracking-[3px] text-gold-deep font-bold mb-2">FULL PACKAGE</p>
+      <h3 class="font-heading text-[24px] md:text-[28px] font-bold text-warm-black mb-1">Full Event Package</h3>
+      <p class="text-[15px] text-warm-black/60 mb-4">4 Hours Max</p>
+      <p class="text-[18px] font-bold text-gold-deep mb-4">₱250,000 <span class="text-[12px] font-normal text-warm-black/50">All-Inclusive</span></p>
+      <ul class="space-y-1.5 mb-4 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-1.5 md:space-y-0">
+        <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep">✓</span> Catering for 100 pax + buffer</li>
+        <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep">✓</span> Snack & pastry bar, 2-layered cake</li>
+        <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep">✓</span> Full event styling (stage, arch, centerpieces)</li>
+        <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep">✓</span> Entourage & 4 Coordinators</li>
+        <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep">✓</span> LED wall, lights & sounds</li>
+        <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep">✓</span> Host/Emcee & Photography (same-day edit)</li>
+        <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep">✓</span> Free 1 bottle of wine, corkage waived</li>
+      </ul>
+      <p class="text-[12px] text-warm-black/50 mb-5">Up to 220 guests</p>
+      <button onclick="window.location.href='{{ route('booking', ['package' => 'Full Event Package']) }}'" class="w-full md:w-auto md:px-16 bg-gold-deep text-white py-3 rounded font-bold text-[15px] tracking-wide border-none cursor-pointer transition-all duration-300 hover:bg-gold-mid">RESERVE</button>
+    </div>
   </div>
 
   <!-- COMMON INCLUSIONS -->
@@ -215,7 +234,7 @@
         <p class="text-[15px] text-warm-black/90 font-normal leading-[1.6] mb-3">Spacious air-conditioned room perfect for families or small groups.</p>
         <p class="text-[18px] font-bold text-gold-deep mb-3">₱8,500 <span class="text-[12px] font-normal text-warm-black/50">/ solo rate</span></p>
         <div class="flex justify-between items-center">
-          <span class="text-[15px] text-warm-black/60">👥 Good for 4 pax</span>
+          <span class="text-[15px] text-warm-black/60">👥 Good for 7 pax</span>
           <button onclick="window.location.href='{{ route('booking', ['package' => 'Family Room']) }}'" class="bg-gold-deep text-white px-4 py-2 rounded text-[12px] font-bold tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid">BOOK NOW</button>
         </div>
       </div>
@@ -232,7 +251,7 @@
         <p class="text-[15px] text-warm-black/90 font-normal leading-[1.6] mb-3">Large air-conditioned dormitory ideal for big groups and sleepovers.</p>
         <p class="text-[18px] font-bold text-gold-deep mb-3">₱11,500 <span class="text-[12px] font-normal text-warm-black/50">/ solo rate</span></p>
         <div class="flex justify-between items-center">
-          <span class="text-[15px] text-warm-black/60">👥 Good for 4 pax</span>
+          <span class="text-[15px] text-warm-black/60">👥 Good for 15 pax</span>
           <button onclick="window.location.href='{{ route('booking', ['package' => 'Dormitory Room']) }}'" class="bg-gold-deep text-white px-4 py-2 rounded text-[12px] font-bold tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid">BOOK NOW</button>
         </div>
       </div>

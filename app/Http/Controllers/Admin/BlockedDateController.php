@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\BlockedDate;
 use App\Models\Booking;
+use App\Services\BookingAutoCancelService;
 use App\Services\BookingStatusService;
 use App\Services\NotificationService;
 use App\Services\PaymentService;
@@ -16,6 +17,11 @@ class BlockedDateController extends Controller
     // Show all bookings + blocked dates in admin
     public function index(Request $request)
     {
+        // No cron runs in production yet — sweep stale bookings here too so
+        // the admin schedule reflects auto-cancellations without waiting on
+        // the scheduled command. See BookingAutoCancelService.
+        BookingAutoCancelService::run();
+
         $month = (int) $request->query('month', now()->month);
         $year = (int) $request->query('year', now()->year);
 
@@ -67,29 +73,50 @@ class BlockedDateController extends Controller
     {
         $booking = Booking::findOrFail($id);
 
-        // One Event Per Day: check if another approved booking exists on this date
-        $hasConflict = Booking::where('event_date', $booking->event_date)
-            ->where('status', 'approved')
-            ->where('id', '!=', $booking->id)
-            ->exists();
+        // One Event Per Day: check if another approved booking exists on this
+        // date. Doesn't apply to room-type packages — a room's uniqueness for
+        // its date was already guaranteed when the booking was created.
+        if (!Booking::isRoomPackage($booking->package)) {
+            $hasConflict = Booking::where('event_date', $booking->event_date)
+                ->where('status', 'approved')
+                ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
+                ->where('id', '!=', $booking->id)
+                ->exists();
 
-        if ($hasConflict) {
-            return back()->withErrors(['error' => 'Cannot approve: another event is already approved on ' . $booking->event_date->format('F d, Y') . '. Only one event per day is allowed.']);
+            if ($hasConflict) {
+                return back()->withErrors(['error' => 'Cannot approve: another event is already approved on ' . $booking->event_date->format('F d, Y') . '. Only one event per day is allowed.']);
+            }
         }
 
         return $this->applyStatus($booking, Booking::STATUS_APPROVED, 'Booking approved.');
     }
 
     // Reject booking
-    public function rejectBooking($id)
+    public function rejectBooking(Request $request, $id)
     {
-        return $this->applyStatus(Booking::findOrFail($id), Booking::STATUS_REJECTED, 'Booking rejected.');
+        $request->validate([
+            'cancellation_reason' => 'required|string|max:1000',
+        ]);
+
+        $booking = Booking::findOrFail($id);
+        $booking->cancellation_reason = $request->cancellation_reason;
+        $booking->save();
+
+        return $this->applyStatus($booking, Booking::STATUS_REJECTED, 'Booking rejected.');
     }
 
     // Cancel booking (Admin action)
-    public function cancelBooking($id)
+    public function cancelBooking(Request $request, $id)
     {
-        return $this->applyStatus(Booking::findOrFail($id), Booking::STATUS_CANCELLED, 'Booking cancelled.');
+        $request->validate([
+            'cancellation_reason' => 'required|string|max:1000',
+        ]);
+
+        $booking = Booking::findOrFail($id);
+        $booking->cancellation_reason = $request->cancellation_reason;
+        $booking->save();
+
+        return $this->applyStatus($booking, Booking::STATUS_CANCELLED, 'Booking cancelled.');
     }
 
     // Mark booking as ongoing (Admin action)
@@ -140,6 +167,10 @@ class BlockedDateController extends Controller
     public function recordPayment(Request $request, $id)
     {
         $booking = Booking::findOrFail($id);
+
+        if ($booking->isCancelledOrRejected()) {
+            return back()->withErrors(['amount' => 'Cannot record a payment for a cancelled or rejected booking.']);
+        }
 
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
@@ -251,14 +282,23 @@ class BlockedDateController extends Controller
             return back()->withErrors(['error' => 'This reschedule request is not pending.']);
         }
 
-        // One Event Per Day: check if the requested date has an existing approved booking
-        $hasConflict = Booking::where('event_date', $booking->requested_event_date)
-            ->where('status', 'approved')
-            ->where('id', '!=', $booking->id)
-            ->exists();
+        if (Booking::isRoomPackage($booking->package)) {
+            // Re-check the SAME room against the NEW requested date — another
+            // booking may have since taken it, independent of the venue-wide rule.
+            if (!Booking::isRoomAvailable($booking->package, $booking->requested_event_date, $booking->room_number, $booking->id)) {
+                return back()->withErrors(['error' => 'Cannot approve reschedule: ' . $booking->package . ' ' . $booking->room_number . ' is no longer available on ' . $booking->requested_event_date->format('F d, Y') . '.']);
+            }
+        } else {
+            // One Event Per Day: check if the requested date has an existing approved booking
+            $hasConflict = Booking::where('event_date', $booking->requested_event_date)
+                ->where('status', 'approved')
+                ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
+                ->where('id', '!=', $booking->id)
+                ->exists();
 
-        if ($hasConflict) {
-            return back()->withErrors(['error' => 'Cannot approve reschedule: another event is already approved on ' . $booking->requested_event_date->format('F d, Y') . '. Only one event per day is allowed.']);
+            if ($hasConflict) {
+                return back()->withErrors(['error' => 'Cannot approve reschedule: another event is already approved on ' . $booking->requested_event_date->format('F d, Y') . '. Only one event per day is allowed.']);
+            }
         }
 
         // Update the event date

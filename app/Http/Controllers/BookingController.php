@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\BlockedDate;
+use App\Services\BookingAutoCancelService;
 use App\Services\BookingStatusService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -29,8 +30,11 @@ class BookingController extends Controller
         // safe to skip the DB round-trip on every booking-page visit.
         $packages = Cache::remember('packages.all', 300, fn () => \App\Models\Package::all());
 
-        // Get all dates that have an APPROVED booking (one event per day rule)
+        // Get all dates that have an APPROVED booking (one event per day rule).
+        // Room-type packages are excluded — they're governed by per-room
+        // availability instead, and shouldn't grey out the calendar venue-wide.
         $approvedDates = Booking::where('status', 'approved')
+            ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
             ->pluck('event_date')
             ->map(fn($date) => $date->timezone('Asia/Manila')->format('Y-m-d'))
             ->unique()
@@ -54,7 +58,10 @@ class BookingController extends Controller
             'event_type'  => 'required|string|in:Birthday,Wedding,Debut,Baptismal,Christening,Christmas Party,Corporate Event,Reunion,Others',
             'event_type_other' => 'required_if:event_type,Others|nullable|string|max:255',
             'package'     => 'required|string',
-            'event_date'  => 'required|date|after:today',
+            // after_or_equal (not after): a same-day booking is allowed to be
+            // created — it's then subject to the same-day-unpaid auto-cancel
+            // rule (BookingAutoCancelService) rather than being blocked here.
+            'event_date'  => 'required|date|after_or_equal:today',
             'guest_count' => 'required|integer|min:1',
             'notes'       => 'nullable|string|max:1000',
             'total_amount' => 'required|numeric|min:0',
@@ -77,15 +84,37 @@ class BookingController extends Controller
             return back()->withErrors(['guest_count' => 'Guest count exceeds the maximum allowed for the ' . $package->name . ' package (Max: ' . $package->max_guests . ').'])->withInput();
         }
 
-        // One Event Per Day: check if an approved booking already exists on this date
-        $hasApprovedBooking = Booking::where('event_date', $request->event_date)
-            ->where('status', 'approved')
-            ->exists();
-
         $isBlocked = BlockedDate::where('date', $request->event_date)->exists();
 
-        if ($hasApprovedBooking || $isBlocked) {
+        if ($isBlocked) {
             return back()->withErrors(['event_date' => 'This date is already reserved for another event. Please choose another available date.'])->withInput();
+        }
+
+        $isRoomPackage = Booking::isRoomPackage($request->package);
+
+        if ($isRoomPackage) {
+            // A specific physical room is required, and it must belong to
+            // this package's room group — never trust the submitted value.
+            $request->validate([
+                'room_number' => ['required', 'string', 'in:' . implode(',', Booking::roomsFor($request->package))],
+            ]);
+
+            // Backend re-check — the room may have been taken by someone else
+            // since the page loaded (do not rely on the frontend list alone).
+            if (!Booking::isRoomAvailable($request->package, $request->event_date, $request->room_number)) {
+                return back()->withErrors(['room_number' => 'This room is no longer available for the selected date. Please select another available room.'])->withInput();
+            }
+        } else {
+            // One Event Per Day (venue-wide): only applies to non-room
+            // packages — room bookings are governed by per-room availability.
+            $hasApprovedBooking = Booking::where('event_date', $request->event_date)
+                ->where('status', 'approved')
+                ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
+                ->exists();
+
+            if ($hasApprovedBooking) {
+                return back()->withErrors(['event_date' => 'This date is already reserved for another event. Please choose another available date.'])->withInput();
+            }
         }
 
         // Generate unique booking number: LDP-YYYYMMDD-XXXX
@@ -94,20 +123,27 @@ class BookingController extends Controller
         $sequence = str_pad($countToday + 1, 4, '0', STR_PAD_LEFT);
         $bookingNumber = "LDP-{$todayStr}-{$sequence}";
 
-        $booking = Booking::create([
-            'user_id'     => Auth::id(),
-            'booking_number' => $bookingNumber,
-            'event_type'  => $eventType,
-            'package'     => $request->package,
-            'event_date'  => $request->event_date,
-            'guest_count' => $request->guest_count,
-            'notes'       => $request->notes,
-            'status'      => 'pending',
-            'total_amount' => $request->total_amount,
-            'down_payment_amount' => $downPaymentAmount,
-            'payment_option' => $request->payment_option,
-            'payment_status' => 'unpaid',
-        ]);
+        try {
+            $booking = Booking::create([
+                'user_id'     => Auth::id(),
+                'booking_number' => $bookingNumber,
+                'event_type'  => $eventType,
+                'package'     => $request->package,
+                'room_number' => $isRoomPackage ? $request->room_number : null,
+                'event_date'  => $request->event_date,
+                'guest_count' => $request->guest_count,
+                'notes'       => $request->notes,
+                'status'      => 'pending',
+                'total_amount' => $request->total_amount,
+                'down_payment_amount' => $downPaymentAmount,
+                'payment_option' => $request->payment_option,
+                'payment_status' => 'unpaid',
+            ]);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            // The DB-level partial unique index caught a race the check above
+            // missed (two near-simultaneous submissions for the same room).
+            return back()->withErrors(['room_number' => 'This room was just booked by another customer. Please select another available room.'])->withInput();
+        }
 
         NotificationService::bookingSubmitted($booking);
 
@@ -133,6 +169,7 @@ class BookingController extends Controller
 
         $hasApproved = Booking::where('event_date', $date)
             ->where('status', 'approved')
+            ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
             ->exists();
 
         if ($hasApproved) {
@@ -143,6 +180,14 @@ class BookingController extends Controller
         }
 
         return response()->json(['available' => true]);
+    }
+
+    // AJAX: per-room availability for every room-type package, for one date
+    public function checkRoomAvailability(Request $request)
+    {
+        $request->validate(['date' => 'required|date']);
+
+        return response()->json(Booking::roomAvailabilityForDate($request->query('date')));
     }
 
     // Booking success page
@@ -158,6 +203,10 @@ class BookingController extends Controller
     // Profile and Bookings page
     public function profile()
     {
+        // No cron runs in production yet, so sweep stale bookings here too —
+        // see BookingAutoCancelService for why this needs to happen somewhere.
+        BookingAutoCancelService::run();
+
         $user = Auth::user();
         // Eager-load: the view calls $booking->visitSchedules->first() and
         // hasConfirmedPayment() per row, which would otherwise fire one extra
@@ -177,6 +226,13 @@ class BookingController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
+        // Once a Down Payment or Full Payment has been confirmed, the
+        // reservation is locked in — the customer can no longer cancel it
+        // themselves, only submit a reschedule request for the admin to review.
+        if ($booking->hasConfirmedPayment()) {
+            return back()->withErrors(['cancel' => 'This booking has a confirmed payment and can no longer be cancelled. Please submit a reschedule request instead.']);
+        }
+
         if (!BookingStatusService::transition($booking, Booking::STATUS_CANCELLED)) {
             return back()->withErrors(['cancel' => BookingStatusService::failureReason($booking, Booking::STATUS_CANCELLED)]);
         }
@@ -195,6 +251,13 @@ class BookingController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
+        // Mirrors the view's own gate (the Reschedule button only ever shows
+        // for an approved booking) so a direct/manual request can't request a
+        // reschedule the UI would never have offered in the first place.
+        if ($booking->status !== Booking::STATUS_APPROVED) {
+            return back()->withErrors(['reschedule' => 'Only an approved booking can be rescheduled.']);
+        }
+
         // Prevent submitting if a reschedule is already pending
         if ($booking->reschedule_status === 'pending') {
             return back()->withErrors(['reschedule' => 'A reschedule request is already pending for this booking.']);
@@ -210,9 +273,12 @@ class BookingController extends Controller
             'requested_event_date.after_or_equal' => 'The event date cannot be in the past.',
         ]);
 
-        // One Event Per Day: check if the requested date already has an approved booking (excluding this one)
-        $hasConflict = Booking::where('event_date', $request->requested_event_date)
+        // One Event Per Day: check if the requested date already has an approved
+        // booking (excluding this one). Doesn't apply to room-type packages —
+        // those are governed by per-room availability, not the venue-wide rule.
+        $hasConflict = !Booking::isRoomPackage($booking->package) && Booking::where('event_date', $request->requested_event_date)
             ->where('status', 'approved')
+            ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
             ->where('id', '!=', $booking->id)
             ->exists();
 

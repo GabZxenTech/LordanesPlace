@@ -80,6 +80,14 @@ class NotificationService
 
         [$title, $message] = self::STATUS_MESSAGES[$booking->status];
 
+        // Append the admin-provided reason for rejected or cancelled statuses
+        if (
+            in_array($booking->status, [Booking::STATUS_REJECTED, Booking::STATUS_CANCELLED], true)
+            && $booking->cancellation_reason
+        ) {
+            $message .= "\n\nReason: " . $booking->cancellation_reason;
+        }
+
         self::toCustomer($booking, 'booking_' . $booking->status, $title, $message);
     }
 

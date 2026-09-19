@@ -83,6 +83,16 @@
         @if($booking->notes)
           <p class="text-[14px] text-warm-black/60 mt-3 italic border-l-2 border-gold-deep/20 pl-3">"{{ $booking->notes }}"</p>
         @endif
+
+        {{-- Cancellation / Rejection Reason --}}
+        @if(in_array($booking->status, ['rejected', 'cancelled']) && $booking->cancellation_reason)
+          <div class="mt-3 p-3 rounded-lg" style="background: #fff3cd; border: 1px solid #ffc107;">
+            <p class="text-[11px] font-bold uppercase tracking-[1px] mb-1" style="color: #856404;">
+              ⚠️ {{ $booking->status === 'rejected' ? 'Reason for Rejection' : 'Reason for Cancellation' }}
+            </p>
+            <p class="text-[13px]" style="color: #533f03; margin: 0; line-height: 1.5;">{{ $booking->cancellation_reason }}</p>
+          </div>
+        @endif
       </div>
       <div class="shrink-0 flex flex-col items-end gap-2">
         <div class="text-[11px] text-warm-black/50 font-bold uppercase">Booking Status</div>

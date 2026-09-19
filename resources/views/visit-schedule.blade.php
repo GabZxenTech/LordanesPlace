@@ -48,9 +48,10 @@
       <div class="mb-4">
         <label class="block text-[12px] tracking-[1px] text-warm-black/60 mb-2 font-bold">Preferred Time <span class="text-red-500">*</span></label>
         <select name="visit_time" required class="w-full bg-white border border-gold-deep/30 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
-          <option value="">Select a time</option>
+          <option value="" disabled selected hidden>Select time</option>
           @for($i = 8; $i <= 17; $i++)
             @foreach(['00', '30'] as $min)
+              @if($i == 17 && $min == '30') @continue @endif
               @php
                 $val24 = sprintf('%02d:%s', $i, $min);
                 $formatted = \Carbon\Carbon::createFromFormat('H:i', $val24)->format('h:i A');
@@ -59,6 +60,7 @@
             @endforeach
           @endfor
         </select>
+
       </div>
 
       <div class="mb-6">

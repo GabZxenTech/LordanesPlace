@@ -21,6 +21,12 @@ class ReceiptController extends Controller
 
         $booking->loadMissing('user', 'visitSchedules');
 
+        // A cancelled/rejected booking has no active reservation to receipt,
+        // regardless of any payment recorded before it was cancelled/rejected.
+        if ($booking->isCancelledOrRejected()) {
+            abort(404, 'Receipt not available — this booking was cancelled or rejected.');
+        }
+
         // The official receipt only exists once an admin has confirmed an
         // actual payment — selecting a payment option at booking time is not
         // proof of payment and never satisfies this.

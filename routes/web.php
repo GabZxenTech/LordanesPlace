@@ -79,6 +79,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/booking', [BookingController::class, 'index'])->name('booking');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/check-date', [BookingController::class, 'checkDate'])->name('booking.check-date');
+    Route::get('/booking/check-room-availability', [BookingController::class, 'checkRoomAvailability'])->name('booking.check-room-availability');
     Route::get('/booking/success', [BookingController::class, 'success'])->name('booking.success');
     Route::get('/profile', [BookingController::class, 'profile'])->name('profile');
     Route::get('/terms-and-conditions', function() { return view('terms'); })->name('terms');

@@ -21,6 +21,18 @@
     @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .modal-overlay.open { display: flex; }
     .modal-box { animation: popIn 0.3s ease; }
+
+    /* Hide the number-input spin buttons (up/down arrows) — inline
+       -webkit-appearance:none on the input itself doesn't remove them;
+       Chrome/Safari/Edge only respect it on these pseudo-elements. */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
   </style>
 </head>
 <body class="bg-off-white text-warm-black font-body">
@@ -168,14 +180,15 @@
              data-old-date="{{ old('event_date') }}"
              data-booking-success="{{ session('booking_success') ? 'true' : 'false' }}"
              data-visit-success="{{ session('visit_success') ? 'true' : 'false' }}"
-             data-check-date-url="{{ route('booking.check-date') }}">
+             data-check-date-url="{{ route('booking.check-date') }}"
+             data-room-availability-url="{{ route('booking.check-room-availability') }}">
         </div>
 
         <div class="mb-4">
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Event Type</label>
           <select name="event_type" id="eventTypeSelect" required
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
-            <option value="">Select event type</option>
+            <option value="" disabled selected hidden>Select event type</option>
             @php
               $eventTypes = ['Birthday', 'Wedding', 'Debut', 'Baptismal', 'Christening', 'Christmas Party', 'Corporate Event', 'Reunion', 'Others'];
             @endphp
@@ -195,16 +208,49 @@
 
         <div class="mb-4">
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Package</label>
-          <select name="package" id="packageSelect" required
+          <select id="packageSelect" required
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
-            <option value="">Select a package</option>
+            <option value="" disabled {{ old('package') ? '' : 'selected' }} hidden>Select a package</option>
+
+            {{-- Regular event packages first, in a fixed, deterministic order
+                 (Package::all() has no orderBy, so relying on it mixed rooms
+                 in unpredictably). Room-type packages are rendered separately
+                 below so they always stay grouped together at the bottom. --}}
             @foreach($packages as $pkg)
-              <option value="{{ $pkg->name }}" data-max="{{ $pkg->max_guests }}" data-price="{{ $pkg->price }}" data-start="{{ $pkg->start_time ? \Carbon\Carbon::parse($pkg->start_time)->format('H:i') : '' }}" data-end="{{ $pkg->end_time ? \Carbon\Carbon::parse($pkg->end_time)->format('H:i') : '' }}" {{ old('package') == $pkg->name ? 'selected' : '' }}>
+              @continue(\App\Models\Booking::isRoomPackage($pkg->name))
+              <option value="{{ $pkg->name }}" data-package="{{ $pkg->name }}" data-max="{{ $pkg->max_guests }}" data-price="{{ $pkg->price }}" data-start="{{ $pkg->start_time ? \Carbon\Carbon::parse($pkg->start_time)->format('H:i') : '' }}" data-end="{{ $pkg->end_time ? \Carbon\Carbon::parse($pkg->end_time)->format('H:i') : '' }}" {{ old('package') == $pkg->name && !old('room_number') ? 'selected' : '' }}>
                 {{ $pkg->name }} — ₱{{ number_format($pkg->price, 0) }} (up to {{ $pkg->max_guests }} guests{{ $pkg->duration ? ', ' . $pkg->duration : '' }})
               </option>
             @endforeach
+
+            @foreach(\App\Models\Booking::ROOM_GROUPS as $roomPackageName => $roomNumbers)
+              @php $pkg = $packages->firstWhere('name', $roomPackageName); @endphp
+              @if($pkg)
+                <optgroup label="{{ $pkg->name }}">
+                  @foreach($roomNumbers as $roomNum)
+                    @php
+                      $roomLabel = $pkg->name . ' ' . $roomNum . ' (₱' . number_format($pkg->price, 0) . ', up to ' . $pkg->max_guests . ' guests' . ($pkg->duration ? ', ' . $pkg->duration : '') . ')';
+                    @endphp
+                    <option value="{{ $pkg->name }}|{{ $roomNum }}"
+                      data-package="{{ $pkg->name }}"
+                      data-room="{{ $roomNum }}"
+                      data-room-type="1"
+                      data-max="{{ $pkg->max_guests }}"
+                      data-price="{{ $pkg->price }}"
+                      data-label="{{ $roomLabel }}"
+                      {{ old('package') == $pkg->name && old('room_number') == $roomNum ? 'selected' : '' }}>
+                      {{ $roomLabel }}
+                    </option>
+                  @endforeach
+                </optgroup>
+              @endif
+            @endforeach
           </select>
+          <input type="hidden" name="package" id="packageHiddenInput" value="{{ old('package') }}" />
+          <input type="hidden" name="room_number" id="roomNumberHiddenInput" value="{{ old('room_number') }}" />
+          <div id="roomUnavailableNotice" class="text-red-500 text-[12px] mt-1" style="display:none;">That room is no longer available for the selected date — please choose another.</div>
           @error('package') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
+          @error('room_number') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
         </div>
 
 
@@ -215,6 +261,7 @@
             inputmode="numeric" pattern="[0-9]*"
             oninput="this.value = this.value.replace(/[^0-9]/g, '')"
             onkeydown="return (event.key >= '0' && event.key <= '9') || ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'].includes(event.key)"
+            style="-webkit-appearance: none; -moz-appearance: textfield; appearance: textfield;"
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body" />
           @error('guest_count') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
         </div>
@@ -231,7 +278,7 @@
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Payment Option</label>
           <select name="payment_option" id="paymentOptionSelect" required
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
-            <option value="">Select a payment option</option>
+            <option value="" disabled selected hidden>Select a payment option</option>
             <option value="downpayment" {{ old('payment_option', 'downpayment') === 'downpayment' ? 'selected' : '' }}>{{ \App\Models\Booking::downPaymentRatePercent() }}% Downpayment</option>
             <option value="full_payment" {{ old('payment_option') === 'full_payment' ? 'selected' : '' }}>Full Payment</option>
           </select>
@@ -268,22 +315,357 @@
             </div>
         </div>
 
-        {{-- Checkbox + Terms --}}
-        <div class="mb-6 flex items-start gap-3">
-          <input type="checkbox" name="terms" id="termsCheckbox" required class="mt-1 w-4 h-4 accent-gold-deep cursor-pointer" />
-          <label for="termsCheckbox" class="text-[13.5px] text-warm-black/80 leading-relaxed cursor-pointer">
-            I have read and agree to the <a href="{{ route('terms') }}" target="_blank" class="text-gold-deep font-bold underline hover:text-gold-mid">Terms and Conditions</a> of LorDane's Place.
+        {{-- Hidden terms checkbox (submitted with form; checked programmatically after modal agreement) --}}
+        <input type="checkbox" name="terms" id="termsCheckbox" class="hidden" />
+
+        {{-- Visible Checkbox + Terms Label --}}
+        <div class="mb-6 flex items-start gap-3" id="termsAgreementArea">
+          {{-- Visible checkbox — clicking it opens the modal instead of checking directly --}}
+          <input type="checkbox" id="termsVisibleCheckbox"
+            class="mt-1 w-4 h-4 accent-gold-deep cursor-pointer flex-shrink-0" />
+          <label for="termsVisibleCheckbox" class="text-[13.5px] text-warm-black/80 leading-relaxed cursor-pointer select-none">
+            I have read and agree to the
+            <button type="button" id="openTermsModalBtn"
+              class="text-gold-deep font-bold underline hover:text-gold-mid bg-transparent border-none cursor-pointer p-0 text-[13.5px] font-body">
+              Terms and Conditions
+            </button>
+            of LorDane's Place.
+            <span id="termsViewAgainWrap" class="hidden">
+              <button type="button" id="reopenTermsBtn"
+                class="text-[11px] text-warm-black/40 hover:text-gold-deep underline bg-transparent border-none cursor-pointer font-body ml-1">
+                (view again)
+              </button>
+            </span>
           </label>
         </div>
 
         {{-- Confirm Booking Button --}}
-        <button type="submit" class="w-full bg-gold-deep text-white border-none py-3.5 rounded-md font-bold text-[16px] tracking-[2px] cursor-pointer transition-all duration-300 hover:bg-gold-mid hover:shadow-lg">CONFIRM BOOKING</button>
+        <button type="submit" id="confirmBookingBtn" class="w-full bg-gold-deep text-white border-none py-3.5 rounded-md font-bold text-[16px] tracking-[2px] cursor-pointer transition-all duration-300 hover:bg-gold-mid hover:shadow-lg">CONFIRM BOOKING</button>
+
       </form>
     </div>
   </div>
 </section>
 
+{{-- ============================================================ --}}
+{{-- TERMS & CONDITIONS MODAL --}}
+{{-- ============================================================ --}}
+<div id="termsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:10000; align-items:center; justify-content:center; padding:16px;">
+  <div style="background:#fff; border-radius:12px; width:100%; max-width:520px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+
+    {{-- Header --}}
+    <div style="padding:20px 22px 14px; border-bottom:1px solid #e8e0ce; flex-shrink:0;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <span style="font-size:18px;">📋</span>
+            <h2 style="font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:700; color:#2c1a0e; margin:0; letter-spacing:0.5px;">Terms and Conditions</h2>
+          </div>
+          <p style="font-size:12px; color:#8a6a40; margin:0; line-height:1.5;">Please read and agree to the terms and conditions before proceeding with your booking.</p>
+        </div>
+        <button type="button" id="closeTermsModalBtn" style="background:none; border:none; font-size:20px; color:#999; cursor:pointer; line-height:1; padding:2px 4px; flex-shrink:0;" title="Close">✕</button>
+      </div>
+
+      {{-- Scroll hint --}}
+      <div id="termsScrollHint" style="margin-top:10px; display:flex; align-items:center; gap:6px; font-size:11px; color:#aaa;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+        <span>Scroll to the bottom to unlock the agreement</span>
+      </div>
+      <div id="termsScrollDone" style="display:none; margin-top:10px; font-size:11px; color:#16a34a; font-weight:600;">
+        ✓ You've reached the end — check the box below to agree.
+      </div>
+    </div>
+
+    {{-- Scrollable Body --}}
+    <div id="termsScrollBody" style="overflow-y:auto; flex:1; padding:16px 22px;">
+
+      {{-- 01 --}}
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; gap:10px; align-items:baseline;">
+          <span style="font-size:13px; font-weight:700; color:#c9a84c; min-width:28px; flex-shrink:0;">01.</span>
+          <div>
+            <div style="font-size:13.5px; font-weight:700; color:#2c1a0e; margin-bottom:5px;">Reservation Fee</div>
+            <ul style="list-style:disc; padding-left:16px; margin:0; font-size:13px; color:#444; line-height:1.7; space-y:2px;">
+              <li>A <strong>25% downpayment</strong> is required to secure your booking.</li>
+              <li>The reservation fee will be deducted from the total bill.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {{-- 02 --}}
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; gap:10px; align-items:baseline;">
+          <span style="font-size:13px; font-weight:700; color:#c9a84c; min-width:28px; flex-shrink:0;">02.</span>
+          <div>
+            <div style="font-size:13.5px; font-weight:700; color:#2c1a0e; margin-bottom:5px;">Payment Terms</div>
+            <ul style="list-style:disc; padding-left:16px; margin:0; font-size:13px; color:#444; line-height:1.7;">
+              <li>Full payment must be settled on or before the event date.</li>
+              <li>Accepted payment methods for onsite payment: <strong>Cash, GCash, and Bank Transfer</strong>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {{-- 03 --}}
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; gap:10px; align-items:baseline;">
+          <span style="font-size:13px; font-weight:700; color:#c9a84c; min-width:28px; flex-shrink:0;">03.</span>
+          <div>
+            <div style="font-size:13.5px; font-weight:700; color:#2c1a0e; margin-bottom:5px;">Confirmation of Reservation</div>
+            <ul style="list-style:disc; padding-left:16px; margin:0; font-size:13px; color:#444; line-height:1.7;">
+              <li>Reservations are considered confirmed only upon receipt of the reservation fee.</li>
+              <li>Once the reservation fee is settled or the booking is fully paid and the client has signed the contract, the reservation date is <strong>officially confirmed and cannot be cancelled</strong>.</li>
+              <li>Rescheduling requests may be submitted and will be reviewed by the admin.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {{-- 04 --}}
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; gap:10px; align-items:baseline;">
+          <span style="font-size:13px; font-weight:700; color:#c9a84c; min-width:28px; flex-shrink:0;">04.</span>
+          <div>
+            <div style="font-size:13.5px; font-weight:700; color:#2c1a0e; margin-bottom:5px;">Cancellation Policy</div>
+            <ul style="list-style:disc; padding-left:16px; margin:0; font-size:13px; color:#444; line-height:1.7;">
+              <li>Reservation fees are <strong>strictly non-refundable</strong>.</li>
+              <li>Cancellations made <strong>30–60 days</strong> before the event may be rebooked/rescheduled once, subject to availability.</li>
+              <li>Same-day booking cancellations that remain unpaid will be automatically cancelled.</li>
+              <li>Failure to visit the venue during your preferred visit schedule will result in <strong>automatic cancellation</strong> of the booking.</li>
+              <li>No-shows on the reserved event date will result in <strong>forfeiture of the reservation fee</strong>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {{-- 05 --}}
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; gap:10px; align-items:baseline;">
+          <span style="font-size:13px; font-weight:700; color:#c9a84c; min-width:28px; flex-shrink:0;">05.</span>
+          <div>
+            <div style="font-size:13.5px; font-weight:700; color:#2c1a0e; margin-bottom:5px;">Rebooking / Rescheduling</div>
+            <ul style="list-style:disc; padding-left:16px; margin:0; font-size:13px; color:#444; line-height:1.7;">
+              <li>Requests for event rebooking must be made at least <strong>30 days</strong> prior to the reserved date for full-package events. For room and amenities rentals only, rescheduling requests must be made before the reserved date.</li>
+              <li>Approval of rebooking depends on schedule availability and if the conditions for rescheduling have been met.</li>
+              <li>The client's <strong>first successful rescheduling request is free of charge</strong>. Any additional rescheduling requests may be subject to a penalty fee.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {{-- 06 --}}
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; gap:10px; align-items:baseline;">
+          <span style="font-size:13px; font-weight:700; color:#c9a84c; min-width:28px; flex-shrink:0;">06.</span>
+          <div>
+            <div style="font-size:13.5px; font-weight:700; color:#2c1a0e; margin-bottom:5px;">Changes in Reservation</div>
+            <ul style="list-style:disc; padding-left:16px; margin:0; font-size:13px; color:#444; line-height:1.7;">
+              <li>Any changes in the number of guests, date, or other details must be communicated on the day of your preferred visit schedule or at least <strong>14 days</strong> before the event.</li>
+              <li>Additional charges may apply.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {{-- 07 --}}
+      <div style="margin-bottom:6px;">
+        <div style="display:flex; gap:10px; align-items:baseline;">
+          <span style="font-size:13px; font-weight:700; color:#c9a84c; min-width:28px; flex-shrink:0;">07.</span>
+          <div>
+            <div style="font-size:13.5px; font-weight:700; color:#2c1a0e; margin-bottom:5px;">Client Responsibility</div>
+            <ul style="list-style:disc; padding-left:16px; margin:0; font-size:13px; color:#444; line-height:1.7;">
+              <li>The client is responsible for providing accurate information.</li>
+              <li>Damages incurred during the event/service shall be charged to the client.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {{-- Bottom sentinel --}}
+      <div id="termsBottomSentinel" style="height:4px;"></div>
+    </div>
+
+    {{-- Footer --}}
+    <div style="padding:14px 22px 18px; border-top:1px solid #e8e0ce; flex-shrink:0; background:#fafafa; border-radius:0 0 12px 12px;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+        <input type="checkbox" id="termsAgreeCheckbox" disabled
+          style="width:15px; height:15px; accent-color:#c9a84c; cursor:not-allowed; flex-shrink:0;" />
+        <label for="termsAgreeCheckbox" id="termsAgreeLabel"
+          style="font-size:13px; color:#aaa; cursor:not-allowed; user-select:none; line-height:1.4;">
+          I Understand and Agree
+        </label>
+      </div>
+      <button type="button" id="termsConfirmBtn" disabled
+        style="width:100%; background:#c9a84c; color:#fff; border:none; padding:11px 20px; border-radius:7px; font-weight:700; font-size:13.5px; letter-spacing:1px; cursor:not-allowed; opacity:0.45; transition:opacity 0.2s, background 0.2s; font-family:'Jost',sans-serif;">
+        Proceed to Booking
+      </button>
+    </div>
+
+  </div>
+</div>
+
+{{-- ============================================================ --}}
+{{-- TERMS MODAL JAVASCRIPT --}}
+{{-- ============================================================ --}}
+
+<script>
+(function() {
+  const termsModal        = document.getElementById('termsModal');
+  const termsScrollBody   = document.getElementById('termsScrollBody');
+  const termsScrollHint   = document.getElementById('termsScrollHint');
+  const termsScrollDone   = document.getElementById('termsScrollDone');
+  const termsAgreeChk     = document.getElementById('termsAgreeCheckbox');
+  const termsAgreeLabel   = document.getElementById('termsAgreeLabel');
+  const termsConfirmBtn   = document.getElementById('termsConfirmBtn');
+  const termsCheckbox     = document.getElementById('termsCheckbox');        // hidden, submitted
+  const termsVisibleChk   = document.getElementById('termsVisibleCheckbox'); // visible checkbox
+  const termsViewAgainWrap = document.getElementById('termsViewAgainWrap');
+  let   termsScrolledToBottom = false;
+  let   termsAgreed = false; // track if user has completed the modal flow
+
+  // ── Open / close helpers ──────────────────────────────────────
+  function openTermsModal() {
+    // Always reset scroll state when opening fresh
+    termsScrolledToBottom = false;
+    termsScrollHint.classList.remove('hidden');
+    termsScrollDone.classList.add('hidden');
+    termsAgreeChk.disabled = true;
+    termsAgreeChk.checked  = false;
+    termsAgreeChk.style.cursor = 'not-allowed';
+    termsAgreeLabel.style.color = '#aaa';
+    termsAgreeLabel.style.cursor = 'not-allowed';
+    termsConfirmBtn.disabled = true;
+    termsConfirmBtn.style.opacity = '0.45';
+    termsConfirmBtn.style.cursor = 'not-allowed';
+
+    // Reset scroll to top so user must scroll fresh
+    termsScrollBody.scrollTop = 0;
+
+    termsModal.style.removeProperty('display');
+    termsModal.classList.remove('hidden');
+    termsModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // After a tick, check if no scroll needed (short content)
+    setTimeout(checkScrollPosition, 150);
+  }
+
+  function closeTermsModal() {
+    termsModal.classList.add('hidden');
+    termsModal.style.display = 'none';
+    document.body.style.overflow = '';
+
+    // If user closed without agreeing, uncheck the visible checkbox
+    if (!termsAgreed) {
+      termsVisibleChk.checked = false;
+    }
+  }
+
+  // ── Intercept visible checkbox click → open modal ─────────────
+  termsVisibleChk.addEventListener('click', function(e) {
+    if (termsAgreed) {
+      // Already agreed — allow unchecking which resets agreement
+      if (!this.checked) {
+        termsAgreed = false;
+        termsCheckbox.checked = false;
+        termsViewAgainWrap.classList.add('hidden');
+      }
+      return;
+    }
+    // Prevent the checkbox from checking itself — modal must be completed first
+    e.preventDefault();
+    openTermsModal();
+  });
+
+  // ── Scroll detection ─────────────────────────────────────────
+  function checkScrollPosition() {
+    if (termsScrolledToBottom) return;
+    const el = termsScrollBody;
+    // Within 10px of bottom counts as "reached end"
+    if (el.scrollHeight - el.scrollTop - el.clientHeight <= 10) {
+      termsScrolledToBottom = true;
+      termsScrollHint.classList.add('hidden');
+      termsScrollDone.classList.remove('hidden');
+      termsAgreeChk.disabled = false;
+      termsAgreeChk.style.cursor = 'pointer';
+      termsAgreeLabel.style.color = '#2c1a0e';
+      termsAgreeLabel.style.cursor = 'pointer';
+    }
+  }
+
+  termsScrollBody.addEventListener('scroll', checkScrollPosition);
+
+  // ── Modal agree checkbox toggles the Confirm button ──────────
+  termsAgreeChk.addEventListener('change', function() {
+    if (this.checked) {
+      termsConfirmBtn.disabled = false;
+      termsConfirmBtn.style.opacity = '1';
+      termsConfirmBtn.style.cursor = 'pointer';
+    } else {
+      termsConfirmBtn.disabled = true;
+      termsConfirmBtn.style.opacity = '0.45';
+      termsConfirmBtn.style.cursor = 'not-allowed';
+    }
+  });
+
+  // ── Confirm & Proceed: check both inputs, close modal ─────────
+  termsConfirmBtn.addEventListener('click', function() {
+    if (!termsAgreeChk.checked) return;
+
+    termsAgreed = true;
+
+    // Auto-check the visible checkbox and the hidden submitted input
+    termsVisibleChk.checked = true;
+    termsCheckbox.checked   = true;
+
+    // Show "view again" link
+    termsViewAgainWrap.classList.remove('hidden');
+
+    closeTermsModal();
+  });
+
+  // ── Wire open / close buttons ─────────────────────────────────
+  document.getElementById('openTermsModalBtn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    openTermsModal();
+  });
+  document.getElementById('closeTermsModalBtn').addEventListener('click', closeTermsModal);
+  document.getElementById('reopenTermsBtn')?.addEventListener('click', function(e) {
+    e.stopPropagation();
+    openTermsModal();
+  });
+
+  // Close on backdrop click
+  termsModal.addEventListener('click', function(e) {
+    if (e.target === termsModal) closeTermsModal();
+  });
+
+  // ── Form submission guard ─────────────────────────────────────
+  document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    if (!termsCheckbox.checked) {
+      e.preventDefault();
+      // Shake the checkbox area to draw attention
+      const area = document.getElementById('termsAgreementArea');
+      area.style.transition = 'transform 0.08s ease';
+      let count = 0;
+      const shake = setInterval(() => {
+        area.style.transform = count % 2 === 0 ? 'translateX(6px)' : 'translateX(-6px)';
+        count++;
+        if (count >= 6) {
+          clearInterval(shake);
+          area.style.transform = '';
+        }
+      }, 80);
+      openTermsModal();
+    }
+  });
+})();
+</script>
+
 <!-- SUCCESS MODAL + VISIT SCHEDULING -->
+
+
 <div class="modal-overlay hidden fixed inset-0 bg-black/70 z-[9999] items-center justify-center" id="successModal">
   <div class="modal-box bg-off-white border border-gold-deep/25 rounded-2xl p-8 md:p-10 max-w-[650px] w-[95%] overflow-y-auto max-h-[90vh]">
     <div class="text-center mb-6">
@@ -338,10 +720,10 @@
                     <label class="block text-[11px] tracking-[1px] text-gold-deep mb-2 font-bold uppercase">Preferred Time</label>
                     <select name="visit_time" required
                         class="w-full bg-off-white border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[14px] outline-none transition-colors focus:border-gold-deep font-body">
-                        <option value="">Select time</option>
-                        @for($i = 8; $i <= 22; $i++)
+                        <option value="" disabled selected hidden>Select time</option>
+                        @for($i = 8; $i <= 17; $i++)
                             @foreach(['00', '30'] as $min)
-                                @if($i == 22 && $min == '30') @continue @endif
+                                @if($i == 17 && $min == '30') @continue @endif
                                 @php
                                     $val24 = sprintf('%02d:%s', $i, $min);
                                     $formatted = \Carbon\Carbon::createFromFormat('H:i', $val24)->format('h:i A');
@@ -411,6 +793,7 @@
   const blockedDates = JSON.parse(dataEl.getAttribute('data-blocked-dates'));
   const approvedDates = JSON.parse(dataEl.getAttribute('data-approved-dates'));
   const checkDateUrl = dataEl.getAttribute('data-check-date-url');
+  const roomAvailabilityUrl = dataEl.getAttribute('data-room-availability-url');
   const bookingSuccess = dataEl.getAttribute('data-booking-success') === 'true';
   const visitSuccess = dataEl.getAttribute('data-visit-success') === 'true';
 
@@ -451,7 +834,11 @@
 
   let currentDate = new Date();
   let selectedDate = null;
-  let selectedPackage = document.getElementById('packageSelect').value;
+  const packageSelectEl = document.getElementById('packageSelect');
+  const packageHiddenInput = document.getElementById('packageHiddenInput');
+  const roomNumberHiddenInput = document.getElementById('roomNumberHiddenInput');
+  const roomUnavailableNotice = document.getElementById('roomUnavailableNotice');
+  let selectedPackage = packageHiddenInput.value;
 
   const oldDate = dataEl.getAttribute('data-old-date');
   if (oldDate) {
@@ -459,15 +846,24 @@
     document.getElementById('selectedDateDisplay').textContent = '📅 Selected: ' + formatDisplay(oldDate);
   }
 
-  document.getElementById('packageSelect').addEventListener('change', function() {
-    selectedPackage = this.value;
-    const selectedOption = this.options[this.selectedIndex];
-    if(selectedOption && selectedOption.dataset.max) {
+  function syncPackageFromSelect() {
+    const selectedOption = packageSelectEl.options[packageSelectEl.selectedIndex];
+    if (!selectedOption || !selectedOption.dataset.package) {
+      packageHiddenInput.value = '';
+      roomNumberHiddenInput.value = '';
+      return;
+    }
+
+    packageHiddenInput.value = selectedOption.dataset.package;
+    roomNumberHiddenInput.value = selectedOption.dataset.room || '';
+    selectedPackage = selectedOption.dataset.package;
+
+    if (selectedOption.dataset.max) {
       document.getElementById('guestCountInput').max = selectedOption.dataset.max;
       document.getElementById('guestCountInput').placeholder = "Max: " + selectedOption.dataset.max;
-      
+
       // Auto-fill total amount
-      if(selectedOption.dataset.price) {
+      if (selectedOption.dataset.price) {
         document.getElementById('totalAmountInput').value = selectedOption.dataset.price;
         updateDownPayment();
       }
@@ -475,6 +871,12 @@
       document.getElementById('guestCountInput').removeAttribute('max');
       document.getElementById('guestCountInput').placeholder = "How many guests?";
     }
+  }
+
+  packageSelectEl.addEventListener('change', function() {
+    roomUnavailableNotice.style.display = 'none';
+    syncPackageFromSelect();
+    if (selectedDate) refreshRoomAvailability(selectedDate);
   });
 
   // Dynamic Payment Option Summary (Full Payment vs. Downpayment)
@@ -526,11 +928,18 @@
   const packageFromUrl = urlParams.get('package');
   let oldPackage = selectedPackage;
   if (packageFromUrl) {
-    let selectEl = document.getElementById('packageSelect');
-    let optionExists = Array.from(selectEl.options).some(opt => opt.value === packageFromUrl);
-    if (optionExists) { selectEl.value = packageFromUrl; oldPackage = packageFromUrl; }
+    // Room-type packages no longer have a plain option matching the package
+    // name alone (e.g. "Family Room") — fall back to the first room option
+    // under that package's optgroup so links like Discover's "BOOK NOW"
+    // (?package=Family Room) still land on a selectable option.
+    const directMatch = Array.from(packageSelectEl.options).find(opt => opt.value === packageFromUrl);
+    const roomMatch = Array.from(packageSelectEl.options).find(opt => opt.dataset.package === packageFromUrl);
+    const match = directMatch || roomMatch;
+    if (match) { packageSelectEl.value = match.value; oldPackage = packageFromUrl; }
   }
-  if(oldPackage) { document.getElementById('packageSelect').dispatchEvent(new Event('change')); }
+  if (oldPackage) {
+    packageSelectEl.dispatchEvent(new Event('change'));
+  }
 
   function formatDisplay(dateStr) {
     const d = new Date(dateStr + 'T00:00:00');
@@ -614,15 +1023,55 @@
     renderCalendar();
   }
 
+  // Re-check every individual room's availability for a date and annotate/
+  // disable the matching <option>s — called on date change AND package change,
+  // per "a room booked on one date may be available on another."
+  function refreshRoomAvailability(dateStr) {
+    if (!dateStr) return;
+
+    fetch(roomAvailabilityUrl + '?date=' + dateStr)
+      .then(res => res.json())
+      .then(data => {
+        let selectedBecameUnavailable = false;
+
+        Array.from(packageSelectEl.options).forEach(opt => {
+          if (!opt.dataset.roomType) return;
+
+          const pkgAvailability = data[opt.dataset.package] || {};
+          const available = pkgAvailability[opt.dataset.room] !== false; // default true if missing
+
+          opt.disabled = !available;
+          opt.textContent = opt.dataset.label + (available ? ' — AVAILABLE' : ' — BOOKED');
+
+          if (opt.selected && !available) selectedBecameUnavailable = true;
+        });
+
+        if (selectedBecameUnavailable) {
+          packageSelectEl.value = '';
+          packageHiddenInput.value = '';
+          roomNumberHiddenInput.value = '';
+          roomUnavailableNotice.style.display = 'block';
+        }
+      })
+      .catch(() => {
+        // Silently fail — backend validation at submit time still catches it
+      });
+  }
+
+  // Annotate rooms immediately if a date/package survived a validation-failure reload
+  if (selectedDate) refreshRoomAvailability(selectedDate);
+
   function selectDate(dateStr, el) {
     document.querySelectorAll('.cal-day.selected').forEach(d => d.classList.remove('selected'));
     el.classList.add('selected');
     selectedDate = dateStr;
     document.getElementById('eventDateInput').value = dateStr;
     document.getElementById('selectedDateDisplay').textContent = '📅 Selected: ' + formatDisplay(dateStr);
-    
+
     // Hide blocked alert if it was showing
     document.getElementById('blockedDateAlert').classList.add('hidden');
+
+    refreshRoomAvailability(dateStr);
 
     // Real-time AJAX validation: double-check with the server
     fetch(checkDateUrl + '?date=' + dateStr)

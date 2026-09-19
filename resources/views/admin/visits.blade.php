@@ -16,6 +16,7 @@
     .v-confirmed { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .v-rescheduled { background: #e1f5fe; color: #0277bd; border: 1px solid #b3e5fc; }
     .v-completed { background: #f5f0e8; color: #8a6a40; border: 1px solid #d4c4a0; }
+    .v-missed { background: #fde8e8; color: #e74c3c; border: 1px solid #f5c6cb; }
   </style>
 </head>
 <body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
@@ -76,7 +77,7 @@
                       </form>
                     @endif
                     
-                    @if($visit->status !== 'completed')
+                    @if(!in_array($visit->status, ['completed', 'missed']))
                       <button type="button" 
                         class="open-visit-modal-btn"
                         style="background: transparent; border: 1px solid #3498db; color: #3498db; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;" 

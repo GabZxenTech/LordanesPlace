@@ -30,7 +30,7 @@
 
     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 28px;">
 
-      {{-- ADD NEW PACKAGE FORM (description removed) --}}
+      {{-- ADD NEW PACKAGE FORM --}}
       <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; overflow: hidden; align-self: start;">
         <div style="padding: 18px 24px; border-bottom: 1px solid #d4c4a0; background: #f5edd8;">
           <h2 style="font-size: 12px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0;">ADD NEW PACKAGE</h2>
@@ -43,6 +43,12 @@
               <input type="text" name="name" required placeholder="e.g. Basic, Standard"
                 style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
                 onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
+            </div>
+            <div style="margin-bottom: 16px;">
+              <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Description</label>
+              <textarea name="description" rows="4" placeholder="e.g. Includes venue, catering, and decoration..."
+                style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box; resize: vertical;"
+                onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'"></textarea>
             </div>
             <div style="margin-bottom: 16px;">
               <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Price (₱)</label>
@@ -95,6 +101,7 @@
                 <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">CAPACITY</th>
                 <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">DURATION</th>
                 <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">SCHEDULE</th>
+                <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">DESCRIPTION</th>
                 <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">ACTIONS</th>
               </tr>
             </thead>
@@ -145,6 +152,13 @@
                       <input id="edit-end_time-{{ $pkg->id }}" type="time" value="{{ $pkg->end_time ? \Carbon\Carbon::parse($pkg->end_time)->format('H:i') : '' }}"
                         style="width: 100%; background: #f5f0e8; border: 1px solid #c9a84c; color: #2c1a0e; padding: 6px 8px; border-radius: 5px; font-size: 13px; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
                     </div>
+                  </td>
+
+                  {{-- DESCRIPTION cell --}}
+                  <td style="padding: 14px 20px; max-width: 220px;">
+                    <span id="view-description-{{ $pkg->id }}" style="font-size: 14px; color: #8a6a40; white-space: pre-wrap; word-break: break-word;">{{ $pkg->description ?? '—' }}</span>
+                    <textarea id="edit-description-{{ $pkg->id }}" rows="3"
+                      style="display:none; width: 100%; background: #f5f0e8; border: 1px solid #c9a84c; color: #2c1a0e; padding: 6px 10px; border-radius: 5px; font-size: 13px; font-family: 'Jost', sans-serif; box-sizing: border-box; resize: vertical;">{{ $pkg->description }}</textarea>
                   </td>
 
                   {{-- ACTIONS cell --}}
@@ -199,6 +213,7 @@
                         <input type="hidden" id="form-duration-{{ $pkg->id }}" name="duration" />
                         <input type="hidden" id="form-start_time-{{ $pkg->id }}" name="start_time" />
                         <input type="hidden" id="form-end_time-{{ $pkg->id }}" name="end_time" />
+                        <input type="hidden" id="form-description-{{ $pkg->id }}" name="description" />
                       </form>
 
                     </div>
@@ -222,12 +237,13 @@
     function enableRowEdit(id) {
       // Save originals
       originalValues[id] = {
-        name:       document.getElementById('edit-name-' + id).value,
-        price:      document.getElementById('edit-price-' + id).value,
-        guests:     document.getElementById('edit-guests-' + id).value,
-        duration:   document.getElementById('edit-duration-' + id).value,
-        start_time: document.getElementById('edit-start_time-' + id).value,
-        end_time:   document.getElementById('edit-end_time-' + id).value,
+        name:        document.getElementById('edit-name-' + id).value,
+        price:       document.getElementById('edit-price-' + id).value,
+        guests:      document.getElementById('edit-guests-' + id).value,
+        duration:    document.getElementById('edit-duration-' + id).value,
+        start_time:  document.getElementById('edit-start_time-' + id).value,
+        end_time:    document.getElementById('edit-end_time-' + id).value,
+        description: document.getElementById('edit-description-' + id).value,
       };
 
       // Hide text spans, show inputs
@@ -237,6 +253,8 @@
       });
       document.getElementById('view-schedule-' + id).style.display = 'none';
       document.getElementById('edit-schedule-' + id).style.display = 'grid';
+      document.getElementById('view-description-' + id).style.display = 'none';
+      document.getElementById('edit-description-' + id).style.display = 'block';
 
       // Swap buttons
       document.getElementById('edit-btn-' + id).style.display   = 'none';
@@ -248,12 +266,13 @@
     function cancelRowEdit(id) {
       // Restore original values into inputs
       if (originalValues[id]) {
-        document.getElementById('edit-name-' + id).value     = originalValues[id].name;
-        document.getElementById('edit-price-' + id).value    = originalValues[id].price;
-        document.getElementById('edit-guests-' + id).value   = originalValues[id].guests;
-        document.getElementById('edit-duration-' + id).value = originalValues[id].duration;
-        document.getElementById('edit-start_time-' + id).value = originalValues[id].start_time;
-        document.getElementById('edit-end_time-' + id).value   = originalValues[id].end_time;
+        document.getElementById('edit-name-' + id).value        = originalValues[id].name;
+        document.getElementById('edit-price-' + id).value       = originalValues[id].price;
+        document.getElementById('edit-guests-' + id).value      = originalValues[id].guests;
+        document.getElementById('edit-duration-' + id).value    = originalValues[id].duration;
+        document.getElementById('edit-start_time-' + id).value  = originalValues[id].start_time;
+        document.getElementById('edit-end_time-' + id).value    = originalValues[id].end_time;
+        document.getElementById('edit-description-' + id).value = originalValues[id].description;
       }
 
       // Show text spans, hide inputs
@@ -263,6 +282,8 @@
       });
       document.getElementById('view-schedule-' + id).style.display = '';
       document.getElementById('edit-schedule-' + id).style.display = 'none';
+      document.getElementById('view-description-' + id).style.display = '';
+      document.getElementById('edit-description-' + id).style.display = 'none';
 
       // Swap buttons back
       document.getElementById('edit-btn-' + id).style.display   = 'inline-block';
@@ -273,12 +294,13 @@
 
     function submitRowEdit(id) {
       // Copy input values into the hidden form fields
-      document.getElementById('form-name-' + id).value     = document.getElementById('edit-name-' + id).value;
-      document.getElementById('form-price-' + id).value    = document.getElementById('edit-price-' + id).value;
-      document.getElementById('form-guests-' + id).value   = document.getElementById('edit-guests-' + id).value;
-      document.getElementById('form-duration-' + id).value = document.getElementById('edit-duration-' + id).value;
-      document.getElementById('form-start_time-' + id).value = document.getElementById('edit-start_time-' + id).value;
-      document.getElementById('form-end_time-' + id).value   = document.getElementById('edit-end_time-' + id).value;
+      document.getElementById('form-name-' + id).value        = document.getElementById('edit-name-' + id).value;
+      document.getElementById('form-price-' + id).value       = document.getElementById('edit-price-' + id).value;
+      document.getElementById('form-guests-' + id).value      = document.getElementById('edit-guests-' + id).value;
+      document.getElementById('form-duration-' + id).value    = document.getElementById('edit-duration-' + id).value;
+      document.getElementById('form-start_time-' + id).value  = document.getElementById('edit-start_time-' + id).value;
+      document.getElementById('form-end_time-' + id).value    = document.getElementById('edit-end_time-' + id).value;
+      document.getElementById('form-description-' + id).value = document.getElementById('edit-description-' + id).value;
 
       // Submit
       document.getElementById('update-form-' + id).submit();

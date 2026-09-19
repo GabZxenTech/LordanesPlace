@@ -29,6 +29,7 @@
           <a href="{{ route('discover') }}#gallery" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Gallery</a>
           <a href="{{ route('discover') }}#virtual-tour" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline">360° Virtual Tour</a>
           <a href="{{ route('discover') }}#packages" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Packages</a>
+          <a href="{{ route('discover') }}#rooms" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Rooms</a>
         </div>
       </div>
 
@@ -122,6 +123,7 @@
         <a href="{{ route('discover') }}#gallery" class="block py-2.5 px-8 text-[16px] text-warm-black/90 rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Gallery</a>
         <a href="{{ route('discover') }}#virtual-tour" class="block py-2.5 px-8 text-[16px] text-warm-black/90 rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">360° Virtual Tour</a>
         <a href="{{ route('discover') }}#packages" class="block py-2.5 px-8 text-[16px] text-warm-black/90 rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Packages</a>
+        <a href="{{ route('discover') }}#rooms" class="block py-2.5 px-8 text-[16px] text-warm-black/90 rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Rooms</a>
       </div>
 
       @auth

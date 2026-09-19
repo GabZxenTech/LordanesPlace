@@ -133,6 +133,9 @@
                   <td style="padding: 14px 20px;">
                     <div style="font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $booking->user->name }}</div>
                     <div style="font-size: 12px; color: #8a6a40;">{{ $booking->event_type }}</div>
+                    <div style="font-size: 11px; color: #c9a84c; margin-top: 2px;">
+                      {{ $booking->package }}@if($booking->room_number) &middot; Room {{ $booking->room_number }} @endif
+                    </div>
                   </td>
                   <td style="padding: 14px 20px;">
                     <div style="font-size: 14px; color: #2c1a0e; font-weight: 600;">{{ $booking->event_date->format('M d, Y') }}</div>
@@ -181,16 +184,34 @@
                           {{-- Actions are driven by the model's transition map, so the menu
                                can never offer a status change the server would reject. --}}
                           @if($booking->canTransitionTo('approved'))
-                            <form method="POST" action="{{ route('admin.booking.approve', $booking->id) }}">
-                              @csrf
-                              <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #28a745; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Approve</button>
-                            </form>
+                            <button type="button"
+                              style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #28a745; font-weight: 600; cursor: pointer;"
+                              onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'"
+                              onclick="openApproveModal(
+                                {{ $booking->id }},
+                                '{{ addslashes($booking->booking_number) }}',
+                                '{{ addslashes($booking->user->name) }}',
+                                '{{ addslashes($booking->user->email) }}',
+                                '{{ addslashes($booking->event_type) }}',
+                                '{{ addslashes($booking->package) }}',
+                                '{{ $booking->event_date->format('F d, Y') }}',
+                                '{{ $booking->start_time ? \Carbon\Carbon::parse($booking->start_time)->format('h:i A') : '' }}',
+                                '{{ $booking->end_time ? \Carbon\Carbon::parse($booking->end_time)->format('h:i A') : '' }}',
+                                {{ $booking->guest_count }},
+                                '{{ number_format($booking->total_amount, 2) }}',
+                                '{{ addslashes(\App\Models\Booking::paymentOptionLabel($booking->payment_option)) }}',
+                                '{{ str_replace('_', ' ', $booking->payment_status) }}',
+                                '{{ addslashes($booking->notes ?? '') }}',
+                                '{{ route('admin.booking.approve', $booking->id) }}'
+                              )"
+                            >Approve</button>
                           @endif
                           @if($booking->canTransitionTo('rejected'))
-                            <form method="POST" action="{{ route('admin.booking.reject', $booking->id) }}">
-                              @csrf
-                              <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e74c3c; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Reject</button>
-                            </form>
+                            <button type="button"
+                              style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e74c3c; font-weight: 600; cursor: pointer;"
+                              onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'"
+                              onclick="openReasonModal('reject', {{ $booking->id }}, '{{ addslashes($booking->user->name) }}', '{{ route('admin.booking.reject', $booking->id) }}')"
+                            >Reject</button>
                           @endif
                           @if($booking->canTransitionTo('ongoing'))
                             <form method="POST" action="{{ route('admin.booking.ongoing', $booking->id) }}">
@@ -205,23 +226,29 @@
                             </form>
                           @endif
                           @if($booking->canTransitionTo('cancelled'))
-                            <form method="POST" action="{{ route('admin.booking.cancel', $booking->id) }}" onsubmit="return confirm('Cancel this booking? The customer will be notified.')">
-                              @csrf
-                              <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e74c3c; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Cancel Booking</button>
-                            </form>
+                            <button type="button"
+                              style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e74c3c; font-weight: 600; cursor: pointer;"
+                              onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'"
+                              onclick="openReasonModal('cancel', {{ $booking->id }}, '{{ addslashes($booking->user->name) }}', '{{ route('admin.booking.cancel', $booking->id) }}')"
+                            >Cancel Booking</button>
                           @endif
-                          @if($booking->remainingBalance() > 0)
+                          @if(!$booking->isCancelledOrRejected() && $booking->remainingBalance() > 0)
+                            @php
+                              $dp25 = \App\Models\Booking::calculateDownPayment($booking->total_amount);
+                            @endphp
                             <button type="button"
                               class="record-payment-btn"
                               style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #c9a84c; font-weight: 600; cursor: pointer;"
                               onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'"
                               data-id="{{ $booking->id }}"
                               data-remaining="{{ $booking->remainingBalance() }}"
+                              data-total="{{ $booking->total_amount }}"
+                              data-downpayment="{{ $dp25 }}"
                               data-name="{{ addslashes($booking->user->name) }}">
                               {{ $booking->hasConfirmedPayment() ? 'Record Additional Payment' : 'Record Payment' }}
                             </button>
                           @endif
-                          @if($booking->hasConfirmedPayment())
+                          @if(!$booking->isCancelledOrRejected() && $booking->hasConfirmedPayment())
                             <a href="{{ route('booking.receipt', $booking->id) }}" target="_blank" style="display: block; width: 100%; text-align: left; padding: 10px 16px; font-size: 13px; color: #2c1a0e; font-weight: 600; text-decoration: none; box-sizing: border-box;" onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'">View / Print Receipt</a>
                           @endif
                           <form method="POST" action="{{ route('admin.booking.destroy', $booking->id) }}" onsubmit="return confirm('Delete this booking?')">
@@ -308,29 +335,207 @@
 
   {{-- RECORD PAYMENT MODAL --}}
   <div id="paymentModal" class="modal-overlay">
-    <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 40px; width: 100%; max-width: 420px;">
-      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: #2c1a0e; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">Record Payment</h2>
-      <p id="payment_customer_name" style="font-size: 13px; color: #8a6a40; margin: 0 0 24px;"></p>
+    <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 40px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto;">
+      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: #2c1a0e; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 1px;">Record Payment</h2>
+      <p id="payment_customer_name" style="font-size: 13px; color: #8a6a40; margin: 0 0 20px;"></p>
+
+      {{-- Payment Breakdown Banner --}}
+      <div style="background: #f5edd8; border: 1px solid #d4c4a0; border-radius: 6px; padding: 14px 16px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Total Balance</div>
+            <div id="pm_total" style="font-size: 16px; color: #2c1a0e; font-weight: 700;">₱0.00</div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Remaining Balance</div>
+            <div id="pm_remaining" style="font-size: 16px; color: #2c1a0e; font-weight: 700;">₱0.00</div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #c9a84c; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">25% Downpayment</div>
+            <div id="pm_downpayment" style="font-size: 16px; color: #c9a84c; font-weight: 700;">₱0.00</div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Balance After DP</div>
+            <div id="pm_after_dp" style="font-size: 16px; color: #2c1a0e; font-weight: 700;">₱0.00</div>
+          </div>
+        </div>
+      </div>
+
       <form method="POST" action="" id="paymentForm">
         @csrf
+
+        {{-- Payment Type Selector --}}
         <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Remaining Balance</label>
-          <p id="payment_remaining_display" style="font-size: 20px; font-weight: 700; color: #2c1a0e; margin: 0;">₱0.00</p>
+          <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Payment Type</label>
+          <select id="pm_type" name="pm_type"
+            style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-family: 'Jost', sans-serif; box-sizing: border-box;"
+            onchange="onPaymentTypeChange()">
+            <option value="full">Full Payment (remaining balance)</option>
+            <option value="downpayment" selected>25% Downpayment</option>
+            <option value="partial">Partial Payment (manual entry)</option>
+          </select>
         </div>
+
+        {{-- Amount Field --}}
         <div style="margin-bottom: 16px;">
           <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Amount Actually Received (₱)</label>
           <input type="number" name="amount" id="payment_amount" required min="0.01" step="0.01"
-            style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
-          <p style="font-size: 11px; color: #8a6a40; margin: 6px 0 0;">Pre-filled with the full remaining balance — lower it if the customer only paid part of it.</p>
+            style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
+            onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
+          <p id="pm_amount_hint" style="font-size: 11px; color: #8a6a40; margin: 6px 0 0;">Pre-filled with the 25% downpayment — adjust if needed.</p>
         </div>
+
         <div style="margin-bottom: 24px;">
           <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Note <span style="font-weight: 400;">(optional)</span></label>
           <input type="text" name="note" id="payment_note" placeholder="e.g. GCash reference, cash on-site"
             style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
         </div>
+
         <div style="display: flex; gap: 12px;">
-          <button type="submit" style="flex: 1; background: #28a745; color: white; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 15px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif;">Confirm Payment</button>
-          <button type="button" style="flex: 1; border: 1px solid #d4c4a0; background: transparent; color: #8a6a40; padding: 14px; border-radius: 6px; font-size: 15px; cursor: pointer;" onclick="document.getElementById('paymentModal').classList.remove('open')">Cancel</button>
+          <button type="submit" style="flex: 1; background: #28a745; color: white; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 15px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Confirm Payment</button>
+          <button type="button" style="flex: 1; border: 1px solid #d4c4a0; background: transparent; color: #8a6a40; padding: 14px; border-radius: 6px; font-size: 15px; cursor: pointer; font-family: 'Jost', sans-serif;" onclick="document.getElementById('paymentModal').classList.remove('open')">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {{-- APPROVE REVIEW MODAL --}}
+  <div id="approveModal" class="modal-overlay">
+    <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 40px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+        <div>
+          <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: #2c1a0e; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 1px;">Review &amp; Approve Booking</h2>
+          <p style="font-size: 12px; color: #8a6a40; margin: 0;">Please review all details before confirming approval.</p>
+        </div>
+        <button type="button" onclick="closeApproveModal()" style="background: transparent; border: none; font-size: 22px; color: #8a6a40; cursor: pointer; line-height: 1; padding: 0 0 0 16px;" title="Close">✕</button>
+      </div>
+
+      {{-- Booking Number Banner --}}
+      <div style="background: #f5edd8; border: 1px solid #d4c4a0; border-radius: 6px; padding: 10px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700; text-transform: uppercase;">Booking #</span>
+        <span id="ap_booking_number" style="font-size: 14px; color: #c9a84c; font-family: monospace; font-weight: 700;"></span>
+      </div>
+
+      {{-- Customer Info --}}
+      <div style="border: 1px solid #d4c4a0; border-radius: 6px; overflow: hidden; margin-bottom: 16px;">
+        <div style="padding: 10px 16px; background: #f5edd8; border-bottom: 1px solid #d4c4a0;">
+          <span style="font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700; text-transform: uppercase;">Customer</span>
+        </div>
+        <div style="padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Name</div>
+            <div id="ap_name" style="font-size: 14px; color: #2c1a0e; font-weight: 600;"></div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Email</div>
+            <div id="ap_email" style="font-size: 14px; color: #2c1a0e; word-break: break-all;"></div>
+          </div>
+        </div>
+      </div>
+
+      {{-- Event Details --}}
+      <div style="border: 1px solid #d4c4a0; border-radius: 6px; overflow: hidden; margin-bottom: 16px;">
+        <div style="padding: 10px 16px; background: #f5edd8; border-bottom: 1px solid #d4c4a0;">
+          <span style="font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700; text-transform: uppercase;">Event Details</span>
+        </div>
+        <div style="padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Event Type</div>
+            <div id="ap_event_type" style="font-size: 14px; color: #2c1a0e; font-weight: 600;"></div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Package</div>
+            <div id="ap_package" style="font-size: 14px; color: #2c1a0e; font-weight: 600;"></div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Event Date</div>
+            <div id="ap_event_date" style="font-size: 14px; color: #2c1a0e; font-weight: 600;"></div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Schedule</div>
+            <div id="ap_schedule" style="font-size: 14px; color: #2c1a0e; font-weight: 600;"></div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Guests</div>
+            <div id="ap_guests" style="font-size: 14px; color: #2c1a0e; font-weight: 600;"></div>
+          </div>
+        </div>
+      </div>
+
+      {{-- Payment Info --}}
+      <div style="border: 1px solid #d4c4a0; border-radius: 6px; overflow: hidden; margin-bottom: 20px;">
+        <div style="padding: 10px 16px; background: #f5edd8; border-bottom: 1px solid #d4c4a0;">
+          <span style="font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700; text-transform: uppercase;">Payment</span>
+        </div>
+        <div style="padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Total Amount</div>
+            <div id="ap_total" style="font-size: 18px; color: #c9a84c; font-weight: 700;"></div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Payment Option</div>
+            <div id="ap_payment_option" style="font-size: 14px; color: #2c1a0e; font-weight: 600;"></div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Payment Status</div>
+            <div id="ap_payment_status" style="font-size: 14px; color: #2c1a0e; font-weight: 600; text-transform: capitalize;"></div>
+          </div>
+        </div>
+      </div>
+
+      {{-- Notes (shown only if present) --}}
+      <div id="ap_notes_wrap" style="display: none; background: #f5f0e8; border-radius: 6px; padding: 14px 16px; margin-bottom: 20px; border-left: 3px solid #d4c4a0;">
+        <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Customer Notes</div>
+        <div id="ap_notes" style="font-size: 14px; color: #2c1a0e; line-height: 1.6; font-style: italic;"></div>
+      </div>
+
+      {{-- Action Buttons --}}
+      <div style="display: flex; gap: 12px;">
+        <form method="POST" action="" id="approveForm" style="flex: 1;">
+          @csrf
+          <button type="submit"
+            style="width: 100%; background: #28a745; color: white; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif; letter-spacing: 1px;"
+            onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+            ✓ CONFIRM APPROVAL
+          </button>
+        </form>
+        <button type="button"
+          style="flex: 1; border: 1px solid #d4c4a0; background: transparent; color: #8a6a40; padding: 14px; border-radius: 6px; font-size: 14px; cursor: pointer; font-family: 'Jost', sans-serif;"
+          onclick="closeApproveModal()">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+  <div id="reasonModal" class="modal-overlay">
+    <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 40px; width: 100%; max-width: 460px;">
+      <h2 id="reasonModalTitle" style="font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: #2c1a0e; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 1px;">Reject Booking</h2>
+      <p id="reasonModalSubtitle" style="font-size: 13px; color: #8a6a40; margin: 0 0 24px;"></p>
+
+      <div id="reasonModalConfirmBox" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: #856404; font-weight: 600;">
+        ⚠️ <span id="reasonModalConfirmText"></span>
+      </div>
+
+      <form method="POST" action="" id="reasonForm">
+        @csrf
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Reason <span style="color: #e74c3c;">*</span></label>
+          <textarea id="reasonInput" name="cancellation_reason" rows="4" required placeholder="Enter the reason for this action..."
+            style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box; resize: vertical;"
+            onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'"></textarea>
+          <p style="font-size: 11px; color: #8a6a40; margin: 6px 0 0;">This reason will be saved and shown to the customer.</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button type="submit" id="reasonSubmitBtn"
+            style="flex: 1; background: #e74c3c; color: white; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif; letter-spacing: 1px;"
+            onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+            CONFIRM
+          </button>
+          <button type="button"
+            style="flex: 1; border: 1px solid #d4c4a0; background: transparent; color: #8a6a40; padding: 14px; border-radius: 6px; font-size: 14px; cursor: pointer; font-family: 'Jost', sans-serif;"
+            onclick="closeReasonModal()">
+            Go Back
+          </button>
         </div>
       </form>
     </div>
@@ -365,36 +570,139 @@
 
     document.querySelectorAll('.record-payment-btn').forEach(btn => {
       btn.addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
-        const remaining = parseFloat(this.getAttribute('data-remaining')) || 0;
-        const name = this.getAttribute('data-name');
-        openPaymentModal(id, remaining, name);
+        const id          = this.getAttribute('data-id');
+        const remaining   = parseFloat(this.getAttribute('data-remaining'))   || 0;
+        const total       = parseFloat(this.getAttribute('data-total'))       || 0;
+        const downpayment = parseFloat(this.getAttribute('data-downpayment')) || 0;
+        const name        = this.getAttribute('data-name');
+        openPaymentModal(id, remaining, name, total, downpayment);
       });
     });
 
-    function openPaymentModal(id, remaining, name) {
+    function openPaymentModal(id, remaining, name, total, downpayment) {
+      const fmt = n => '₱' + parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
       document.getElementById('paymentForm').action = bookingBaseUrl + '/' + id + '/record-payment';
-      document.getElementById('payment_customer_name').textContent = name;
-      document.getElementById('payment_remaining_display').textContent =
-        '₱' + remaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      document.getElementById('payment_amount').value = remaining.toFixed(2);
-      document.getElementById('payment_amount').max = remaining.toFixed(2);
+      document.getElementById('payment_customer_name').textContent = 'Customer: ' + name;
+
+      // Populate breakdown banner
+      document.getElementById('pm_total').textContent       = fmt(total);
+      document.getElementById('pm_remaining').textContent   = fmt(remaining);
+      document.getElementById('pm_downpayment').textContent = fmt(downpayment);
+      document.getElementById('pm_after_dp').textContent    = fmt(Math.max(0, total - downpayment));
+
+      // Store values on the modal for the type-change handler
+      const modal = document.getElementById('paymentModal');
+      modal.dataset.remaining   = remaining;
+      modal.dataset.downpayment = downpayment;
+
+      // Default to 25% downpayment type
+      document.getElementById('pm_type').value = 'downpayment';
+      document.getElementById('payment_amount').value = parseFloat(downpayment).toFixed(2);
+      document.getElementById('payment_amount').max   = parseFloat(remaining).toFixed(2);
+      document.getElementById('payment_amount').readOnly = false;
+      document.getElementById('pm_amount_hint').textContent = 'Pre-filled with the 25% downpayment — adjust if needed.';
       document.getElementById('payment_note').value = '';
+
       document.getElementById('paymentModal').classList.add('open');
+    }
+
+    function onPaymentTypeChange() {
+      const modal      = document.getElementById('paymentModal');
+      const remaining  = parseFloat(modal.dataset.remaining)  || 0;
+      const downpay    = parseFloat(modal.dataset.downpayment) || 0;
+      const type       = document.getElementById('pm_type').value;
+      const amtInput   = document.getElementById('payment_amount');
+      const hint       = document.getElementById('pm_amount_hint');
+
+      amtInput.max = remaining.toFixed(2);
+
+      if (type === 'full') {
+        amtInput.value    = remaining.toFixed(2);
+        amtInput.readOnly = true;
+        amtInput.style.opacity = '0.7';
+        hint.textContent  = 'Full remaining balance will be recorded as paid.';
+      } else if (type === 'downpayment') {
+        const dp = Math.min(downpay, remaining);
+        amtInput.value    = dp.toFixed(2);
+        amtInput.readOnly = false;
+        amtInput.style.opacity = '1';
+        hint.textContent  = 'Pre-filled with the 25% downpayment — adjust if needed.';
+      } else {
+        // partial
+        amtInput.value    = '';
+        amtInput.readOnly = false;
+        amtInput.style.opacity = '1';
+        hint.textContent  = 'Enter the exact amount received from the customer.';
+      }
+    }
+
+    function openReasonModal(action, id, customerName, formAction) {
+      const isReject = action === 'reject';
+      const label = isReject ? 'Reject' : 'Cancel';
+
+      document.getElementById('reasonModalTitle').textContent = label + ' Booking';
+      document.getElementById('reasonModalSubtitle').textContent = 'Customer: ' + customerName;
+      document.getElementById('reasonModalConfirmText').textContent =
+        'Are you sure you want to ' + label.toLowerCase() + ' this booking? The customer will be notified.';
+      document.getElementById('reasonSubmitBtn').textContent = 'CONFIRM ' + label.toUpperCase();
+      document.getElementById('reasonForm').action = formAction;
+      document.getElementById('reasonInput').value = '';
+
+      // Close dropdown menus before opening modal
+      document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
+
+      document.getElementById('reasonModal').classList.add('open');
+    }
+
+    function closeReasonModal() {
+      document.getElementById('reasonModal').classList.remove('open');
     }
 
     function toggleActionMenu(id, e) {
       e.stopPropagation();
+      const btn  = e.currentTarget;
       const menu = document.getElementById('menu-' + id);
       const isVisible = menu.style.display === 'block';
-      
-      // Close all menus first
+
+      // Close all open menus
       document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
-      
+
       if (!isVisible) {
-        menu.style.display = 'block';
+        // Temporarily show off-screen to measure its height before placing it
+        menu.style.visibility = 'hidden';
+        menu.style.position   = 'fixed';
+        menu.style.top        = '-9999px';
+        menu.style.display    = 'block';
+
+        const rect       = btn.getBoundingClientRect();
+        const menuHeight = menu.offsetHeight;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+
+        // Flip upward if there isn't enough room below AND there's room above
+        if (spaceBelow < menuHeight + 8 && spaceAbove >= menuHeight + 8) {
+          menu.style.top = (rect.top - menuHeight - 5) + 'px';
+        } else {
+          menu.style.top = (rect.bottom + 5) + 'px';
+        }
+
+        menu.style.right      = (window.innerWidth - rect.right) + 'px';
+        menu.style.left       = 'auto';
+        menu.style.zIndex     = '9999';
+        menu.style.visibility = 'visible';
       }
     }
+
+    // Close any open dropdown when the user clicks elsewhere
+    document.addEventListener('click', () => {
+      document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
+    });
+
+    // Close any open dropdown when the table is scrolled (dropdown would float away otherwise)
+    document.addEventListener('scroll', () => {
+      document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
+    }, true);
 
     function openEditModal(id, pkg, date, start, end, guests, notes, total) {
       document.getElementById('editBookingForm').action = bookingBaseUrl + '/' + id;
@@ -408,10 +716,6 @@
       document.getElementById('editModal').classList.add('open');
     }
 
-    document.addEventListener('click', () => {
-      document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
-    });
-
     // Highlight the booking row a notification linked to (e.g. #booking-42)
     if (window.location.hash.startsWith('#booking-')) {
       const target = document.querySelector(window.location.hash);
@@ -420,6 +724,40 @@
         target.style.background = '#f5edd8';
         setTimeout(() => { target.style.background = ''; }, 2500);
       }
+    }
+
+    function openApproveModal(id, bookingNum, name, email, eventType, pkg, eventDate, startTime, endTime, guests, total, paymentOption, paymentStatus, notes, approveRoute) {
+      document.getElementById('ap_booking_number').textContent = bookingNum;
+      document.getElementById('ap_name').textContent = name;
+      document.getElementById('ap_email').textContent = email;
+      document.getElementById('ap_event_type').textContent = eventType;
+      document.getElementById('ap_package').textContent = pkg + ' Package';
+      document.getElementById('ap_event_date').textContent = eventDate;
+      document.getElementById('ap_schedule').textContent = (startTime && endTime) ? startTime + ' – ' + endTime : 'Not yet assigned';
+      document.getElementById('ap_guests').textContent = guests + ' guests';
+      document.getElementById('ap_total').textContent = '₱' + total;
+      document.getElementById('ap_payment_option').textContent = paymentOption;
+      document.getElementById('ap_payment_status').textContent = paymentStatus;
+
+      const notesWrap = document.getElementById('ap_notes_wrap');
+      const notesEl   = document.getElementById('ap_notes');
+      if (notes && notes.trim() !== '') {
+        notesEl.textContent = notes;
+        notesWrap.style.display = 'block';
+      } else {
+        notesWrap.style.display = 'none';
+      }
+
+      document.getElementById('approveForm').action = approveRoute;
+
+      // Close any open dropdown before showing modal
+      document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
+
+      document.getElementById('approveModal').classList.add('open');
+    }
+
+    function closeApproveModal() {
+      document.getElementById('approveModal').classList.remove('open');
     }
   </script>
 
