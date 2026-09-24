@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Verify Email | LorDane's Place</title>
+  <title>Verify Code | LorDane's Place</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@
             </div>
           </div>
 
-          <h2 class="font-heading" style="font-size: 30px; color: #fff; margin-bottom: 8px;">Verify Your Email</h2>
+          <h2 class="font-heading" style="font-size: 30px; color: #fff; margin-bottom: 8px;">Enter Verification Code</h2>
 
           <p style="color: rgba(255,255,255,0.65); font-size: 14px; margin-bottom: 4px; line-height: 1.6;">
             We've sent a 6-digit verification code to
@@ -37,18 +37,10 @@
             {{ $maskedEmail }}
           </p>
 
-          {{-- Success Message --}}
+          {{-- Success / Info Message --}}
           @if (session('message'))
             <div style="background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.35); color: #4ade80; padding: 10px 14px; border-radius: 8px; margin-bottom: 18px; font-size: 13px;">
               {{ session('message') }}
-            </div>
-          @endif
-
-          {{-- Email Delivery Warning --}}
-          @if (session('email_warning'))
-            <div style="background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.35); color: #fb923c; padding: 10px 14px; border-radius: 8px; margin-bottom: 18px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-              {{ session('email_warning') }}
             </div>
           @endif
 
@@ -67,7 +59,7 @@
           @endif
 
           {{-- OTP Input Form --}}
-          <form method="POST" action="{{ route('otp.verify') }}" id="otpForm">
+          <form method="POST" action="{{ route('password.otp.verify') }}" id="otpForm">
             @csrf
             <input type="hidden" name="otp" id="otpHidden" value="">
 
@@ -88,7 +80,7 @@
               @endfor
             </div>
 
-            <p style="color: rgba(255,255,255,0.35); font-size: 12px; margin-bottom: 20px;">Enter the 6-digit code • Expires in 5 minutes</p>
+            <p style="color: rgba(255,255,255,0.35); font-size: 12px; margin-bottom: 20px;">Enter the 6-digit code • Expires in 10 minutes</p>
 
             <button type="submit" id="verifyBtn"
               style="width: 100%; padding: 12px; border: none; border-radius: 8px; background: #BF9B30; color: #1a1208;
@@ -102,7 +94,7 @@
           {{-- Resend OTP --}}
           <div style="margin-top: 8px; margin-bottom: 16px;">
             <p style="color: rgba(255,255,255,0.45); font-size: 13px; margin-bottom: 6px;">Didn't receive the code?</p>
-            <form method="POST" action="{{ route('otp.resend') }}" id="resendForm">
+            <form method="POST" action="{{ route('password.otp.resend') }}" id="resendForm">
               @csrf
               <button type="submit" id="resendBtn"
                 style="color: #BF9B30; font-size: 13px; background: transparent; border: none; cursor: pointer;
@@ -114,13 +106,7 @@
           </div>
 
           <div style="border-top: 1px solid rgba(191,155,48,0.15); padding-top: 14px;">
-            <form method="POST" action="{{ route('logout') }}">
-              @csrf
-              <button type="submit"
-                style="color: rgba(255,255,255,0.45); font-size: 13px; background: transparent; border: none; cursor: pointer; transition: color 0.2s;">
-                ← Log Out
-              </button>
-            </form>
+            <a href="{{ route('password.request') }}" style="color: rgba(255,255,255,0.45); font-size: 13px; text-decoration: none;">← Use a Different Email</a>
           </div>
 
         </div>
@@ -153,7 +139,6 @@
       }
 
       inputs.forEach((input, idx) => {
-        // Focus style
         input.addEventListener('focus', function () {
           this.style.borderColor = '#BF9B30';
           this.style.background = 'rgba(255,255,255,0.1)';
@@ -182,7 +167,6 @@
           }
         });
 
-        // Handle paste
         input.addEventListener('paste', function (e) {
           e.preventDefault();
           const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 6);

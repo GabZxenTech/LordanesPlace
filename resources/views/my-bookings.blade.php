@@ -44,9 +44,9 @@
             @endif
         </div>
         <p class="text-[13px] text-gold-deep font-bold mb-2 tracking-[0.5px]">#{{ $booking->booking_number }}</p>
-        <p class="text-[15px] text-warm-black/90 mb-0.5">📅 {{ $booking->event_date->format('F d, Y') }}</p>
-        <p class="text-[15px] text-warm-black/90 mb-0.5">⏰ {{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}</p>
-        <p class="text-[15px] text-warm-black/90 mb-3">👥 {{ $booking->guest_count }} guests</p>
+        <p class="text-[15px] text-warm-black/90 mb-0.5 flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> {{ $booking->event_date->format('F d, Y') }}</p>
+        <p class="text-[15px] text-warm-black/90 mb-0.5 flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> {{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}</p>
+        <p class="text-[15px] text-warm-black/90 mb-3 flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> {{ $booking->guest_count }} guests</p>
 
         <!-- Payment & Visit Info -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 border-t border-gold-deep/10 pt-4">
@@ -66,16 +66,16 @@
                 @if($visit)
                   <div class="text-[13px] font-bold">{{ $visit->visit_date->format('M d, Y @ h:i A') }}</div>
                   @if($visit->status === 'pending')
-                    <span class="text-[11px] font-bold text-yellow-600">⏳ Pending Approval</span>
+                    <span class="text-[11px] font-bold text-yellow-600 inline-flex items-center gap-1"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pending Approval</span>
                   @elseif($visit->status === 'confirmed')
-                    <span class="text-[11px] font-bold text-green-600">✓ Confirmed</span>
+                    <span class="text-[11px] font-bold text-green-600 inline-flex items-center gap-1"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Confirmed</span>
                   @elseif($visit->status === 'rescheduled')
-                    <span class="text-[11px] font-bold text-blue-600">🔄 Rescheduled</span>
+                    <span class="text-[11px] font-bold text-blue-600 inline-flex items-center gap-1"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Rescheduled</span>
                   @else
                     <span class="text-[11px] font-bold text-warm-black/50">Completed</span>
                   @endif
                 @else
-                  <a href="{{ route('visit-schedule.create', ['booking' => $booking->id]) }}" class="inline-block bg-warm-black text-[11px] text-white px-3 py-1.5 rounded font-bold hover:bg-gold-deep transition-colors">📅 Schedule Visit</a>
+                  <a href="{{ route('visit-schedule.create', ['booking' => $booking->id]) }}" class="inline-block bg-warm-black text-[11px] text-white px-3 py-1.5 rounded font-bold hover:bg-gold-deep transition-colors"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Schedule Visit</a>
                 @endif
             </div>
         </div>
@@ -87,8 +87,9 @@
         {{-- Cancellation / Rejection Reason --}}
         @if(in_array($booking->status, ['rejected', 'cancelled']) && $booking->cancellation_reason)
           <div class="mt-3 p-3 rounded-lg" style="background: #fff3cd; border: 1px solid #ffc107;">
-            <p class="text-[11px] font-bold uppercase tracking-[1px] mb-1" style="color: #856404;">
-              ⚠️ {{ $booking->status === 'rejected' ? 'Reason for Rejection' : 'Reason for Cancellation' }}
+            <p class="text-[11px] font-bold uppercase tracking-[1px] mb-1 flex items-center gap-1.5" style="color: #856404;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              {{ $booking->status === 'rejected' ? 'Reason for Rejection' : 'Reason for Cancellation' }}
             </p>
             <p class="text-[13px]" style="color: #533f03; margin: 0; line-height: 1.5;">{{ $booking->cancellation_reason }}</p>
           </div>
@@ -103,13 +104,13 @@
 
         {{-- Reschedule Status Badge --}}
         @if($booking->reschedule_status === 'pending')
-          <span class="inline-block px-3 py-1.5 rounded-full text-[11px] font-bold tracking-[0.5px] bg-yellow-400/15 text-yellow-600 border border-yellow-400">🔄 Reschedule Pending</span>
+          <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-[0.5px] bg-yellow-400/15 text-yellow-600 border border-yellow-400"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Reschedule Pending</span>
         @elseif($booking->reschedule_status === 'approved')
-          <span class="inline-block px-3 py-1.5 rounded-full text-[11px] font-bold tracking-[0.5px] bg-green-400/15 text-green-600 border border-green-400">
-            ✓ Rescheduled — {{ $booking->reschedule_fee == 0 ? 'FREE' : '₱' . number_format($booking->reschedule_fee) }}
+          <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-[0.5px] bg-green-400/15 text-green-600 border border-green-400">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Rescheduled — {{ $booking->reschedule_fee == 0 ? 'FREE' : '₱' . number_format($booking->reschedule_fee) }}
           </span>
         @elseif($booking->reschedule_status === 'rejected')
-          <span class="inline-block px-3 py-1.5 rounded-full text-[11px] font-bold tracking-[0.5px] bg-red-400/15 text-red-500 border border-red-400">✕ Reschedule Rejected</span>
+          <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-[0.5px] bg-red-400/15 text-red-500 border border-red-400"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reschedule Rejected</span>
         @endif
 
         {{-- Reschedule Button —  only for approved bookings with no pending reschedule --}}
@@ -120,7 +121,7 @@
             data-event-date="{{ $booking->event_date->format('F d, Y') }}"
             data-visit-date="{{ optional($booking->visitSchedules->first())->visit_date ? $booking->visitSchedules->first()->visit_date->format('F d, Y') : 'Not scheduled' }}"
             data-reschedule-count="{{ $booking->reschedule_count }}">
-            🔄 Reschedule
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Reschedule
           </button>
         @endif
       </div>
@@ -144,7 +145,7 @@
         {{-- Header --}}
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 35px;">
             <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; color: #a88a4c; margin: 0; line-height: 1.2;">Reschedule Reservation</h3>
-            <button type="button" onclick="closeRescheduleModal()" style="border: none; background: transparent; cursor: pointer; font-size: 24px; color: #a88a4c; opacity: 0.6; transition: 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">&times;</button>
+            <button type="button" onclick="closeRescheduleModal()" style="border: none; background: transparent; cursor: pointer; color: #a88a4c; opacity: 0.6; transition: 0.3s; display: flex;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 30px;">
@@ -238,12 +239,12 @@
     // Fee notice
     const feeNotice = document.getElementById('feeNotice');
     if (rescheduleCount === 0) {
-      feeNotice.innerHTML = '✦ THIS IS YOUR FIRST RESCHEDULE — FREE OF CHARGE! ✦';
+      feeNotice.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:-2px;margin-right:4px;"><rect x="9" y="9" width="6" height="6" transform="rotate(45 12 12)"/></svg>THIS IS YOUR FIRST RESCHEDULE — FREE OF CHARGE!<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:-2px;margin-left:4px;"><rect x="9" y="9" width="6" height="6" transform="rotate(45 12 12)"/></svg>';
       feeNotice.style.backgroundColor = '#a88a4c10';
       feeNotice.style.color = '#a88a4c';
       feeNotice.style.border = '1px solid #a88a4c30';
     } else {
-      feeNotice.innerHTML = '⚠️ RESCHEDULE FEE: ₱5,000 (ATTEMPT #' + (rescheduleCount + 1) + ')';
+      feeNotice.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>RESCHEDULE FEE: ₱5,000 (ATTEMPT #' + (rescheduleCount + 1) + ')';
       feeNotice.style.backgroundColor = '#1a1a1a05';
       feeNotice.style.color = '#1a1a1a';
       feeNotice.style.border = '1px solid #1a1a1a10';

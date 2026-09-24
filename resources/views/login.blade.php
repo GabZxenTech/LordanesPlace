@@ -72,7 +72,7 @@
                 <input type="checkbox" name="remember" class="accent-gold-deep" />
                 <span>Remember me</span>
               </label>
-              <a href="#" class="text-gold-deep no-underline hover:text-gold-light transition-colors">Forgot password?</a>
+              <a href="{{ route('password.request') }}" class="text-gold-deep no-underline hover:text-gold-light transition-colors">Forgot password?</a>
             </div>
 
             <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}" style="margin-bottom:16px;"></div>

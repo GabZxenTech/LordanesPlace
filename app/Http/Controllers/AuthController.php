@@ -20,10 +20,14 @@ class AuthController extends Controller
         return view('signup');
     }
 
-    public function register(Request $request)
+    /**
+     * Blacklist of commonly used / easily guessable passwords, shared by
+     * every password-creation path (registration, OTP-based reset, and the
+     * existing admin-link reset) so the list never drifts out of sync.
+     */
+    public static function commonPasswords(): array
     {
-        // Blacklist of commonly used / easily guessable passwords
-        $commonPasswords = [
+        return [
             '12345678', '123456789', '1234567890', '12345678910',
             'password', 'password1', 'password12', 'password123', 'password1234',
             'Password1', 'Password12', 'Password123', 'Password1234',
@@ -38,6 +42,11 @@ class AuthController extends Controller
             'Qwerty123', 'Qwerty@123', 'Test@1234', 'Welcome@1',
             'changeme', 'changeme1',
         ];
+    }
+
+    public function register(Request $request)
+    {
+        $commonPasswords = self::commonPasswords();
 
         // An unverified signup (e.g. one whose OTP email never arrived) should
         // never permanently squat on an email address — treat resubmitting

@@ -116,12 +116,7 @@ return [
     */
 
     'from' => [
-        // Defaults to Resend's shared sandbox sender. Without a verified
-        // domain on Resend, mail can only be delivered to the email address
-        // used to sign up for the Resend account — verify a domain (or add
-        // the recipient as an allowed test address) before relying on this
-        // for real customers.
-        'address' => env('MAIL_FROM_ADDRESS', 'onboarding@resend.dev'),
+        'address' => env('MAIL_FROM_ADDRESS', 'placelordanes@gmail.com'),
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 

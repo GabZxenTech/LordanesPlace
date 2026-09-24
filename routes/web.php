@@ -10,6 +10,7 @@ use App\Http\Controllers\VisitScheduleController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\OtpVerificationController;
 use App\Http\Controllers\EmailChangeController;
+use App\Http\Controllers\ForgotPasswordController;
 
 Route::get('/', function () {
     return view('homepage');
@@ -28,12 +29,18 @@ Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
 
-Route::get('/forgot-password', function () {
-    return view('login');
-})->name('password.request');
+// Forgot Password — email-verification-code flow (self-service).
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showEmailForm'])->name('password.request');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendCode'])->name('password.otp.send');
+Route::get('/forgot-password/verify', [ForgotPasswordController::class, 'showVerifyForm'])->name('password.otp.verify.show');
+Route::post('/forgot-password/verify', [ForgotPasswordController::class, 'verifyCode'])->name('password.otp.verify');
+Route::post('/forgot-password/resend', [ForgotPasswordController::class, 'resendCode'])->name('password.otp.resend');
+Route::get('/forgot-password/reset', [ForgotPasswordController::class, 'showResetForm'])->name('password.otp.reset.show');
+Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'submitReset'])->name('password.otp.reset');
 
 // Password reset (links are only ever sent by an admin from the user
-// management panel — there is no public "forgot password" form).
+// management panel — a separate, token-based flow that is unrelated to the
+// self-service email flow above and must not be affected by it).
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 

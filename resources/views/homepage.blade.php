@@ -223,8 +223,8 @@
       <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
         <div>
           <div class="flex items-center justify-between mb-4">
-            <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
-              ★★★★★
+            <div class="flex text-[18px] tracking-widest" style="color: #B8860B !important;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
             <span class="text-[11px] font-semibold text-gold-deep bg-gold-deep/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
               Google Review
@@ -249,8 +249,8 @@
       <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
         <div>
           <div class="flex items-center justify-between mb-4">
-            <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
-              ★★★★★
+            <div class="flex text-[18px] tracking-widest" style="color: #B8860B !important;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
             <span class="text-[11px] font-semibold text-gold-deep bg-gold-deep/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
               Google Review
@@ -275,8 +275,8 @@
       <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
         <div>
           <div class="flex items-center justify-between mb-4">
-            <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
-              ★★★★★
+            <div class="flex text-[18px] tracking-widest" style="color: #B8860B !important;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
             <span class="text-[11px] font-semibold text-gold-deep bg-gold-deep/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
               Google Review
@@ -301,8 +301,8 @@
       <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
         <div>
           <div class="flex items-center justify-between mb-4">
-            <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
-              ★★★★★
+            <div class="flex text-[18px] tracking-widest" style="color: #B8860B !important;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
             <span class="text-[11px] font-semibold text-gold-deep bg-gold-deep/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
               Google Review
@@ -326,8 +326,8 @@
       
       <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
         <div>
-          <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
-            ★★★★★
+          <div class="flex text-[18px] tracking-widest" style="color: #B8860B !important;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
         </div>
         <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
@@ -344,8 +344,8 @@
       <!-- Review 6 (Minimal Google Review Style: Reyna Lim Baquiller) -->
       <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
         <div>
-          <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
-            ★★★★★
+          <div class="flex text-[18px] tracking-widest" style="color: #B8860B !important;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
         </div>
         <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
@@ -361,8 +361,8 @@
 
       <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
         <div>
-          <div class="flex text-[18px] tracking-widest" style="color: #F4B400 !important;">
-            ★★★★★
+          <div class="flex text-[18px] tracking-widest" style="color: #B8860B !important;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
         </div>
         <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">

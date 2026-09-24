@@ -24,7 +24,7 @@
       <p style="font-size: 14px; color: #8a6a40; margin: 0 0 20px;">Details for {{ $user->name }}</p>
 
       @if(session('success'))
-        <div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 14px;">✓ {{ session('success') }}</div>
+        <div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg> {{ session('success') }}</div>
       @endif
       @if($errors->has('error'))
         <div style="background: #f8d7da; border: 1px solid #dc3545; color: #721c24; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 14px;">{{ $errors->first('error') }}</div>
@@ -45,8 +45,9 @@
       </div>
 
       @if($user->pending_email)
-        <div style="background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 12px 16px; border-radius: 6px; margin: 20px 0; font-size: 13px;">
-          ⏳ Pending confirmation for <strong>{{ $user->pending_email }}</strong>
+        <div style="background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 12px 16px; border-radius: 6px; margin: 20px 0; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Pending confirmation for <strong>{{ $user->pending_email }}</strong>
         </div>
       @endif
 

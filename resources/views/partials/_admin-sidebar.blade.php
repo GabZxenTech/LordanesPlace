@@ -47,7 +47,7 @@
                   <p style="font-size: 12px; color: #8a6a40; margin: 4px 0 0; white-space: pre-line;">{{ \Illuminate\Support\Str::limit($notif->message, 90) }}</p>
                   <p style="font-size: 10px; color: #c9a84c; margin: 4px 0 0; text-transform: uppercase; letter-spacing: 0.5px;">{{ $notif->created_at->diffForHumans() }}</p>
                 </a>
-                <button type="button" onclick="markAdminNotifRead(event, {{ $notif->id }})" title="Mark as read" style="flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #d4c4a0; background: transparent; color: #c9a84c; font-size: 12px; line-height: 1; cursor: pointer;" onmouseover="this.style.background='#c9a84c'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#c9a84c';">&check;</button>
+                <button type="button" onclick="markAdminNotifRead(event, {{ $notif->id }})" title="Mark as read" style="flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #d4c4a0; background: transparent; color: #c9a84c; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#c9a84c'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#c9a84c';"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
               </div>
             @endforeach
           </div>

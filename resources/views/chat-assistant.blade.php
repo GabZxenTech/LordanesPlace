@@ -203,11 +203,14 @@
 
 <!-- CHAT BUBBLE -->
 <div class="chat-bubble">
-  <button class="chat-toggle" onclick="toggleChat()" id="chatToggleBtn">💬</button>
+  <button class="chat-toggle" onclick="toggleChat()" id="chatToggleBtn">
+    <svg id="chatIconOpen" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <svg id="chatIconClose" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
 
   <div class="chat-window" id="chatWindow">
     <div class="chat-header">
-      <div class="chat-avatar">🏡</div>
+      <div class="chat-avatar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2C1A0E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
       <div class="chat-header-info">
         <h4>Lordane's Place Chat Assistance</h4>
         <p id="adminStatusText">● Online — here to help!</p>
@@ -220,15 +223,15 @@
     </div>
 
     <div class="quick-replies" id="quickReplies">
-      <button class="quick-btn" onclick="handleQuickReply('pricing')">💰 Pricing</button>
-      <button class="quick-btn" onclick="handleQuickReply('booking')">📋 Booking</button>
-      <button class="quick-btn" onclick="handleQuickReply('location')">📍 Location</button>
-      <button class="quick-btn" onclick="handleQuickReply('amenities')">🏠 Amenities</button>
+      <button class="quick-btn" onclick="handleQuickReply('pricing')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px;"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Pricing</button>
+      <button class="quick-btn" onclick="handleQuickReply('booking')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px;"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>Booking</button>
+      <button class="quick-btn" onclick="handleQuickReply('location')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Location</button>
+      <button class="quick-btn" onclick="handleQuickReply('amenities')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Amenities</button>
     </div>
 
     <div class="chat-input-row" id="chatInputRow">
       <input type="text" class="chat-input" id="chatInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter') sendMessage()" />
-      <button class="chat-send" onclick="sendMessage()">➤</button>
+      <button class="chat-send" onclick="sendMessage()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
     </div>
   </div>
 </div>
@@ -250,12 +253,13 @@
   function toggleChat() {
     chatOpen = !chatOpen;
     document.getElementById('chatWindow').classList.toggle('open', chatOpen);
-    document.getElementById('chatToggleBtn').textContent = chatOpen ? '✕' : '💬';
+    document.getElementById('chatIconOpen').style.display = chatOpen ? 'none' : '';
+    document.getElementById('chatIconClose').style.display = chatOpen ? '' : 'none';
 
     if (chatOpen && !greeted) {
       greeted = true;
       setTimeout(() => {
-        addMessage('bot', "👋 Hi! Welcome to **Lordane's Place**! I'm your assistant. How can I help you today?");
+        addMessage('bot', "Hi! Welcome to **Lordane's Place**! I'm your assistant. How can I help you today?");
         loadHistory();
       }, 400);
     }
@@ -276,7 +280,7 @@
   }
 
   function handleQuickReply(key) {
-    const labels = { pricing: "💰 Pricing", booking: "📋 Booking", location: "📍 Location", amenities: "🏠 Amenities" };
+    const labels = { pricing: "Pricing", booking: "Booking", location: "Location", amenities: "Amenities" };
     addMessage('user', labels[key]);
     
     setTimeout(() => {

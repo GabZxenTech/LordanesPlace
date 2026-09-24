@@ -47,22 +47,22 @@
   </div>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
-      <div class="text-[28px] mb-3">🕐</div>
+      <div class="mb-3 flex justify-center text-gold-deep"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
       <h4 class="text-[12px] md:text-[15px] font-bold text-gold-deep tracking-[1px] mb-2">OPERATING HOURS</h4>
       <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Open daily from 8:00 AM to 10:00 PM. Events must end by 10:00 PM.</p>
     </div>
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
-      <div class="text-[28px] mb-3">💳</div>
+      <div class="mb-3 flex justify-center text-gold-deep"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
       <h4 class="text-[12px] md:text-[15px] font-bold text-gold-deep tracking-[1px] mb-2">PAYMENT POLICY</h4>
       <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">{{ \App\Models\Booking::downPaymentRatePercent() }}% downpayment required to confirm booking. Full payment due on event day.</p>
     </div>
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
-      <div class="text-[28px] mb-3">🔄</div>
+      <div class="mb-3 flex justify-center text-gold-deep"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
       <h4 class="text-[12px] md:text-[15px] font-bold text-gold-deep tracking-[1px] mb-2">CANCELLATION POLICY</h4>
       <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Cancel at least 48 hours before your event for a refund. No-shows are non-refundable.</p>
     </div>
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
-      <div class="text-[28px] mb-3">👥</div>
+      <div class="mb-3 flex justify-center text-gold-deep"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
       <h4 class="text-[12px] md:text-[15px] font-bold text-gold-deep tracking-[1px] mb-2">MAXIMUM CAPACITY</h4>
       <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Up to 200–250 guests. Packages available for small to large events.</p>
     </div>
@@ -152,13 +152,15 @@
       <h3 class="text-[12px] md:text-[15px] tracking-[2px] text-gold-deep mb-5 font-bold">BOOKING DETAILS</h3>
 
       @guest
-        <div class="bg-gold-deep/10 border border-gold-deep/30 rounded-md p-3.5 text-[15px] text-warm-black/90 text-center mb-5">
-          ⚠️ You need to <a href="{{ route('login') }}" class="text-gold-deep font-bold no-underline hover:underline">login</a> or <a href="{{ route('register') }}" class="text-gold-deep font-bold no-underline hover:underline">create an account</a> to submit a booking.
+        <div class="bg-gold-deep/10 border border-gold-deep/30 rounded-md p-3.5 text-[15px] text-warm-black/90 text-center mb-5 flex items-center justify-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gold-deep flex-shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          <span>You need to <a href="{{ route('login') }}" class="text-gold-deep font-bold no-underline hover:underline">login</a> or <a href="{{ route('register') }}" class="text-gold-deep font-bold no-underline hover:underline">create an account</a> to submit a booking.</span>
         </div>
       @endguest
 
-      <div class="bg-gold-deep/10 border border-gold-deep/25 rounded-md p-2.5 text-[15px] text-gold-deep text-center mb-5" id="selectedDateDisplay">
-        📅 Please select a date from the calendar
+      <div class="bg-gold-deep/10 border border-gold-deep/25 rounded-md p-2.5 text-[15px] text-gold-deep text-center mb-5 flex items-center justify-center gap-2" id="selectedDateDisplay">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="selectedDateText">Please select a date from the calendar</span>
       </div>
 
       @if($errors->any() && !session('booking_success'))
@@ -309,7 +311,7 @@
 
         {{-- Please Note Box --}}
         <div class="bg-blue-500/10 border border-blue-400/30 rounded-lg p-4 mb-6 flex gap-3.5 items-start">
-            <span class="text-[20px] mt-0.5">📌</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500 mt-0.5 flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             <div class="text-[13.5px] text-warm-black/80 leading-relaxed">
                 <strong>Please note:</strong> A {{ \App\Models\Booking::downPaymentRatePercent() }}% down payment is required to confirm your reservation. Our admin will contact you with payment instructions after booking.
             </div>
@@ -358,12 +360,12 @@
       <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
         <div>
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-            <span style="font-size:18px;">📋</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#c9a84c; flex-shrink:0;"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
             <h2 style="font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:700; color:#2c1a0e; margin:0; letter-spacing:0.5px;">Terms and Conditions</h2>
           </div>
           <p style="font-size:12px; color:#8a6a40; margin:0; line-height:1.5;">Please read and agree to the terms and conditions before proceeding with your booking.</p>
         </div>
-        <button type="button" id="closeTermsModalBtn" style="background:none; border:none; font-size:20px; color:#999; cursor:pointer; line-height:1; padding:2px 4px; flex-shrink:0;" title="Close">✕</button>
+        <button type="button" id="closeTermsModalBtn" style="background:none; border:none; color:#999; cursor:pointer; line-height:1; padding:2px 4px; flex-shrink:0; display:flex;" title="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
 
       {{-- Scroll hint --}}
@@ -371,8 +373,8 @@
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
         <span>Scroll to the bottom to unlock the agreement</span>
       </div>
-      <div id="termsScrollDone" style="display:none; margin-top:10px; font-size:11px; color:#16a34a; font-weight:600;">
-        ✓ You've reached the end — check the box below to agree.
+      <div id="termsScrollDone" style="display:none; margin-top:10px; font-size:11px; color:#16a34a; font-weight:600; align-items: center; gap: 5px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg> You've reached the end — check the box below to agree.
       </div>
     </div>
 
@@ -528,8 +530,8 @@
   function openTermsModal() {
     // Always reset scroll state when opening fresh
     termsScrolledToBottom = false;
-    termsScrollHint.classList.remove('hidden');
-    termsScrollDone.classList.add('hidden');
+    termsScrollHint.style.display = 'flex';
+    termsScrollDone.style.display = 'none';
     termsAgreeChk.disabled = true;
     termsAgreeChk.checked  = false;
     termsAgreeChk.style.cursor = 'not-allowed';
@@ -585,8 +587,8 @@
     // Within 10px of bottom counts as "reached end"
     if (el.scrollHeight - el.scrollTop - el.clientHeight <= 10) {
       termsScrolledToBottom = true;
-      termsScrollHint.classList.add('hidden');
-      termsScrollDone.classList.remove('hidden');
+      termsScrollHint.style.display = 'none';
+      termsScrollDone.style.display = 'flex';
       termsAgreeChk.disabled = false;
       termsAgreeChk.style.cursor = 'pointer';
       termsAgreeLabel.style.color = '#2c1a0e';
@@ -669,7 +671,11 @@
 <div class="modal-overlay hidden fixed inset-0 bg-black/70 z-[9999] items-center justify-center" id="successModal">
   <div class="modal-box bg-off-white border border-gold-deep/25 rounded-2xl p-8 md:p-10 max-w-[650px] w-[95%] overflow-y-auto max-h-[90vh]">
     <div class="text-center mb-6">
-        <div class="text-[48px] mb-2">🎉</div>
+        <div class="mb-3 flex justify-center">
+          <div class="w-16 h-16 rounded-full bg-gold-deep flex items-center justify-center">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
         <h2 class="font-heading text-[26px] md:text-[32px] font-bold text-gold-deep mb-2">Booking Submitted!</h2>
         @if(session('booking_number'))
           <div class="mb-4">
@@ -776,8 +782,14 @@
 <!-- FINAL VISIT SUCCESS MODAL -->
 <div class="modal-overlay hidden fixed inset-0 bg-black/70 z-[9999] items-center justify-center" id="visitSuccessModal">
   <div class="modal-box bg-off-white border border-gold-deep/25 rounded-2xl p-10 md:p-12 text-center max-w-[460px] w-[90%] relative">
-    <button type="button" onclick="document.getElementById('visitSuccessModal').style.display='none'" class="absolute top-4 right-4 text-warm-black/40 hover:text-warm-black text-[22px] bg-transparent border-none cursor-pointer leading-none transition-colors">✕</button>
-    <div class="text-[56px] mb-4">✨</div>
+    <button type="button" onclick="document.getElementById('visitSuccessModal').style.display='none'" class="absolute top-4 right-4 text-warm-black/40 hover:text-warm-black bg-transparent border-none cursor-pointer leading-none transition-colors flex items-center justify-center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="mb-4 flex justify-center">
+      <div class="w-16 h-16 rounded-full bg-gold-deep flex items-center justify-center">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
     <h2 class="font-heading text-[26px] md:text-[28px] font-bold text-gold-deep mb-3">Thank You!</h2>
     <p class="text-warm-black/90 text-[16px] leading-[1.7] mb-6">Thank you! Your visit has been scheduled. We look forward to seeing you at LorDane's Place soon!</p>
     <div class="flex gap-3 justify-center flex-wrap">
@@ -843,7 +855,7 @@
   const oldDate = dataEl.getAttribute('data-old-date');
   if (oldDate) {
     selectedDate = oldDate;
-    document.getElementById('selectedDateDisplay').textContent = '📅 Selected: ' + formatDisplay(oldDate);
+    document.getElementById('selectedDateText').textContent = 'Selected: ' + formatDisplay(oldDate);
   }
 
   function syncPackageFromSelect() {
@@ -1019,7 +1031,7 @@
     // Unselect any selected date
     selectedDate = null;
     document.getElementById('eventDateInput').value = '';
-    document.getElementById('selectedDateDisplay').textContent = '📅 Please select an available date';
+    document.getElementById('selectedDateText').textContent = 'Please select an available date';
     renderCalendar();
   }
 
@@ -1066,7 +1078,7 @@
     el.classList.add('selected');
     selectedDate = dateStr;
     document.getElementById('eventDateInput').value = dateStr;
-    document.getElementById('selectedDateDisplay').textContent = '📅 Selected: ' + formatDisplay(dateStr);
+    document.getElementById('selectedDateText').textContent = 'Selected: ' + formatDisplay(dateStr);
 
     // Hide blocked alert if it was showing
     document.getElementById('blockedDateAlert').classList.add('hidden');
@@ -1081,7 +1093,7 @@
           // Date became unavailable (e.g., just approved by admin)
           selectedDate = null;
           document.getElementById('eventDateInput').value = '';
-          document.getElementById('selectedDateDisplay').textContent = '📅 Please select an available date';
+          document.getElementById('selectedDateText').textContent = 'Please select an available date';
           
           const alertBox = document.getElementById('blockedDateAlert');
           const reasonText = document.getElementById('blockedDateReason');

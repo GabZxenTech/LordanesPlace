@@ -20,8 +20,8 @@
     {{-- Booking Info --}}
     <div class="bg-gold-deep/5 border border-gold-deep/15 rounded-lg p-4 mb-6">
       <div class="text-[11px] text-warm-black/50 font-bold uppercase tracking-[1px] mb-2">Booking Details</div>
-      <div class="text-[14px] text-warm-black/80 mb-1">📋 <strong>{{ $booking->event_type }}</strong> — {{ $booking->package }} Package</div>
-      <div class="text-[14px] text-warm-black/80 mb-1">📅 Event Date: <strong>{{ $booking->event_date->format('F d, Y') }}</strong></div>
+      <div class="text-[14px] text-warm-black/80 mb-1 flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg> <strong>{{ $booking->event_type }}</strong> — {{ $booking->package }} Package</div>
+      <div class="text-[14px] text-warm-black/80 mb-1 flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Event Date: <strong>{{ $booking->event_date->format('F d, Y') }}</strong></div>
       <div class="text-[14px] text-warm-black/80"># <strong class="text-gold-deep">{{ $booking->booking_number }}</strong></div>
     </div>
 

@@ -43,7 +43,7 @@
 
       <div style="background: #B8860B05; padding: 2rem; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #B8860B10;">
         <div style="display: flex; align-items: center; gap: 1.5rem;">
-          <div style="width: 48px; height: 48px; border-radius: 50%; background: #B8860B15; display: flex; align-items: center; justify-content: center; color: #B8860B;">✦</div>
+          <div style="width: 48px; height: 48px; border-radius: 50%; background: #B8860B15; display: flex; align-items: center; justify-content: center; color: #B8860B;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
           <div>
             <p style="font-size: 15px; font-weight: 700; color: #1A1208; margin: 0;">Reservation Summary</p>
             <p style="font-size: 13px; color: #1A1208; margin: 0; opacity: 0.7;">You have currently entrusted us with {{ $bookings->count() }} reservations.</p>
@@ -82,8 +82,9 @@
           {{-- Cancellation / Rejection Reason Banner --}}
           @if(in_array($booking->status, ['rejected', 'cancelled']) && $booking->cancellation_reason)
             <div style="padding: 14px 3rem; background: #fff3cd; border-bottom: 1px solid #ffc107;">
-              <p style="font-size: 11px; font-weight: 900; color: #856404; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 4px;">
-                ⚠️ {{ $booking->status === 'rejected' ? 'Reason for Rejection' : 'Reason for Cancellation' }}
+              <p style="font-size: 11px; font-weight: 900; color: #856404; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 4px; display: flex; align-items: center; gap: 6px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                {{ $booking->status === 'rejected' ? 'Reason for Rejection' : 'Reason for Cancellation' }}
               </p>
               <p style="font-size: 14px; color: #533f03; margin: 0; line-height: 1.5;">{{ $booking->cancellation_reason }}</p>
             </div>
@@ -127,8 +128,12 @@
                 @php $visit = $booking->visitSchedules->first(); @endphp
                 @if($visit)
                   <p style="font-size: 18px; font-weight: 700; color: #1A1208;">{{ $visit->visit_date->format('M d, Y @ h:i A') }}</p>
-                  <p style="font-size: 10px; font-weight: 900; text-transform: uppercase; color: {{ $visit->status === 'confirmed' ? '#B8860B' : '#1A120840' }}; letter-spacing: 0.05em; margin-top: 0.25rem;">
-                    {{ $visit->status === 'confirmed' ? '✦ Appointment Confirmed' : 'Awaiting confirmation' }}
+                  <p style="font-size: 10px; font-weight: 900; text-transform: uppercase; color: {{ $visit->status === 'confirmed' ? '#B8860B' : '#1A120840' }}; letter-spacing: 0.05em; margin-top: 0.25rem; display: flex; align-items: center; gap: 4px;">
+                    @if($visit->status === 'confirmed')
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><rect x="9" y="9" width="6" height="6" transform="rotate(45 12 12)"/></svg> Appointment Confirmed
+                    @else
+                      Awaiting confirmation
+                    @endif
                   </p>
                 @else
                   <a href="{{ route('visit-schedule.create', ['booking' => $booking->id]) }}" style="color: #B8860B; font-weight: 900; font-size: 13px; text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 2px solid #B8860B30; padding-bottom: 2px;">Schedule Walkthrough &rarr;</a>
@@ -194,7 +199,7 @@
         {{-- Header --}}
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 35px;">
             <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; color: #B8860B; margin: 0; line-height: 1.2;">Reschedule Reservation</h3>
-            <button type="button" onclick="closeRescheduleModal()" style="border: none; background: transparent; cursor: pointer; font-size: 24px; color: #B8860B; opacity: 0.6; transition: 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">&times;</button>
+            <button type="button" onclick="closeRescheduleModal()" style="border: none; background: transparent; cursor: pointer; color: #B8860B; opacity: 0.6; transition: 0.3s; display: flex;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 30px;">
@@ -271,12 +276,12 @@
 
     const feeNotice = document.getElementById('feeNotice');
     if (rescheduleCount === 0) {
-      feeNotice.innerHTML = '✦ THIS IS YOUR FIRST RESCHEDULE — FREE OF CHARGE! ✦';
+      feeNotice.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:-2px;margin-right:4px;"><rect x="9" y="9" width="6" height="6" transform="rotate(45 12 12)"/></svg>THIS IS YOUR FIRST RESCHEDULE — FREE OF CHARGE!<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:-2px;margin-left:4px;"><rect x="9" y="9" width="6" height="6" transform="rotate(45 12 12)"/></svg>';
       feeNotice.style.backgroundColor = '#B8860B10';
       feeNotice.style.color = '#B8860B';
       feeNotice.style.border = '1px solid #B8860B30';
     } else {
-      feeNotice.innerHTML = '⚠️ RESCHEDULE FEE: ₱5,000 (ATTEMPT #' + (rescheduleCount + 1) + ')';
+      feeNotice.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>RESCHEDULE FEE: ₱5,000 (ATTEMPT #' + (rescheduleCount + 1) + ')';
       feeNotice.style.backgroundColor = '#1A120805';
       feeNotice.style.color = '#1A1208';
       feeNotice.style.border = '1px solid #1A120810';

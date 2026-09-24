@@ -12,7 +12,11 @@
 <body class="bg-off-white text-warm-black font-body min-h-screen flex items-center justify-center p-5 md:p-10">
 
   <div class="bg-cream border border-gold-deep/25 rounded-2xl p-10 md:p-14 text-center max-w-[500px] w-full shadow-sm">
-    <div class="text-[56px] md:text-[60px] mb-5">🎉</div>
+    <div class="mb-5 flex justify-center">
+      <div class="w-20 h-20 rounded-full bg-gold-deep flex items-center justify-center">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
     <h1 class="font-heading text-[28px] md:text-[32px] font-bold text-gold-deep mb-3">Booking Submitted!</h1>
     
     @if($booking)
@@ -23,7 +27,7 @@
     @endif
 
     <p class="text-warm-black/90 text-[16px] leading-[1.7] mb-7">Your reservation request has been received. We will review your booking and get back to you shortly.</p>
-    <div class="bg-green-400/10 border border-green-400 text-green-600 p-3.5 rounded-lg text-[15px] mb-7">✓ Your booking is currently <strong>pending approval</strong> from our team.</div>
+    <div class="bg-green-400/10 border border-green-400 text-green-600 p-3.5 rounded-lg text-[15px] mb-7 flex items-center justify-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg> Your booking is currently <strong>pending approval</strong> from our team.</div>
     
     <div class="mb-7 text-[13px] text-warm-black/60 italic">Your official receipt will be available once the admin confirms your payment.</div>
     <div class="flex gap-3 justify-center flex-wrap">

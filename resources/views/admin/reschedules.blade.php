@@ -20,7 +20,7 @@
     </div>
 
     @if(session('success'))
-      <div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 15px;">✓ {{ session('success') }}</div>
+      <div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 15px; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg> {{ session('success') }}</div>
     @endif
 
     <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; overflow: hidden;">
@@ -48,10 +48,10 @@
                   <div style="font-size: 12px; color: #8a6a40;">Reason: {{ $booking->reschedule_reason ?? '—' }}</div>
                 </td>
                 <td style="padding: 14px 20px;">
-                  <div style="font-size: 14px; color: #8a6a40;">📅 {{ $booking->event_date->format('M d, Y') }}</div>
+                  <div style="font-size: 14px; color: #8a6a40; display: flex; align-items: center; gap: 5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> {{ $booking->event_date->format('M d, Y') }}</div>
                 </td>
                 <td style="padding: 14px 20px;">
-                  <div style="font-size: 15px; color: #2c1a0e; font-weight: 700;">📅 {{ $booking->requested_event_date->format('M d, Y') }}</div>
+                  <div style="font-size: 15px; color: #2c1a0e; font-weight: 700; display: flex; align-items: center; gap: 5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> {{ $booking->requested_event_date->format('M d, Y') }}</div>
                 </td>
                 <td style="padding: 14px 20px;">
                   @if($booking->reschedule_fee == 0)
@@ -64,11 +64,11 @@
                   <div style="display: flex; gap: 8px;">
                     <form method="POST" action="{{ route('admin.reschedule.approve', $booking->id) }}">
                       @csrf
-                      <button type="submit" style="background: transparent; border: 1px solid #28a745; color: #28a745; padding: 6px 14px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#28a745'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#28a745';" onclick="return confirm('Approve this reschedule?')">✓ Approve</button>
+                      <button type="submit" style="background: transparent; border: 1px solid #28a745; color: #28a745; padding: 6px 14px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px;" onmouseover="this.style.background='#28a745'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#28a745';" onclick="return confirm('Approve this reschedule?')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Approve</button>
                     </form>
                     <form method="POST" action="{{ route('admin.reschedule.reject', $booking->id) }}">
                       @csrf
-                      <button type="submit" style="background: transparent; border: 1px solid #e74c3c; color: #e74c3c; padding: 6px 14px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e74c3c'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#e74c3c';" onclick="return confirm('Reject this reschedule?')">✕ Reject</button>
+                      <button type="submit" style="background: transparent; border: 1px solid #e74c3c; color: #e74c3c; padding: 6px 14px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px;" onmouseover="this.style.background='#e74c3c'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#e74c3c';" onclick="return confirm('Reject this reschedule?')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reject</button>
                     </form>
                   </div>
                 </td>

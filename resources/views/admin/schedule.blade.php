@@ -31,7 +31,7 @@
     </div>
 
     @if(session('success'))
-      <div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 15px;">✓ {{ session('success') }}</div>
+      <div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 15px; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg> {{ session('success') }}</div>
     @endif
     @if($errors->any())
       <div style="background: #f8d7da; border: 1px solid #dc3545; color: #721c24; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px;">
@@ -62,7 +62,7 @@
                   style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
                   onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
               </div>
-              <button type="submit" style="width: 100%; background: #e74c3c; color: white; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 14px; letter-spacing: 1px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">🚫 BLOCK DATE</button>
+              <button type="submit" style="width: 100%; background: #e74c3c; color: white; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 14px; letter-spacing: 1px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> BLOCK DATE</button>
             </form>
           </div>
         </div>
@@ -407,7 +407,7 @@
           <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: #2c1a0e; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 1px;">Review &amp; Approve Booking</h2>
           <p style="font-size: 12px; color: #8a6a40; margin: 0;">Please review all details before confirming approval.</p>
         </div>
-        <button type="button" onclick="closeApproveModal()" style="background: transparent; border: none; font-size: 22px; color: #8a6a40; cursor: pointer; line-height: 1; padding: 0 0 0 16px;" title="Close">✕</button>
+        <button type="button" onclick="closeApproveModal()" style="background: transparent; border: none; color: #8a6a40; cursor: pointer; line-height: 1; padding: 0 0 0 16px; display: flex;" title="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
 
       {{-- Booking Number Banner --}}
@@ -494,9 +494,9 @@
         <form method="POST" action="" id="approveForm" style="flex: 1;">
           @csrf
           <button type="submit"
-            style="width: 100%; background: #28a745; color: white; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif; letter-spacing: 1px;"
+            style="width: 100%; background: #28a745; color: white; border: none; padding: 14px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity 0.3s; font-family: 'Jost', sans-serif; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px;"
             onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-            ✓ CONFIRM APPROVAL
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> CONFIRM APPROVAL
           </button>
         </form>
         <button type="button"
@@ -512,8 +512,9 @@
       <h2 id="reasonModalTitle" style="font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: #2c1a0e; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 1px;">Reject Booking</h2>
       <p id="reasonModalSubtitle" style="font-size: 13px; color: #8a6a40; margin: 0 0 24px;"></p>
 
-      <div id="reasonModalConfirmBox" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: #856404; font-weight: 600;">
-        ⚠️ <span id="reasonModalConfirmText"></span>
+      <div id="reasonModalConfirmBox" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: #856404; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <span id="reasonModalConfirmText"></span>
       </div>
 
       <form method="POST" action="" id="reasonForm">
