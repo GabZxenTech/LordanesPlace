@@ -70,6 +70,13 @@ return [
             'transport' => 'resend',
         ],
 
+        // Sends over Mailjet's HTTPS API (port 443) instead of SMTP, since
+        // Render's free tier blocks outbound SMTP ports. Transport is
+        // registered in AppServiceProvider.
+        'mailjet' => [
+            'transport' => 'mailjet',
+        ],
+
         'sendmail' => [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),

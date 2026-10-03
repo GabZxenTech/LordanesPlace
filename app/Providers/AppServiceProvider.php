@@ -30,6 +30,19 @@ class AppServiceProvider extends ServiceProvider
         // device receiving that link in an email.
         \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
 
+        // Laravel has no built-in Mailjet driver; wire Symfony's API transport
+        // so MAIL_MAILER=mailjet sends over HTTPS rather than blocked SMTP.
+        \Illuminate\Support\Facades\Mail::extend('mailjet', function () {
+            return (new \Symfony\Component\Mailer\Bridge\Mailjet\Transport\MailjetTransportFactory())->create(
+                new \Symfony\Component\Mailer\Transport\Dsn(
+                    'mailjet+api',
+                    'default',
+                    config('services.mailjet.key'),
+                    config('services.mailjet.secret')
+                )
+            );
+        });
+
         if (config('app.env') === 'production') {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
