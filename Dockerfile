@@ -75,13 +75,15 @@ stdout_logfile_maxbytes=0\n\
 stderr_logfile=/dev/stderr\n\
 stderr_logfile_maxbytes=0\n' > /etc/supervisord.conf
 
-# Start script
+# Build-time caches (these don't depend on env vars)
+RUN php artisan route:cache && php artisan view:cache
+
+# Start script — config:cache MUST run here (at runtime) because Render
+# injects environment variables only when the container starts, not during build.
 RUN printf '#!/bin/sh\n\
+php artisan config:cache\n\
 php artisan migrate --force\n\
 php artisan storage:link\n\
-php artisan config:cache\n\
-php artisan route:cache\n\
-php artisan view:cache\n\
 /usr/bin/supervisord -c /etc/supervisord.conf\n' > /usr/local/bin/start-app.sh && chmod +x /usr/local/bin/start-app.sh
 
 EXPOSE 8080
