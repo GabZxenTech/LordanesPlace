@@ -73,7 +73,7 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/users/{id}/edit', [AdminController::class, 'edit'])->name('edit');
     Route::put('/users/{id}', [AdminController::class, 'update'])->name('update');
@@ -117,7 +117,7 @@ use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ReportController;
 
 // Admin schedule routes
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/schedule', [BlockedDateController::class, 'index'])->name('schedule');
     Route::post('/block-date', [BlockedDateController::class, 'store'])->name('block.date');
     Route::delete('/block-date/{id}', [BlockedDateController::class, 'destroy'])->name('unblock.date');
@@ -209,16 +209,4 @@ Route::get('/admin/mail-test', function () {
     }
 
     return response()->json($info, 200, [], JSON_PRETTY_PRINT);
-})->middleware('auth');
-
-Route::get('/setup-admin', function () {
-    $user = \App\Models\User::updateOrCreate(
-        ['email' => 'admin@test.com'],
-        [
-            'name' => 'Admin User',
-            'password' => Hash::make('admin123'),
-            'role' => 'admin'
-        ]
-    );
-    return "Admin account created/updated! Email: admin@test.com, Pass: admin123. PLEASE DELETE THIS ROUTE NOW.";
-});
+})->middleware(['auth', 'admin']);

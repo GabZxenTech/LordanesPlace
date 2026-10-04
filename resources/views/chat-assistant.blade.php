@@ -259,7 +259,7 @@
     if (chatOpen && !greeted) {
       greeted = true;
       setTimeout(() => {
-        addMessage('bot', "Hi! Welcome to **Lordane's Place**! I'm your assistant. How can I help you today?");
+        addMessage('bot', "Hi! Welcome to **Lordane's Place**! I'm your assistant. How can I help you today?", true);
         loadHistory();
       }, 400);
     }
@@ -269,11 +269,20 @@
     }
   }
 
-  function addMessage(type, text) {
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = String(str ?? '');
+    return div.innerHTML;
+  }
+
+  // `trusted` is only for the hard-coded bot replies above (which contain a
+  // link); anything typed by a user or admin is escaped before formatting.
+  function addMessage(type, text, trusted = false) {
     const messages = document.getElementById('chatMessages');
     const div = document.createElement('div');
     div.className = `msg ${type}`;
-    div.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    const safe = trusted ? text : escapeHtml(text);
+    div.innerHTML = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
     return div;
@@ -284,7 +293,7 @@
     addMessage('user', labels[key]);
     
     setTimeout(() => {
-      addMessage('bot', quickResponses[key]);
+      addMessage('bot', quickResponses[key], true);
     }, 500);
   }
 

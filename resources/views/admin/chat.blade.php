@@ -28,7 +28,7 @@
         </div>
         <div id="conversationList" style="flex: 1; overflow-y: auto;">
           @foreach($conversations as $conv)
-            <div class="chat-item" onclick="openChat({{ $conv->id }}, '{{ $conv->user->name ?? 'Guest' }}', this)" 
+            <div class="chat-item" data-name="{{ $conv->user->name ?? 'Guest' }}" onclick="openChat({{ $conv->id }}, this.dataset.name, this)"
                  style="padding: 16px 24px; border-bottom: 1px solid #e8dcc8; cursor: pointer; transition: background 0.2s;">
               <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
                 <span style="font-size: 15px; font-weight: 600; color: #2c1a0e;">{{ $conv->user->name ?? 'Guest' }}</span>
@@ -75,6 +75,11 @@
   <script>
     let currentConversationId = null;
 
+    // Message bodies come from guests/customers — never insert them as HTML.
+    function escapeHtml(str) {
+      return $('<div>').text(String(str ?? '')).html();
+    }
+
     function openChat(id, name, element) {
       currentConversationId = id;
       
@@ -97,7 +102,7 @@
           html += `
             <div style="display: flex; justify-content: ${isAdmin ? 'flex-end' : 'flex-start'};">
               <div style="max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5; ${isAdmin ? 'background: #2c1a0e; color: #f5f0e8; border-bottom-right-radius: 2px;' : 'background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; border-bottom-left-radius: 2px;'}">
-                ${msg.body}
+                ${escapeHtml(msg.body)}
                 <div style="font-size: 10px; margin-top: 6px; opacity: 0.6; text-align: ${isAdmin ? 'right' : 'left'};">
                   ${new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                 </div>
@@ -131,7 +136,7 @@
       const html = `
         <div style="display: flex; justify-content: ${isAdmin ? 'flex-end' : 'flex-start'};">
           <div style="max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5; ${isAdmin ? 'background: #2c1a0e; color: #f5f0e8; border-bottom-right-radius: 2px;' : 'background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; border-bottom-left-radius: 2px;'}">
-            ${msg.body}
+            ${escapeHtml(msg.body)}
             <div style="font-size: 10px; margin-top: 6px; opacity: 0.6; text-align: ${isAdmin ? 'right' : 'left'};">
               ${new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
             </div>
