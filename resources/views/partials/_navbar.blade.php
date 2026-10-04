@@ -40,21 +40,14 @@
             <span id="navNotifBadge" class="absolute top-0 right-0 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none" style="{{ $navUnreadCount > 0 ? '' : 'display: none;' }}">{{ $navUnreadCount > 9 ? '9+' : $navUnreadCount }}</span>
           </div>
           <div id="navNotifMenu" class="dropdown-menu hidden absolute top-full right-0 mt-2 border border-gold-deep/20 rounded-lg shadow-xl w-[340px] max-h-[420px] overflow-y-auto z-[999] bg-cream"
-               data-notif-base="{{ url('notifications') }}" data-csrf="{{ csrf_token() }}">
+               data-notif-base="{{ url('notifications') }}" data-poll-url="{{ route('notifications.poll') }}" data-csrf="{{ csrf_token() }}">
             <div class="flex items-center justify-between px-4 py-3 border-b border-gold-deep/10 sticky top-0 bg-cream">
               <span class="text-[13px] font-bold text-warm-black uppercase tracking-wide">Notifications</span>
               <button type="button" id="navMarkAllBtn" onclick="markAllNavNotifsRead(event)" class="text-[11px] text-gold-deep font-semibold bg-transparent border-none cursor-pointer hover:underline" style="{{ $navUnreadCount > 0 ? '' : 'display: none;' }}">Mark all read</button>
             </div>
             <div id="navNotifList">
               @foreach($navNotifications as $notif)
-                <div class="nav-notif-item flex items-start gap-2 px-4 py-3 border-b border-gold-deep/10 bg-gold-deep/10 transition-colors" data-notif-id="{{ $notif->id }}">
-                  <a href="{{ route('notifications.open', $notif->id) }}" class="block flex-1 no-underline">
-                    <p class="text-[13px] font-bold text-warm-black m-0">{{ $notif->title }}</p>
-                    <p class="text-[12px] text-warm-black/70 m-0 mt-1" style="white-space: pre-line;">{{ \Illuminate\Support\Str::limit($notif->message, 90) }}</p>
-                    <p class="text-[10px] text-gold-deep/80 m-0 mt-1 uppercase tracking-wide">{{ $notif->created_at->diffForHumans() }}</p>
-                  </a>
-                  <button type="button" onclick="markNavNotifRead(event, {{ $notif->id }})" title="Mark as read" class="shrink-0 w-6 h-6 rounded-full border border-gold-deep/30 bg-transparent text-gold-deep cursor-pointer hover:bg-gold-deep hover:text-white transition-colors flex items-center justify-center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
-                </div>
+                @include('partials._nav-notif-item', ['notif' => $notif])
               @endforeach
             </div>
             <p id="navNotifEmpty" class="px-4 py-6 text-center text-[13px] text-warm-black/50 m-0" style="{{ $navUnreadCount > 0 ? 'display: none;' : '' }}">No new notifications.</p>
@@ -131,9 +124,7 @@
           <p class="px-4 py-2 text-[12px] tracking-[2px] text-warm-black/50 font-bold">ACCOUNT</p>
           <a href="{{ route('notifications.index') }}" class="flex items-center justify-between py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">
             <span>Notifications</span>
-            @if($navUnreadCount > 0)
-              <span class="min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">{{ $navUnreadCount > 9 ? '9+' : $navUnreadCount }}</span>
-            @endif
+            <span id="navNotifBadgeMobile" class="min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none" style="{{ $navUnreadCount > 0 ? '' : 'display: none;' }}">{{ $navUnreadCount > 9 ? '9+' : $navUnreadCount }}</span>
           </a>
           <a href="{{ route('profile') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Profile & Bookings</a>
           <a href="{{ route('terms') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Terms & Conditions</a>
@@ -194,14 +185,15 @@
     const empty = document.getElementById('navNotifEmpty');
     const remaining = document.querySelectorAll('#navNotifList .nav-notif-item').length;
 
-    if (badge) {
+    [badge, document.getElementById('navNotifBadgeMobile')].forEach(function (b) {
+      if (!b) return;
       if (unreadCount > 0) {
-        badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-        badge.style.display = 'flex';
+        b.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        b.style.display = 'flex';
       } else {
-        badge.style.display = 'none';
+        b.style.display = 'none';
       }
-    }
+    });
     if (markAllBtn) markAllBtn.style.display = unreadCount > 0 ? '' : 'none';
     if (empty) empty.style.display = remaining === 0 ? '' : 'none';
   }
@@ -241,6 +233,38 @@
       navNotifRefreshUi(unreadCount);
     });
   }
+
+  // ---- Notification bell: pick up new notifications without a reload ----
+  // Polls every 10s while the tab is visible. The list HTML is rendered
+  // server-side by the same Blade partial as the initial page, so it's
+  // escaped and looks identical.
+  (function () {
+    const menu = document.getElementById('navNotifMenu');
+    if (!menu || !menu.dataset.pollUrl) return;
+
+    function currentIds() {
+      return Array.from(document.querySelectorAll('#navNotifList .nav-notif-item'))
+        .map(function (el) { return el.dataset.notifId; }).join(',');
+    }
+
+    function poll() {
+      if (document.hidden) return;
+      fetch(menu.dataset.pollUrl, {
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin'
+      })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+        .then(function (data) {
+          const list = document.getElementById('navNotifList');
+          if (list && data.ids.join(',') !== currentIds()) list.innerHTML = data.html;
+          navNotifRefreshUi(data.unread_count);
+        })
+        .catch(function () { /* transient failure — try again next tick */ });
+    }
+
+    setInterval(poll, 10000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) poll(); });
+  })();
 
   function toggleMobileMenu() {
     const menu = document.getElementById('mobileMenu');

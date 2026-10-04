@@ -40,6 +40,23 @@ class NotificationController extends Controller
         return view('notifications.index', compact('notifications', 'filter', 'unreadCount'));
     }
 
+    // Bell polling: unread count + the latest 5 unread, rendered with the same
+    // partial the navbar uses on page load (so it's escaped and identical).
+    public function poll()
+    {
+        $unread = $this->scoped()->unread();
+        $unreadCount = (clone $unread)->count();
+        $notifications = $unread->latest()->limit(5)->get();
+
+        return response()->json([
+            'unread_count' => $unreadCount,
+            'ids' => $notifications->pluck('id'),
+            'html' => $notifications
+                ->map(fn ($notif) => view('partials._nav-notif-item', compact('notif'))->render())
+                ->implode(''),
+        ]);
+    }
+
     // Mark a single notification as read (AJAX-aware so the bell can update live)
     public function markRead(Request $request, $id)
     {

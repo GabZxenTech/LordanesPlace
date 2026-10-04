@@ -34,21 +34,14 @@
           Notifications
           <span id="adminNotifBadge" style="position: absolute; right: 20px; {{ $adminUnreadCount > 0 ? 'display: inline-flex;' : 'display: none;' }} align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #e74c3c; color: white; font-size: 10px; font-weight: 700;">{{ $adminUnreadCount > 9 ? '9+' : $adminUnreadCount }}</span>
         </div>
-        <div id="adminNotifPanel" data-notif-base="{{ url('admin/notifications') }}" data-csrf="{{ csrf_token() }}" style="display: none; position: fixed; width: 340px; max-height: 440px; overflow-y: auto; background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 500;">
+        <div id="adminNotifPanel" data-notif-base="{{ url('admin/notifications') }}" data-poll-url="{{ route('admin.notifications.poll') }}" data-csrf="{{ csrf_token() }}" style="display: none; position: fixed; width: 340px; max-height: 440px; overflow-y: auto; background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 500;">
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid #d4c4a0; background: #f5edd8;">
             <span style="font-size: 12px; font-weight: 800; color: #2c1a0e; text-transform: uppercase; letter-spacing: 1px;">Notifications</span>
             <button type="button" id="adminMarkAllBtn" onclick="markAllAdminNotifsRead(event)" style="font-size: 11px; color: #c9a84c; font-weight: 700; background: transparent; border: none; cursor: pointer; {{ $adminUnreadCount > 0 ? '' : 'display: none;' }}" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Mark all read</button>
           </div>
           <div id="adminNotifList">
             @foreach($adminNotifications as $notif)
-              <div class="admin-notif-item" data-notif-id="{{ $notif->id }}" style="display: flex; align-items: flex-start; gap: 8px; padding: 12px 18px; border-bottom: 1px solid #e8dcc8; background: rgba(201,168,76,0.12);">
-                <a href="{{ route('admin.notifications.open', $notif->id) }}" style="display: block; flex: 1; text-decoration: none;">
-                  <p style="font-size: 13px; font-weight: 700; color: #2c1a0e; margin: 0;">{{ $notif->title }}</p>
-                  <p style="font-size: 12px; color: #8a6a40; margin: 4px 0 0; white-space: pre-line;">{{ \Illuminate\Support\Str::limit($notif->message, 90) }}</p>
-                  <p style="font-size: 10px; color: #c9a84c; margin: 4px 0 0; text-transform: uppercase; letter-spacing: 0.5px;">{{ $notif->created_at->diffForHumans() }}</p>
-                </a>
-                <button type="button" onclick="markAdminNotifRead(event, {{ $notif->id }})" title="Mark as read" style="flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #d4c4a0; background: transparent; color: #c9a84c; cursor: pointer; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='#c9a84c'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#c9a84c';"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
-              </div>
+              @include('partials._admin-notif-item', ['notif' => $notif])
             @endforeach
           </div>
           <p id="adminNotifEmpty" style="padding: 24px 18px; text-align: center; font-size: 13px; color: #8a6a40; margin: 0; {{ $adminUnreadCount > 0 ? 'display: none;' : '' }}">No new notifications.</p>
@@ -181,4 +174,35 @@
       adminNotifRefreshUi(unreadCount);
     });
   }
+
+  // ---- Pick up new notifications without a reload ----
+  // Polls every 10s while the tab is visible; list HTML comes from the same
+  // Blade partial as the initial render (escaped, identical look).
+  (function () {
+    const panel = document.getElementById('adminNotifPanel');
+    if (!panel || !panel.dataset.pollUrl) return;
+
+    function currentIds() {
+      return Array.from(document.querySelectorAll('#adminNotifList .admin-notif-item'))
+        .map(function (el) { return el.dataset.notifId; }).join(',');
+    }
+
+    function poll() {
+      if (document.hidden) return;
+      fetch(panel.dataset.pollUrl, {
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin'
+      })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+        .then(function (data) {
+          const list = document.getElementById('adminNotifList');
+          if (list && data.ids.join(',') !== currentIds()) list.innerHTML = data.html;
+          adminNotifRefreshUi(data.unread_count);
+        })
+        .catch(function () { /* transient failure — try again next tick */ });
+    }
+
+    setInterval(poll, 10000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) poll(); });
+  })();
 </script>
