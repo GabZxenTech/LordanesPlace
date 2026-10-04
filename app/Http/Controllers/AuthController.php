@@ -48,17 +48,15 @@ class AuthController extends Controller
     {
         $commonPasswords = self::commonPasswords();
 
-        // An unverified signup (e.g. one whose OTP email never arrived) should
-        // never permanently squat on an email address — treat resubmitting
-        // registration for it as a fresh retry instead of "already taken".
-        // A verified account with that email is untouched by this.
-        User::where('email', $request->input('email'))
-            ->whereNull('email_verified_at')
-            ->delete();
-
         $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email:dns|unique:users,email',
+            // Only a VERIFIED account counts as "taken" — an unverified signup
+            // (e.g. one whose OTP email never arrived) is replaced below.
+            'email'    => [
+                'required',
+                'email:dns',
+                \Illuminate\Validation\Rule::unique('users', 'email')->whereNotNull('email_verified_at'),
+            ],
             'password' => [
                 'required',
                 'confirmed',
@@ -80,13 +78,21 @@ class AuthController extends Controller
 
         // reCAPTCHA verification
         $recaptcha = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret'   => env('RECAPTCHA_SECRET_KEY'),
+            'secret'   => config('services.recaptcha.secret_key'),
             'response' => $request->input('g-recaptcha-response'),
         ]);
 
         if (!$recaptcha->json('success')) {
             return back()->withErrors(['recaptcha' => 'Please complete the reCAPTCHA.'])->withInput();
         }
+
+        // Only after validation and reCAPTCHA pass: an unverified signup must
+        // never permanently squat on an email, so a fresh registration
+        // replaces it. Doing this earlier would let anyone wipe someone
+        // else's in-progress signup with a junk request.
+        User::where('email', $request->input('email'))
+            ->whereNull('email_verified_at')
+            ->delete();
 
         $user = User::create([
             'name'     => $request->name,
@@ -133,7 +139,7 @@ class AuthController extends Controller
 
         // reCAPTCHA verification
         $recaptcha = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret'   => env('RECAPTCHA_SECRET_KEY'),
+            'secret'   => config('services.recaptcha.secret_key'),
             'response' => $request->input('g-recaptcha-response'),
         ]);
 
@@ -197,9 +203,11 @@ class AuthController extends Controller
                     ->mixedCase()
                     ->numbers()
                     ->symbols(),
+                'not_in:' . implode(',', self::commonPasswords()),
             ],
         ], [
             'password.confirmed' => 'Passwords do not match.',
+            'password.not_in'    => 'This password is too common. Please choose a stronger password.',
         ]);
 
         $status = Password::reset(

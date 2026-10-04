@@ -169,7 +169,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 });
 
 // Chat Client routes
-Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'send'])->name('chat.send');
+// Open to guests, so throttled per user/IP to stop message flooding.
+Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'send'])->middleware('throttle:20,1')->name('chat.send');
 Route::get('/chat/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
 Route::get('/chat/admin-status', [App\Http\Controllers\ChatController::class, 'getAdminStatus'])->name('chat.admin-status');
 

@@ -40,7 +40,8 @@ class User extends Authenticatable
         'email',
         'pending_email',
         'password',
-        'role',
+        // 'role' is intentionally NOT mass-assignable, so no request payload
+        // can ever promote an account to admin. Set it with forceFill().
         'last_active',
         'is_online',
         'google_id',

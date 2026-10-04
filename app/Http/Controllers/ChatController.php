@@ -15,16 +15,13 @@ class ChatController extends Controller
      */
     public function send(Request $request)
     {
-        try {
-            $request->validate([
-                'message' => 'required|string',
-            ]);
+        $request->validate([
+            'message' => 'required|string|max:2000',
+        ]);
 
+        try {
             $userId = Auth::id();
             $sessionId = session()->getId();
-            
-            // Log for debug
-            \Log::info("Chat send attempt", ['user_id' => $userId, 'session_id' => $sessionId, 'message' => $request->message]);
 
             if ($userId) {
                 $conversation = Conversation::firstOrCreate(
@@ -49,8 +46,10 @@ class ChatController extends Controller
 
             return response()->json(['success' => true, 'message' => $message]);
         } catch (\Exception $e) {
-            \Log::error("Chat send error: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            // Details stay in the server log; the client only gets a generic
+            // message so internal errors (SQL, paths) are never exposed.
+            \Log::error("Chat send error: " . $e->getMessage());
+            return response()->json(['success' => false, 'error' => 'Message could not be sent. Please try again.'], 500);
         }
     }
 
