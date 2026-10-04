@@ -46,8 +46,9 @@ class ReportController extends Controller
         // Determine date range
         [$startDate, $endDate] = $this->resolveDateRange($request);
 
-        // Query bookings in the period (by event_date) from real database
-        $bookings = Booking::with('user')
+        // Query bookings in the period (by event_date) from real database.
+        // 'payments' is eager-loaded for revenueOf(), which sums the ledger.
+        $bookings = Booking::with(['user', 'payments'])
             ->whereBetween('event_date', [$startDate, $endDate])
             ->orderBy('event_date', 'asc')
             ->get();
@@ -55,8 +56,7 @@ class ReportController extends Controller
         // Summary calculations
         $totalBookings = $bookings->count();
 
-        $paidBookings = $bookings->whereIn('payment_status', ['partially_paid', 'fully_paid']);
-        $totalRevenue = $paidBookings->sum('total_amount');
+        $totalRevenue = $this->totalRevenue($bookings);
 
         $newUsers = User::where('role', '!=', 'admin')
             ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
@@ -91,8 +91,8 @@ class ReportController extends Controller
     public function exportExcel(Request $request)
     {
         [$startDate, $endDate] = $this->resolveDateRange($request);
-        
-        $bookings = Booking::with('user')
+
+        $bookings = Booking::with(['user', 'payments'])
             ->whereBetween('event_date', [$startDate, $endDate])
             ->orderBy('event_date', 'asc')
             ->get();
@@ -196,16 +196,13 @@ class ReportController extends Controller
         }
 
         // 4. Totals Row
-        $lastDataRow = $row - 1;
         $sheet->setCellValue('A' . $row, 'TOTAL REVENUE');
         $sheet->mergeCells('A' . $row . ':C' . $row);
         
-        // Handle empty table formula safely to prevent excel #REF / sum range errors
-        if ($lastDataRow < 5) {
-            $sheet->setCellValue('D' . $row, 0.00);
-        } else {
-            $sheet->setCellValue('D' . $row, "=SUM(D5:D" . $lastDataRow . ")");
-        }
+        // Not a SUM of the Amount column: that column lists every booking's
+        // price, including unpaid/cancelled ones. Revenue follows revenueOf()
+        // so the export matches the Total Revenue shown on the reports page.
+        $sheet->setCellValue('D' . $row, $this->totalRevenue($bookings));
 
         // Totals Row style
         $totalsStyle = [
@@ -254,6 +251,27 @@ class ReportController extends Controller
     }
 
     // ───────────────────────── Helpers ─────────────────────────
+
+    /**
+     * Money actually earned from one booking:
+     * - cancelled/rejected: whatever was already paid (reservation fees are
+     *   non-refundable, so that money was kept);
+     * - otherwise: counted only once the booking is fully paid — a booking
+     *   with just a down payment (or nothing) contributes ₱0 until then.
+     */
+    private function revenueOf(Booking $booking): float
+    {
+        if ($booking->isCancelledOrRejected()) {
+            return $booking->amountPaid();
+        }
+
+        return $booking->payment_status === 'fully_paid' ? $booking->amountPaid() : 0.0;
+    }
+
+    private function totalRevenue($bookings): float
+    {
+        return (float) $bookings->sum(fn (Booking $b) => $this->revenueOf($b));
+    }
 
     /**
      * Resolve the start and end Carbon dates from request parameters.
@@ -311,7 +329,7 @@ class ReportController extends Controller
                 });
 
                 $bookingCounts[] = $weekBookings->count();
-                $revenueTotals[] = $weekBookings->whereIn('payment_status', ['partially_paid', 'fully_paid'])->sum('total_amount');
+                $revenueTotals[] = $this->totalRevenue($weekBookings);
 
                 $current->addWeek();
             }
@@ -326,7 +344,7 @@ class ReportController extends Controller
                 });
 
                 $bookingCounts[] = $dayBookings->count();
-                $revenueTotals[] = $dayBookings->whereIn('payment_status', ['partially_paid', 'fully_paid'])->sum('total_amount');
+                $revenueTotals[] = $this->totalRevenue($dayBookings);
             }
         }
 
