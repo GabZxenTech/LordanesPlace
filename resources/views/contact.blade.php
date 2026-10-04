@@ -60,7 +60,7 @@
   <div>
     <p class="text-[11px] md:text-[12px] tracking-[4px] text-gold-light font-bold mb-3">GET IN TOUCH</p>
     <h1 class="font-heading text-[38px] md:text-[52px] font-bold text-white mb-2">Contact <span class="italic text-gold-light">Us</span></h1>
-    <p class="text-white/60 text-[15px] md:text-[16px] tracking-wide">Home / Contact Us</p>
+    <p class="text-white/60 text-[15px] md:text-[16px] tracking-wide"><a href="{{ route('home') }}" class="hover:text-gold-light transition-colors">Home</a> / Contact Us</p>
   </div>
 </section>
 
