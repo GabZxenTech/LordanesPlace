@@ -177,8 +177,8 @@
         
         {{-- Hidden data container for JS --}}
         <div id="booking-data" class="hidden" 
-             data-blocked-dates='{!! json_encode($blockedDates ?? []) !!}'
-             data-approved-dates='{!! json_encode($approvedDates ?? []) !!}'
+             data-blocked-dates="{{ json_encode($blockedDates ?? []) }}"
+             data-approved-dates="{{ json_encode($approvedDates ?? []) }}"
              data-old-date="{{ old('event_date') }}"
              data-booking-success="{{ session('booking_success') ? 'true' : 'false' }}"
              data-visit-success="{{ session('visit_success') ? 'true' : 'false' }}"

@@ -64,7 +64,6 @@ class BookingController extends Controller
             'event_date'  => 'required|date|after_or_equal:today',
             'guest_count' => 'required|integer|min:1',
             'notes'       => 'nullable|string|max:1000',
-            'total_amount' => 'required|numeric|min:0',
             'payment_option' => 'required|in:' . implode(',', Booking::PAYMENT_OPTIONS),
             'terms'        => 'accepted',
         ]);
@@ -72,13 +71,17 @@ class BookingController extends Controller
         // Resolve event type: if "Others" was selected, use the custom value
         $eventType = $request->event_type === 'Others' ? $request->event_type_other : $request->event_type;
 
-        $downPaymentAmount = Booking::calculateDownPayment((float) $request->total_amount);
-
         $package = \App\Models\Package::where('name', $request->package)->first();
 
         if (!$package) {
             return back()->withErrors(['package' => 'The selected package does not exist.'])->withInput();
         }
+
+        // The form's Total Amount field is only a read-only preview — the
+        // price always comes from the package record, never from the request,
+        // so a tampered submission can't lower the total or the down payment.
+        $totalAmount = (float) $package->price;
+        $downPaymentAmount = Booking::calculateDownPayment($totalAmount);
 
         if ($request->guest_count > $package->max_guests) {
             return back()->withErrors(['guest_count' => 'Guest count exceeds the maximum allowed for the ' . $package->name . ' package (Max: ' . $package->max_guests . ').'])->withInput();
@@ -134,7 +137,7 @@ class BookingController extends Controller
                 'guest_count' => $request->guest_count,
                 'notes'       => $request->notes,
                 'status'      => 'pending',
-                'total_amount' => $request->total_amount,
+                'total_amount' => $totalAmount,
                 'down_payment_amount' => $downPaymentAmount,
                 'payment_option' => $request->payment_option,
                 'payment_status' => 'unpaid',

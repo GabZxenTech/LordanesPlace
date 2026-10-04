@@ -47,7 +47,11 @@ class VisitScheduleController extends Controller
         ]);
 
 
-        $booking = Booking::findOrFail($request->booking_id);
+        // Only the customer's own booking — the posted booking_id is never
+        // trusted on its own (same ownership scoping as cancel/reschedule).
+        $booking = Booking::where('id', $request->booking_id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
         $visitDateOnly = \Carbon\Carbon::parse($request->visit_date)->startOfDay();
         $eventDateOnly = \Carbon\Carbon::parse($booking->event_date)->startOfDay();
 
@@ -59,7 +63,7 @@ class VisitScheduleController extends Controller
         $visitDateTime = \Carbon\Carbon::parse($request->visit_date . ' ' . $request->visit_time);
 
         VisitSchedule::create([
-            'booking_id' => $request->booking_id,
+            'booking_id' => $booking->id,
             'user_id'    => Auth::id(),
             'visit_date' => $visitDateTime,
             'notes'      => $request->notes,

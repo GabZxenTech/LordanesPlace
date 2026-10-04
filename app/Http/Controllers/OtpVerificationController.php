@@ -48,6 +48,18 @@ class OtpVerificationController extends Controller
             return redirect()->route('home');
         }
 
+        // Rate limit verification attempts so the 6-digit code can't be
+        // brute-forced (mirrors the forgot-password OTP flow).
+        $attemptKey = 'otp-verify:' . $user->id;
+
+        if (RateLimiter::tooManyAttempts($attemptKey, 5)) {
+            $minutes = (int) ceil(RateLimiter::availableIn($attemptKey) / 60);
+
+            return back()->withErrors([
+                'otp' => "Too many attempts. Please wait {$minutes} minute(s) and try again.",
+            ]);
+        }
+
         // Get the latest unused OTP for this user
         $otpRecord = EmailOtp::where('user_id', $user->id)
             ->whereNull('used_at')
@@ -69,6 +81,14 @@ class OtpVerificationController extends Controller
 
         // Verify OTP via hash comparison
         if (!Hash::check($request->otp, $otpRecord->otp)) {
+            RateLimiter::hit($attemptKey, 900); // 15-minute window
+
+            // A code that has absorbed the maximum wrong guesses is burned,
+            // so the user must request a fresh one once the lockout ends.
+            if (RateLimiter::tooManyAttempts($attemptKey, 5)) {
+                $otpRecord->markUsed();
+            }
+
             return back()->withErrors([
                 'otp' => 'The verification code you entered is incorrect. Please try again.',
             ]);
@@ -76,6 +96,7 @@ class OtpVerificationController extends Controller
 
         // Mark OTP as used (single use)
         $otpRecord->markUsed();
+        RateLimiter::clear($attemptKey);
 
         // Mark email as verified
         $user->update(['email_verified_at' => now()]);
