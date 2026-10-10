@@ -40,7 +40,11 @@ class BlockedDateController extends Controller
             ->whereMonth('event_date', $selectedMonth->month)
             ->orderBy('event_date', 'asc')
             ->get();
-        $blockedDates = BlockedDate::orderBy('date', 'asc')->get();
+        // Only today and upcoming blocks — a block whose date has passed no
+        // longer affects anything. Past rows are kept in the DB, just hidden.
+        $blockedDates = BlockedDate::whereDate('date', '>=', now()->toDateString())
+            ->orderBy('date', 'asc')
+            ->get();
 
         return view('admin.schedule', compact('bookings', 'blockedDates', 'selectedMonth'));
     }
@@ -49,7 +53,7 @@ class BlockedDateController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'date'   => 'required|date|unique:blocked_dates,date',
+            'date'   => 'required|date|after_or_equal:today|unique:blocked_dates,date',
             'reason' => 'nullable|string|max:255',
         ]);
 
