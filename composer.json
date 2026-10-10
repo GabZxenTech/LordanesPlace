@@ -16,6 +16,7 @@
         "laravel/tinker": "^2.10.1",
         "phpoffice/phpspreadsheet": "*",
         "resend/resend-php": "*",
+        "symfony/brevo-mailer": "^7.0",
         "symfony/http-client": "^7.0",
         "symfony/mailjet-mailer": "^7.0"
     },

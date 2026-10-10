@@ -43,6 +43,17 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
+        // Brevo over its HTTPS API, selected with MAIL_MAILER=brevo.
+        \Illuminate\Support\Facades\Mail::extend('brevo', function () {
+            return (new \Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory())->create(
+                new \Symfony\Component\Mailer\Transport\Dsn(
+                    'brevo+api',
+                    'default',
+                    config('services.brevo.key')
+                )
+            );
+        });
+
         if (config('app.env') === 'production') {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }

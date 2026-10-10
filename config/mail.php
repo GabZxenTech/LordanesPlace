@@ -77,6 +77,12 @@ return [
             'transport' => 'mailjet',
         ],
 
+        // Same idea as mailjet: Brevo's HTTPS API (port 443) instead of SMTP.
+        // Transport is registered in AppServiceProvider.
+        'brevo' => [
+            'transport' => 'brevo',
+        ],
+
         'sendmail' => [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
