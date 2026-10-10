@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->web(append: [\App\Http\Middleware\PreventBackHistory::class]);
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,

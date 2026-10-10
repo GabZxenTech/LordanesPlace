@@ -148,6 +148,15 @@
 </header>
 
 <script>
+  @auth
+  // Backup for PreventBackHistory: if the browser still restores this page
+  // from its back/forward cache (e.g. after logout + Back), reload it so the
+  // server decides — a logged-out user then gets the guest/login view.
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) window.location.reload();
+  });
+  @endauth
+
   function toggleDropdown(el) {
     const menu = el.querySelector('.dropdown-menu');
     const chevron = el.querySelector('.dropdown-chevron');

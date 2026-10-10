@@ -88,6 +88,13 @@
 <div style="width: 260px; flex-shrink: 0;"></div>
 
 <script>
+  // Backup for PreventBackHistory: a page restored from the back/forward
+  // cache (e.g. after logout + Back) is reloaded so the server re-checks the
+  // session and redirects a logged-out visitor to login.
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) window.location.reload();
+  });
+
   function toggleAdminNotifDropdown(e) {
     e.stopPropagation();
     const panel = document.getElementById('adminNotifPanel');
