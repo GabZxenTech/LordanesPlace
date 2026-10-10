@@ -120,32 +120,38 @@ class BookingController extends Controller
             }
         }
 
-        // Generate unique booking number: LDP-YYYYMMDD-XXXX
-        $todayStr = now()->format('Ymd');
-        $countToday = Booking::whereDate('created_at', now()->today())->count();
-        $sequence = str_pad($countToday + 1, 4, '0', STR_PAD_LEFT);
-        $bookingNumber = "LDP-{$todayStr}-{$sequence}";
+        // Two unique constraints can trip here: the booking number (two
+        // customers booking at the same moment) and, for rooms, the partial
+        // unique index on room/date. A booking-number clash just retries with
+        // a fresh number; a room clash is reported to the customer.
+        $booking = null;
 
-        try {
-            $booking = Booking::create([
-                'user_id'     => Auth::id(),
-                'booking_number' => $bookingNumber,
-                'event_type'  => $eventType,
-                'package'     => $request->package,
-                'room_number' => $isRoomPackage ? $request->room_number : null,
-                'event_date'  => $request->event_date,
-                'guest_count' => $request->guest_count,
-                'notes'       => $request->notes,
-                'status'      => 'pending',
-                'total_amount' => $totalAmount,
-                'down_payment_amount' => $downPaymentAmount,
-                'payment_option' => $request->payment_option,
-                'payment_status' => 'unpaid',
-            ]);
-        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
-            // The DB-level partial unique index caught a race the check above
-            // missed (two near-simultaneous submissions for the same room).
-            return back()->withErrors(['room_number' => 'This room was just booked by another customer. Please select another available room.'])->withInput();
+        for ($attempt = 1; $attempt <= 3 && !$booking; $attempt++) {
+            try {
+                $booking = Booking::create([
+                    'user_id'     => Auth::id(),
+                    'booking_number' => Booking::nextBookingNumber(),
+                    'event_type'  => $eventType,
+                    'package'     => $request->package,
+                    'room_number' => $isRoomPackage ? $request->room_number : null,
+                    'event_date'  => $request->event_date,
+                    'guest_count' => $request->guest_count,
+                    'notes'       => $request->notes,
+                    'status'      => 'pending',
+                    'total_amount' => $totalAmount,
+                    'down_payment_amount' => $downPaymentAmount,
+                    'payment_option' => $request->payment_option,
+                    'payment_status' => 'unpaid',
+                ]);
+            } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                if ($isRoomPackage && !Booking::isRoomAvailable($request->package, $request->event_date, $request->room_number)) {
+                    return back()->withErrors(['room_number' => 'This room was just booked by another customer. Please select another available room.'])->withInput();
+                }
+            }
+        }
+
+        if (!$booking) {
+            return back()->withErrors(['event_date' => 'We could not complete your booking right now. Please try again.'])->withInput();
         }
 
         NotificationService::bookingSubmitted($booking);

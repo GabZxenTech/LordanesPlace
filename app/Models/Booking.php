@@ -142,6 +142,25 @@ class Booking extends Model
      * only an admin-approved one. Distinct from the venue-wide "one event per
      * day" rule, which only blocks on 'approved' (see BookingController).
      */
+    /**
+     * Next booking number for today: LDP-YYYYMMDD-XXXX. Continues from the
+     * highest number already issued today rather than counting today's
+     * rows — a count goes back down when a booking is deleted and would then
+     * hand out a number that's still in use.
+     */
+    public static function nextBookingNumber(): string
+    {
+        $prefix = 'LDP-' . now()->format('Ymd') . '-';
+
+        $last = static::where('booking_number', 'like', $prefix . '%')
+            ->orderByDesc('booking_number')
+            ->value('booking_number');
+
+        $next = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
+
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
     public static function isRoomAvailable(string $package, string $date, string $roomNumber, ?int $excludeId = null): bool
     {
         return !static::where('package', $package)

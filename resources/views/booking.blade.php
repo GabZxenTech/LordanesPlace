@@ -660,7 +660,21 @@
         }
       }, 80);
       openTermsModal();
+      return;
     }
+
+    // Lock the button once the booking is actually being sent, so a
+    // double-click (or a second click on a slow connection) can't create a
+    // duplicate booking. A validation error reloads the page, which
+    // restores the button.
+    const btn = document.getElementById('confirmBookingBtn');
+    if (btn.disabled) {
+      e.preventDefault();
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'SUBMITTING...';
+    btn.classList.add('opacity-70', 'cursor-not-allowed');
   });
 })();
 </script>
