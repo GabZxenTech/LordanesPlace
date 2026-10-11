@@ -1,9 +1,45 @@
 {{-- ADMIN SIDEBAR --}}
-<aside style="position: fixed; top: 0; left: 0; height: 100vh; width: 260px; background: #2c1a0e; font-family: 'Jost', sans-serif; display: flex; flex-direction: column; z-index: 200; box-shadow: 4px 0 15px rgba(0,0,0,0.1);">
+<style>
+  /* Collapsible sidebar: the state is a class on <html> so it applies before
+     first paint (set by the inline script just below) and survives reloads. */
+  .admin-sidebar, .admin-sidebar-spacer { transition: transform 0.25s ease, width 0.25s ease; }
+  html.admin-sidebar-collapsed .admin-sidebar { transform: translateX(-100%); box-shadow: none !important; }
+  html.admin-sidebar-collapsed .admin-sidebar-spacer { width: 0 !important; }
+  .admin-sidebar-open-btn { display: none; }
+  html.admin-sidebar-collapsed .admin-sidebar-open-btn { display: flex; }
+</style>
+<script>
+  (function () {
+    var collapsed = null;
+    try { collapsed = localStorage.getItem('adminSidebarCollapsed'); } catch (e) {}
+    // No saved choice yet: start collapsed on narrow screens.
+    if (collapsed === '1' || (collapsed === null && window.innerWidth < 1024)) {
+      document.documentElement.classList.add('admin-sidebar-collapsed');
+    }
+  })();
+
+  function toggleAdminSidebar() {
+    var collapsed = document.documentElement.classList.toggle('admin-sidebar-collapsed');
+    try { localStorage.setItem('adminSidebarCollapsed', collapsed ? '1' : '0'); } catch (e) {}
+  }
+</script>
+
+{{-- Shown only while collapsed: brings the sidebar back --}}
+<button type="button" class="admin-sidebar-open-btn" onclick="toggleAdminSidebar()" title="Show sidebar" aria-label="Show sidebar"
+  style="position: fixed; top: 16px; left: 0; z-index: 210; width: 32px; height: 44px; align-items: center; justify-content: center; background: #2c1a0e; color: #c9a84c; border: 1px solid #8a6a40; border-left: none; border-radius: 0 8px 8px 0; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+</button>
+
+<aside class="admin-sidebar" style="position: fixed; top: 0; left: 0; height: 100vh; width: 260px; background: #2c1a0e; font-family: 'Jost', sans-serif; display: flex; flex-direction: column; z-index: 200; box-shadow: 4px 0 15px rgba(0,0,0,0.1);">
 
   {{-- Brand --}}
   <div style="flex-shrink: 0;">
-    <div style="padding: 32px 28px 24px; border-bottom: 1px solid rgba(201,168,76,0.15);">
+    <div style="padding: 32px 28px 24px; border-bottom: 1px solid rgba(201,168,76,0.15); position: relative;">
+      <button type="button" onclick="toggleAdminSidebar()" title="Hide sidebar" aria-label="Hide sidebar"
+        style="position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: transparent; color: #8a6a40; border: 1px solid rgba(201,168,76,0.25); border-radius: 6px; cursor: pointer; transition: all 0.2s;"
+        onmouseover="this.style.color='#c9a84c'; this.style.borderColor='#c9a84c';" onmouseout="this.style.color='#8a6a40'; this.style.borderColor='rgba(201,168,76,0.25)';">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+      </button>
       <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1.2;">LorDane's Place</h1>
       <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 6px 0 0; text-transform: uppercase; font-weight: 600;">ADMIN PANEL</p>
     </div>
@@ -85,7 +121,7 @@
 </aside>
 
 {{-- Spacer to push content right --}}
-<div style="width: 260px; flex-shrink: 0;"></div>
+<div class="admin-sidebar-spacer" style="width: 260px; flex-shrink: 0;"></div>
 
 <script>
   // Backup for PreventBackHistory: a page restored from the back/forward

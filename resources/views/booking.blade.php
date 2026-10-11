@@ -220,8 +220,8 @@
                  below so they always stay grouped together at the bottom. --}}
             @foreach($packages as $pkg)
               @continue(\App\Models\Booking::isRoomPackage($pkg->name))
-              <option value="{{ $pkg->name }}" data-package="{{ $pkg->name }}" data-max="{{ $pkg->max_guests }}" data-price="{{ $pkg->price }}" data-start="{{ $pkg->start_time ? \Carbon\Carbon::parse($pkg->start_time)->format('H:i') : '' }}" data-end="{{ $pkg->end_time ? \Carbon\Carbon::parse($pkg->end_time)->format('H:i') : '' }}" {{ old('package') == $pkg->name && !old('room_number') ? 'selected' : '' }}>
-                {{ $pkg->name }} — ₱{{ number_format($pkg->price, 0) }} (up to {{ $pkg->max_guests }} guests{{ $pkg->duration ? ', ' . $pkg->duration : '' }})
+              <option value="{{ $pkg->name }}" data-package="{{ $pkg->name }}" data-max="{{ $pkg->max_guests }}" data-price="{{ $pkg->price }}" data-weekend-price="{{ $pkg->weekend_price }}" data-start="{{ $pkg->start_time ? \Carbon\Carbon::parse($pkg->start_time)->format('H:i') : '' }}" data-end="{{ $pkg->end_time ? \Carbon\Carbon::parse($pkg->end_time)->format('H:i') : '' }}" {{ old('package') == $pkg->name && !old('room_number') ? 'selected' : '' }}>
+                {{ $pkg->name }} — ₱{{ number_format($pkg->price, 0) }}{{ $pkg->weekend_price !== null ? " / ₱" . number_format($pkg->weekend_price, 0) . " weekends" : "" }} (up to {{ $pkg->max_guests }} guests{{ $pkg->duration ? ', ' . $pkg->duration : '' }})
               </option>
             @endforeach
 
@@ -239,6 +239,7 @@
                       data-room-type="1"
                       data-max="{{ $pkg->max_guests }}"
                       data-price="{{ $pkg->price }}"
+                      data-weekend-price="{{ $pkg->weekend_price }}"
                       data-label="{{ $roomLabel }}"
                       {{ old('package') == $pkg->name && old('room_number') == $roomNum ? 'selected' : '' }}>
                       {{ $roomLabel }}
@@ -269,7 +270,7 @@
         </div>
 
         <div class="mb-4">
-          <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Total Amount (₱)</label>
+          <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Total Amount (₱) <span id="weekendRateNote" class="font-normal text-warm-black/60" style="display: none;">— Weekend rate (Sat–Sun)</span></label>
           <input type="number" name="total_amount" id="totalAmountInput" placeholder="0.00" step="0.01" value="{{ old('total_amount') }}" required
             readonly
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body cursor-not-allowed opacity-75" />
@@ -872,6 +873,26 @@
     document.getElementById('selectedDateText').textContent = 'Selected: ' + formatDisplay(oldDate);
   }
 
+  // Preview of the package price for the selected date: the weekend rate on
+  // Saturday/Sunday when the package has one. Display only — the server
+  // computes the real total from the package record.
+  function applyPackagePrice() {
+    const option = packageSelectEl.options[packageSelectEl.selectedIndex];
+    const note = document.getElementById('weekendRateNote');
+    if (!option || !option.dataset.price) {
+      note.style.display = 'none';
+      return;
+    }
+
+    const day = selectedDate ? new Date(selectedDate + 'T00:00:00').getDay() : null;
+    const isWeekend = day === 0 || day === 6;
+    const useWeekend = isWeekend && option.dataset.weekendPrice;
+
+    document.getElementById('totalAmountInput').value = useWeekend ? option.dataset.weekendPrice : option.dataset.price;
+    note.style.display = useWeekend ? '' : 'none';
+    updateDownPayment();
+  }
+
   function syncPackageFromSelect() {
     const selectedOption = packageSelectEl.options[packageSelectEl.selectedIndex];
     if (!selectedOption || !selectedOption.dataset.package) {
@@ -888,11 +909,8 @@
       document.getElementById('guestCountInput').max = selectedOption.dataset.max;
       document.getElementById('guestCountInput').placeholder = "Max: " + selectedOption.dataset.max;
 
-      // Auto-fill total amount
-      if (selectedOption.dataset.price) {
-        document.getElementById('totalAmountInput').value = selectedOption.dataset.price;
-        updateDownPayment();
-      }
+      // Auto-fill total amount (weekend rate if the chosen date is Sat/Sun)
+      applyPackagePrice();
     } else {
       document.getElementById('guestCountInput').removeAttribute('max');
       document.getElementById('guestCountInput').placeholder = "How many guests?";
@@ -1045,6 +1063,7 @@
     // Unselect any selected date
     selectedDate = null;
     document.getElementById('eventDateInput').value = '';
+    applyPackagePrice();
     document.getElementById('selectedDateText').textContent = 'Please select an available date';
     renderCalendar();
   }
@@ -1097,6 +1116,7 @@
     // Hide blocked alert if it was showing
     document.getElementById('blockedDateAlert').classList.add('hidden');
 
+    applyPackagePrice();
     refreshRoomAvailability(dateStr);
 
     // Real-time AJAX validation: double-check with the server
@@ -1107,6 +1127,7 @@
           // Date became unavailable (e.g., just approved by admin)
           selectedDate = null;
           document.getElementById('eventDateInput').value = '';
+          applyPackagePrice();
           document.getElementById('selectedDateText').textContent = 'Please select an available date';
           
           const alertBox = document.getElementById('blockedDateAlert');

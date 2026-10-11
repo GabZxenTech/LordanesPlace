@@ -20,6 +20,7 @@ class PackageController extends Controller
         $request->validate([
             'name'       => 'required|string|max:255',
             'price'      => 'required|numeric|min:0',
+            'weekend_price' => 'nullable|numeric|min:0',
             'max_guests' => 'required|integer|min:1',
             'duration'   => 'nullable|string|max:255',
             'description'=> 'nullable|string',
@@ -40,6 +41,7 @@ class PackageController extends Controller
         $request->validate([
             'name'       => 'required|string|max:255',
             'price'      => 'required|numeric|min:0',
+            'weekend_price' => 'nullable|numeric|min:0',
             'max_guests' => 'required|integer|min:1',
             'duration'   => 'nullable|string|max:255',
             'description'=> 'nullable|string',

@@ -78,9 +78,10 @@ class BookingController extends Controller
         }
 
         // The form's Total Amount field is only a read-only preview — the
-        // price always comes from the package record, never from the request,
-        // so a tampered submission can't lower the total or the down payment.
-        $totalAmount = (float) $package->price;
+        // price always comes from the package record (weekend rate on Sat/Sun
+        // when the package has one), never from the request, so a tampered
+        // submission can't lower the total or the down payment.
+        $totalAmount = $package->priceForDate($request->event_date);
         $downPaymentAmount = Booking::calculateDownPayment($totalAmount);
 
         if ($request->guest_count > $package->max_guests) {

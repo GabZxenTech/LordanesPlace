@@ -32,7 +32,13 @@
           </div>
           <div>
             <p style="font-size: 10px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Account Tier</p>
-            <p style="font-size: 18px; font-weight: 700; color: #B8860B;">Loyal Client</p>
+            @php
+              // Tier follows how many events the customer has actually
+              // completed with us — a brand-new account starts as a New Member.
+              $completedCount = $bookings->where('status', \App\Models\Booking::STATUS_COMPLETED)->count();
+              $accountTier = $completedCount >= 2 ? 'Loyal Client' : ($completedCount === 1 ? 'Member' : 'New Member');
+            @endphp
+            <p style="font-size: 18px; font-weight: 700; color: #B8860B;">{{ $accountTier }}</p>
           </div>
           <div>
             <p style="font-size: 10px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Member Since</p>

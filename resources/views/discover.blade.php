@@ -271,7 +271,7 @@
         <p class="text-[15px] md:text-[16px] text-warm-black/90 font-normal leading-[1.6] mb-4">Grand event hall with 2 preparation rooms — perfect for parties, reunions, and special events.</p>
         <p class="text-[22px] font-bold text-gold-deep mb-4">₱35,000</p>
         <div class="flex justify-between items-center">
-          <span class="text-[15px] text-warm-black/60"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Good for 4 pax</span>
+          <span class="text-[15px] text-warm-black/60"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Good for up to 220 pax</span>
           <button onclick="window.location.href='{{ route('booking', ['package' => 'Venue Hall']) }}'" class="bg-gold-deep text-white px-6 py-2.5 rounded text-[15px] font-bold tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid">BOOK NOW</button>
         </div>
       </div>
