@@ -33,6 +33,20 @@
     input[type="number"] {
       -moz-appearance: textfield;
     }
+    /* A dropdown still showing its "Select …" prompt reads as a placeholder
+       (gray, like the text inputs' placeholders); real choices stay dark. */
+    select.is-placeholder { color: #9a8b74; }
+    select option { color: #1a1208; }
+    /* A dropdown that doesn't apply right now (Event Type for Swimming/
+       Staycation, Package before an occasion is chosen) must look unusable,
+       not just ignore clicks. */
+    select:disabled {
+      background-color: #e4dccb;
+      border-color: #d6cab2;
+      color: #a99c84;
+      cursor: not-allowed;
+      opacity: 1;
+    }
   </style>
 </head>
 <body class="bg-off-white text-warm-black font-body">
@@ -1025,6 +1039,7 @@
       remove.addEventListener('click', function () {
         bookingItems.splice(index, 1);
         applyPackagePrice();
+        checkSelectedDateForOccasion();
       });
       right.append(price, remove);
 
@@ -1118,6 +1133,14 @@
   paymentOptionSelect.addEventListener('change', updateDownPayment);
   updateDownPayment();
 
+  // Dropdowns still on their "Select …" prompt are styled as placeholders.
+  // User changes are caught by the document listener (it runs after each
+  // field's own handler); programmatic resets call this directly.
+  function syncSelectPlaceholders() {
+    document.querySelectorAll('select').forEach(function (s) { s.classList.toggle('is-placeholder', s.value === ''); });
+  }
+  document.addEventListener('change', syncSelectPlaceholders);
+
   // ── Occasion: Swimming / Staycation / Event ─────────────────
   // Only the chosen occasion's packages are offered, and Event Type is only
   // used for Events (disabled for Swimming/Staycation). The server enforces
@@ -1162,7 +1185,10 @@
     }
   }
 
-  occasionSelect.addEventListener('change', applyOccasion);
+  occasionSelect.addEventListener('change', function () {
+    applyOccasion();
+    checkSelectedDateForOccasion();
+  });
 
   // ── "+ Add to list": several packages for the same date ─────
   const guestCountInput = document.getElementById('guestCountInput');
@@ -1205,6 +1231,9 @@
 
   // Same rules the server enforces: no duplicates, one Event per day.
   function cannotAdd(item, list) {
+    if (selectedDate && approvedDates.includes(selectedDate) && item.occasion !== 'staycation') {
+      return EVENT_DAY_ROOMS_ONLY;
+    }
     if (list.some(function (i) { return i.packageName === item.packageName && i.room === item.room; })) {
       return itemTitle(item) + ' is already in your list.';
     }
@@ -1215,6 +1244,7 @@
   }
 
   function resetSelection() {
+    setTimeout(syncSelectPlaceholders);
     packageSelectEl.selectedIndex = 0;
     roomUnavailableNotice.style.display = 'none';
     syncPackageFromSelect();
@@ -1373,6 +1403,7 @@
   // Set up Event Type / package filtering for the current occasion (also
   // restores the state after a validation-failure reload).
   applyOccasion();
+  syncSelectPlaceholders();
 
   // After a validation-failure reload, rebuild the submitted package list.
   // The last entry there was the in-form selection, so clear the form's
@@ -1407,10 +1438,36 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
-  // One Event Per Day: unavailable = blocked dates + approved booking dates (global, not per-package)
+  // A day that already has an approved event is still open for rooms: true
+  // while the customer is booking Staycation only (current occasion and
+  // everything in their list). Swimming/Event keep the one-event-per-day rule.
+  function roomsOnly() {
+    const occasion = document.getElementById('occasionSelect');
+    return !!occasion && occasion.value === 'staycation'
+      && bookingItems.every(function (item) { return item.occasion === 'staycation'; });
+  }
+
+  // Unavailable = admin-blocked dates (always) + days with an approved event
+  // (not when booking rooms only).
   function getUnavailableDates() {
     const blockedDateStrings = Object.keys(blockedDates);
-    return [...blockedDateStrings, ...approvedDates];
+    return roomsOnly() ? blockedDateStrings : [...blockedDateStrings, ...approvedDates];
+  }
+
+  const EVENT_DAY_ROOMS_ONLY = 'This date already has an event — only Staycation (rooms) can be booked on this day.';
+
+  // Called when the occasion changes: an event day picked for Staycation
+  // can't stay selected once the customer switches to Swimming/Event.
+  function checkSelectedDateForOccasion() {
+    if (selectedDate && approvedDates.includes(selectedDate) && !roomsOnly()) {
+      selectedDate = null;
+      document.getElementById('eventDateInput').value = '';
+      document.getElementById('selectedDateText').textContent = 'Please select an available date';
+      document.getElementById('blockedDateReason').textContent = EVENT_DAY_ROOMS_ONLY;
+      document.getElementById('blockedDateAlert').classList.remove('hidden');
+      applyPackagePrice();
+    }
+    renderCalendar();
   }
 
   function renderCalendar() {
@@ -1509,6 +1566,7 @@
           packageHiddenInput.value = '';
           roomNumberHiddenInput.value = '';
           roomUnavailableNotice.style.display = 'block';
+          syncSelectPlaceholders();
         }
       })
       .catch(() => {
@@ -1533,7 +1591,7 @@
     refreshRoomAvailability(dateStr);
 
     // Real-time AJAX validation: double-check with the server
-    fetch(checkDateUrl + '?date=' + dateStr)
+    fetch(checkDateUrl + '?date=' + dateStr + (roomsOnly() ? '&rooms_only=1' : ''))
       .then(res => res.json())
       .then(data => {
         if (!data.available) {

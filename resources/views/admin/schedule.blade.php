@@ -114,6 +114,41 @@
               aria-label="Next month">▶</a>
           </div>
         </div>
+
+        {{-- Filters for this month's bookings (client-side; see partials._list-filter) --}}
+        <div class="lf-bar" data-list-filter="admin-schedule" data-default-tab="all">
+          <div class="lf-tabs" role="tablist" aria-label="Filter by status">
+            @foreach(['all' => 'All', 'pending' => 'Pending', 'approved' => 'Approved', 'ongoing' => 'Ongoing', 'completed' => 'Completed', 'closed' => 'Cancelled / Rejected'] as $tabKey => $tabLabel)
+              <button type="button" class="lf-tab" role="tab" data-filter-tab="{{ $tabKey }}" aria-selected="false">{{ $tabLabel }}<span class="lf-n" data-count></span></button>
+            @endforeach
+          </div>
+          <div class="lf-controls">
+            <label class="lf-control">Occasion
+              <select data-filter-field="occasion">
+                <option value="">All</option>
+                @foreach(\App\Models\Booking::OCCASIONS as $occValue => $occLabel)
+                  <option value="{{ $occValue }}">{{ $occLabel }}</option>
+                @endforeach
+              </select>
+            </label>
+            <label class="lf-control">Payment
+              <select data-filter-field="payment">
+                <option value="">All</option>
+                <option value="unpaid">Unpaid</option>
+                <option value="partially_paid">Partially paid</option>
+                <option value="fully_paid">Fully paid</option>
+              </select>
+            </label>
+            <label class="lf-control">Sort
+              <select data-filter-sort>
+                <option value="date:asc">Event date (earliest)</option>
+                <option value="date:desc">Event date (latest)</option>
+                <option value="created:desc">Newest booking</option>
+              </select>
+            </label>
+            <input type="search" class="lf-search" data-filter-search placeholder="Search name, email, booking # or package (this month)" aria-label="Search bookings this month">
+          </div>
+        </div>
         <div style="overflow-x: auto;">
           <table style="width: 100%; border-collapse: collapse;">
             <thead>
@@ -126,9 +161,16 @@
                 <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">ACTION</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody data-list-rows="admin-schedule">
               @forelse($bookings as $booking)
-                <tr id="booking-{{ $booking->id }}" style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s; scroll-margin-top: 30px;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
+                <tr id="booking-{{ $booking->id }}"
+                  data-tabs="{{ $booking->isCancelledOrRejected() ? 'closed' : $booking->status }}"
+                  data-occasion="{{ \App\Models\Booking::occasionForPackage($booking->package) }}"
+                  data-payment="{{ $booking->payment_status }}"
+                  data-date="{{ $booking->event_date->format('Ymd') }}"
+                  data-created="{{ $booking->created_at->timestamp }}"
+                  data-search="{{ mb_strtolower($booking->booking_number . ' ' . $booking->user->name . ' ' . $booking->user->email . ' ' . $booking->package . ' ' . $booking->room_number . ' ' . $booking->event_type) }}"
+                  style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s; scroll-margin-top: 30px;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
                   <td style="padding: 14px 20px; font-size: 13px; color: #c9a84c; font-family: monospace;">{{ $booking->booking_number }}</td>
                   <td style="padding: 14px 20px;">
                     <div style="font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $booking->user->name }}</div>
@@ -171,7 +213,7 @@
                         data-start="{{ $booking->start_time ? \Carbon\Carbon::parse($booking->start_time)->format('H:i') : '' }}"
                         data-end="{{ $booking->end_time ? \Carbon\Carbon::parse($booking->end_time)->format('H:i') : '' }}"
                         data-guests="{{ $booking->guest_count }}"
-                        data-notes="{{ addslashes($booking->notes) }}"
+                        data-notes="{{ addslashes($booking->notes ?? '') }}"
                         data-total="{{ $booking->total_amount }}"
                         onmouseover="this.style.background='#3498db'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#3498db';">
                         Edit
@@ -263,6 +305,7 @@
               @empty
                 <tr><td colspan="6" style="text-align: center; padding: 60px; color: #8a6a40; font-size: 16px;">No bookings for {{ $selectedMonth->format('F Y') }}.</td></tr>
               @endforelse
+              <tr data-list-empty hidden><td colspan="6" style="text-align: center; padding: 40px; color: #8a6a40; font-size: 15px;">No bookings match these filters this month.</td></tr>
             </tbody>
           </table>
         </div>
@@ -762,5 +805,6 @@
     }
   </script>
 
+@include('partials._list-filter')
 </body>
 </html>

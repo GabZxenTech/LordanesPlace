@@ -235,6 +235,12 @@ class BookingController extends Controller
             ]);
         }
 
+        // Room-only (Staycation) bookings aren't affected by the one-event-
+        // per-day rule — rooms have their own per-room availability.
+        if ($request->boolean('rooms_only')) {
+            return response()->json(['available' => true]);
+        }
+
         $hasApproved = Booking::where('event_date', $date)
             ->where('status', 'approved')
             ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))

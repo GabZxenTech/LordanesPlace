@@ -37,6 +37,24 @@
       <div style="padding: 18px 24px; border-bottom: 1px solid #d4c4a0; background: #f5edd8;">
         <h2 style="font-size: 12px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0;">All Scheduled Visits</h2>
       </div>
+
+      {{-- Filters (client-side; see partials._list-filter) --}}
+      <div class="lf-bar" data-list-filter="admin-visits" data-default-tab="upcoming">
+        <div class="lf-tabs" role="tablist" aria-label="Filter visits">
+          @foreach(['upcoming' => 'Upcoming', 'needs' => 'Needs confirmation', 'completed' => 'Completed', 'missed' => 'Missed', 'all' => 'All'] as $tabKey => $tabLabel)
+            <button type="button" class="lf-tab" role="tab" data-filter-tab="{{ $tabKey }}" aria-selected="false">{{ $tabLabel }}<span class="lf-n" data-count></span></button>
+          @endforeach
+        </div>
+        <div class="lf-controls">
+          <label class="lf-control">Sort
+            <select data-filter-sort>
+              <option value="visit:asc">Visit date (soonest)</option>
+              <option value="visit:desc">Visit date (latest)</option>
+            </select>
+          </label>
+          <input type="search" class="lf-search" data-filter-search placeholder="Search client, email, booking # or package" aria-label="Search visits">
+        </div>
+      </div>
       <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
@@ -48,15 +66,25 @@
               <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">ACTION</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody data-list-rows="admin-visits">
             @forelse($visits as $visit)
-              <tr style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
+              @php
+                $visitTabs = [];
+                if (in_array($visit->status, ['pending', 'confirmed', 'rescheduled'], true) && $visit->visit_date->gte(now()->startOfDay())) $visitTabs[] = 'upcoming';
+                if ($visit->status === 'pending') $visitTabs[] = 'needs';
+                if (in_array($visit->status, ['completed', 'missed'], true)) $visitTabs[] = $visit->status;
+              @endphp
+              <tr data-tabs="{{ implode(' ', $visitTabs) ?: 'other' }}"
+                data-visit="{{ $visit->visit_date->timestamp }}"
+                data-search="{{ mb_strtolower($visit->user->name . ' ' . $visit->user->email . ' ' . $visit->booking->booking_number . ' ' . $visit->booking->package . ' ' . $visit->booking->event_type) }}"
+                style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
                 <td style="padding: 14px 20px;">
                   <div style="font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $visit->user->name }}</div>
                   <div style="font-size: 12px; color: #8a6a40;">{{ $visit->user->email }}</div>
                 </td>
                 <td style="padding: 14px 20px;">
-                  <div style="font-size: 14px; color: #2c1a0e;">{{ $visit->booking->event_type }}</div>
+                  <div style="font-size: 14px; color: #2c1a0e;">{{ $visit->booking->event_type }} <span style="color: #8a6a40;">· {{ $visit->booking->package }}{{ $visit->booking->room_number ? ' ' . $visit->booking->room_number : '' }}</span></div>
+                  <div style="font-size: 11px; color: #8a6a40; font-family: monospace;">{{ $visit->booking->booking_number }}</div>
                   <div style="font-size: 11px; color: #c9a84c; font-weight: 700;">Event: {{ $visit->booking->event_date->format('M d, Y') }}</div>
                 </td>
                 <td style="padding: 14px 20px;">
@@ -99,6 +127,7 @@
             @empty
               <tr><td colspan="5" style="text-align: center; padding: 60px; color: #8a6a40; font-size: 16px;">No visits scheduled.</td></tr>
             @endforelse
+            <tr data-list-empty hidden><td colspan="5" style="text-align: center; padding: 40px; color: #8a6a40; font-size: 15px;">No visits match these filters.</td></tr>
           </tbody>
         </table>
       </div>
@@ -175,5 +204,6 @@
       }
     });
   </script>
+@include('partials._list-filter')
 </body>
 </html>
