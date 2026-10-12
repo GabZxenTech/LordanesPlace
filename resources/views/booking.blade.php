@@ -183,11 +183,24 @@
              data-booking-success="{{ session('booking_success') ? 'true' : 'false' }}"
              data-visit-success="{{ session('visit_success') ? 'true' : 'false' }}"
              data-check-date-url="{{ route('booking.check-date') }}"
-             data-room-availability-url="{{ route('booking.check-room-availability') }}">
+             data-room-availability-url="{{ route('booking.check-room-availability') }}"
+             data-old-items="{{ json_encode(old('items', [])) }}">
         </div>
 
         <div class="mb-4">
-          <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Event Type</label>
+          <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Occasion</label>
+          <select name="occasion" id="occasionSelect" required
+            class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
+            <option value="" disabled {{ old('occasion') ? '' : 'selected' }} hidden>Select an occasion</option>
+            @foreach(\App\Models\Booking::OCCASIONS as $occasionValue => $occasionLabel)
+              <option value="{{ $occasionValue }}" {{ old('occasion') === $occasionValue ? 'selected' : '' }}>{{ $occasionLabel }}</option>
+            @endforeach
+          </select>
+          @error('occasion') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Event Type <span id="eventTypeHint" class="font-normal text-warm-black/50" style="display: none;"></span></label>
           <select name="event_type" id="eventTypeSelect" required
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
             <option value="" disabled selected hidden>Select event type</option>
@@ -212,23 +225,35 @@
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Package</label>
           <select id="packageSelect" required
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
-            <option value="" disabled {{ old('package') ? '' : 'selected' }} hidden>Select a package</option>
+            <option value="" disabled {{ old('package') ? '' : 'selected' }} hidden id="packagePlaceholder">Select a package</option>
 
-            {{-- Regular event packages first, in a fixed, deterministic order
-                 (Package::all() has no orderBy, so relying on it mixed rooms
-                 in unpredictably). Room-type packages are rendered separately
-                 below so they always stay grouped together at the bottom. --}}
-            @foreach($packages as $pkg)
-              @continue(\App\Models\Booking::isRoomPackage($pkg->name))
-              <option value="{{ $pkg->name }}" data-package="{{ $pkg->name }}" data-max="{{ $pkg->max_guests }}" data-price="{{ $pkg->price }}" data-weekend-price="{{ $pkg->weekend_price }}" data-start="{{ $pkg->start_time ? \Carbon\Carbon::parse($pkg->start_time)->format('H:i') : '' }}" data-end="{{ $pkg->end_time ? \Carbon\Carbon::parse($pkg->end_time)->format('H:i') : '' }}" {{ old('package') == $pkg->name && !old('room_number') ? 'selected' : '' }}>
-                {{ $pkg->name }} — ₱{{ number_format($pkg->price, 0) }}{{ $pkg->weekend_price !== null ? " / ₱" . number_format($pkg->weekend_price, 0) . " weekends" : "" }} (up to {{ $pkg->max_guests }} guests{{ $pkg->duration ? ', ' . $pkg->duration : '' }})
-              </option>
+            {{-- Non-room packages split into "Swimming" and "Event" groups;
+                 room-type packages are rendered separately below so they
+                 always stay grouped together at the bottom. A "+" after the
+                 price means a higher Saturday/Sunday rate applies. --}}
+            @php
+              $nonRoomPackages = $packages->reject(fn ($p) => \App\Models\Booking::isRoomPackage($p->name));
+              $packageGroups = [
+                'Swimming' => $nonRoomPackages->filter(fn ($p) => in_array($p->name, \App\Models\Booking::SWIM_PACKAGES, true)),
+                'Event'    => $nonRoomPackages->reject(fn ($p) => in_array($p->name, \App\Models\Booking::SWIM_PACKAGES, true)),
+              ];
+            @endphp
+            @foreach($packageGroups as $groupLabel => $groupPackages)
+              @if($groupPackages->isNotEmpty())
+                <optgroup label="{{ $groupLabel }}" data-occasion="{{ $groupLabel === 'Swimming' ? 'swimming' : 'event' }}">
+                  @foreach($groupPackages as $pkg)
+                    <option value="{{ $pkg->name }}" data-package="{{ $pkg->name }}" data-max="{{ $pkg->max_guests }}" data-price="{{ $pkg->price }}" data-weekend-price="{{ $pkg->weekend_price }}" data-description="{{ $pkg->description }}" data-start="{{ $pkg->start_time ? \Carbon\Carbon::parse($pkg->start_time)->format('H:i') : '' }}" data-end="{{ $pkg->end_time ? \Carbon\Carbon::parse($pkg->end_time)->format('H:i') : '' }}" {{ old('package') == $pkg->name && !old('room_number') ? 'selected' : '' }}>
+                      {{ $pkg->name }} - ₱{{ number_format($pkg->price, 0) }}{{ $pkg->weekend_price !== null ? '+' : '' }} (up to {{ $pkg->max_guests }} guests{{ $pkg->duration ? ', ' . $pkg->duration : '' }})
+                    </option>
+                  @endforeach
+                </optgroup>
+              @endif
             @endforeach
 
             @foreach(\App\Models\Booking::ROOM_GROUPS as $roomPackageName => $roomNumbers)
               @php $pkg = $packages->firstWhere('name', $roomPackageName); @endphp
               @if($pkg)
-                <optgroup label="{{ $pkg->name }}">
+                <optgroup label="{{ $pkg->name }}" data-occasion="staycation">
                   @foreach($roomNumbers as $roomNum)
                     @php
                       $roomLabel = $pkg->name . ' ' . $roomNum . ' (₱' . number_format($pkg->price, 0) . ', up to ' . $pkg->max_guests . ' guests' . ($pkg->duration ? ', ' . $pkg->duration : '') . ')';
@@ -241,6 +266,7 @@
                       data-price="{{ $pkg->price }}"
                       data-weekend-price="{{ $pkg->weekend_price }}"
                       data-label="{{ $roomLabel }}"
+                      data-description="{{ $pkg->description }}"
                       {{ old('package') == $pkg->name && old('room_number') == $roomNum ? 'selected' : '' }}>
                       {{ $roomLabel }}
                     </option>
@@ -268,6 +294,13 @@
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body" />
           @error('guest_count') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
         </div>
+
+        {{-- Packages added with "+ Add to list" (same date). Filled by JS. --}}
+        <div id="bookingItemsBox" class="mb-4" style="display: none;">
+          <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Your Packages <span class="font-normal text-warm-black/60">— same date</span></label>
+          <div id="bookingItemsList" class="flex flex-col gap-2"></div>
+        </div>
+        <div id="itemsInputs"></div>
 
         <div class="mb-4">
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Total Amount (₱) <span id="weekendRateNote" class="font-normal text-warm-black/60" style="display: none;">— Weekend rate (Sat–Sun)</span></label>
@@ -343,12 +376,44 @@
         </div>
 
         {{-- Confirm Booking Button --}}
-        <button type="submit" id="confirmBookingBtn" class="w-full bg-gold-deep text-white border-none py-3.5 rounded-md font-bold text-[16px] tracking-[2px] cursor-pointer transition-all duration-300 hover:bg-gold-mid hover:shadow-lg">CONFIRM BOOKING</button>
+        <div class="flex gap-3">
+          <button type="button" id="addToListBtn" class="shrink-0 bg-transparent border border-gold-deep text-gold-deep px-4 py-3.5 rounded-md font-bold text-[14px] tracking-[1px] cursor-pointer transition-all duration-300 hover:bg-gold-deep hover:text-white">+ ADD TO LIST</button>
+        <button type="submit" id="confirmBookingBtn" class="flex-1 bg-gold-deep text-white border-none py-3.5 rounded-md font-bold text-[16px] tracking-[2px] cursor-pointer transition-all duration-300 hover:bg-gold-mid hover:shadow-lg">CONFIRM BOOKING</button>
+        </div>
+        <p class="text-[11px] text-warm-black/50 mt-2 italic">Booking more than one package for this date? Use “+ Add to list”, then Confirm Booking.</p>
 
       </form>
     </div>
   </div>
 </section>
+
+{{-- BOOKING SUMMARY — shown on "Confirm Booking"; its own Confirm button submits. Filled by JS. --}}
+<div id="bookingSummaryModal" class="fixed inset-0 bg-black/70 z-[9999] items-center justify-center p-4" style="display: none;">
+  <div class="bg-off-white border border-gold-deep/25 rounded-2xl max-w-[640px] w-full max-h-[90vh] flex flex-col overflow-hidden">
+    <div class="px-6 md:px-8 pt-6 pb-4 border-b border-gold-deep/15">
+      <h2 class="font-heading text-[26px] md:text-[30px] font-bold text-gold-deep m-0">Booking Summary</h2>
+      <p class="text-[14px] text-warm-black/70 mt-1 mb-0">Please review your booking before confirming.</p>
+    </div>
+    <div class="px-6 md:px-8 py-5 overflow-y-auto">
+      <div class="flex justify-between items-center mb-4 text-[14px]">
+        <span class="text-warm-black/60 font-bold uppercase tracking-[1px] text-[11px]">Event Date</span>
+        <span id="summaryDate" class="font-bold text-warm-black"></span>
+      </div>
+      <div id="summaryItems" class="flex flex-col gap-3 mb-5"></div>
+      <div class="text-[14px] text-warm-black/80 bg-gold-deep/5 p-4 rounded-lg border border-gold-deep/10 flex flex-col gap-2">
+        <div class="flex justify-between"><span>Payment Option:</span><span id="summaryPaymentOption" class="font-bold text-warm-black"></span></div>
+        <div class="flex justify-between"><span>Total Booking Amount:</span><span id="summaryModalTotal" class="font-bold text-warm-black"></span></div>
+        <div class="flex justify-between"><span id="summaryModalPayLabel"></span><span id="summaryModalPay" class="font-bold text-gold-deep"></span></div>
+        <div class="flex justify-between" id="summaryModalRemainingRow"><span>Remaining Balance:</span><span id="summaryModalRemaining" class="font-bold text-warm-black"></span></div>
+      </div>
+      <p class="text-[12px] text-warm-black/50 italic mt-3 mb-0">Each package is saved as its own booking with its own reference number. This does not process any payment.</p>
+    </div>
+    <div class="px-6 md:px-8 py-4 border-t border-gold-deep/15 flex gap-3">
+      <button type="button" id="summaryBackBtn" class="flex-1 bg-transparent border border-gold-deep/40 text-warm-black py-3 rounded-md font-bold text-[14px] tracking-[1px] cursor-pointer transition-all hover:border-gold-deep">BACK</button>
+      <button type="button" id="summaryConfirmBtn" class="flex-1 bg-gold-deep text-white border-none py-3 rounded-md font-bold text-[14px] tracking-[1px] cursor-pointer transition-all hover:bg-gold-mid">CONFIRM BOOKING</button>
+    </div>
+  </div>
+</div>
 
 {{-- ============================================================ --}}
 {{-- TERMS & CONDITIONS MODAL --}}
@@ -664,6 +729,14 @@
       return;
     }
 
+    // Show the Booking Summary first; its own Confirm button re-submits
+    // the form with bookingSummaryConfirmed set.
+    if (!window.bookingSummaryConfirmed) {
+      e.preventDefault();
+      if (window.openBookingSummary) window.openBookingSummary();
+      return;
+    }
+
     // Lock the button once the booking is actually being sent, so a
     // double-click (or a second click on a slow connection) can't create a
     // duplicate booking. A validation error reloads the page, which
@@ -694,8 +767,8 @@
         <h2 class="font-heading text-[26px] md:text-[32px] font-bold text-gold-deep mb-2">Booking Submitted!</h2>
         @if(session('booking_number'))
           <div class="mb-4">
-              <p class="text-[11px] tracking-[1px] text-warm-black/50 font-bold uppercase mb-1">Booking Reference</p>
-              <p class="text-[18px] font-bold text-gold-deep">#{{ session('booking_number') }}</p>
+              <p class="text-[11px] tracking-[1px] text-warm-black/50 font-bold uppercase mb-1">{{ str_contains(session('booking_number'), ',') ? 'Booking References' : 'Booking Reference' }}</p>
+              <p class="text-[18px] font-bold text-gold-deep">#{{ str_replace(', ', ', #', session('booking_number')) }}</p>
           </div>
         @endif
         <p class="text-warm-black/80 text-[15px] leading-relaxed mb-4">Your reservation request has been received and is currently <strong class="text-gold-deep">pending approval</strong>.</p>
@@ -726,6 +799,9 @@
         <form action="{{ route('visit-schedule.store') }}" method="POST" id="visitModalForm">
             @csrf
             <input type="hidden" name="booking_id" value="{{ session('new_booking_id') }}">
+            @foreach((array) session('new_booking_ids', []) as $groupBookingId)
+              <input type="hidden" name="booking_ids[]" value="{{ $groupBookingId }}">
+            @endforeach
             <input type="hidden" id="modal_event_date" value="{{ $eventDateVal }}">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
@@ -873,24 +949,98 @@
     document.getElementById('selectedDateText').textContent = 'Selected: ' + formatDisplay(oldDate);
   }
 
-  // Preview of the package price for the selected date: the weekend rate on
-  // Saturday/Sunday when the package has one. Display only — the server
-  // computes the real total from the package record.
+  // Packages added with "+ Add to list" for the selected date. Each entry
+  // keeps a reference to its <option> for label/price/description.
+  const bookingItems = [];
+
+  function isWeekendDate() {
+    if (!selectedDate) return false;
+    const day = new Date(selectedDate + 'T00:00:00').getDay();
+    return day === 0 || day === 6;
+  }
+
+  // Package price for the selected date: the weekend rate on Saturday/Sunday
+  // when the package has one.
+  function optionPrice(option) {
+    if (!option || !option.dataset.price) return 0;
+    const useWeekend = isWeekendDate() && option.dataset.weekendPrice;
+    return parseFloat(useWeekend ? option.dataset.weekendPrice : option.dataset.price) || 0;
+  }
+
+  // Total preview = every listed package + the package currently selected
+  // (which Confirm Booking also includes). Display only — the server
+  // computes the real totals from the package records.
   function applyPackagePrice() {
     const option = packageSelectEl.options[packageSelectEl.selectedIndex];
-    const note = document.getElementById('weekendRateNote');
-    if (!option || !option.dataset.price) {
-      note.style.display = 'none';
-      return;
-    }
+    const pending = option && option.dataset.price ? option : null;
+    const options = bookingItems.map(function (item) { return item.option; }).concat(pending ? [pending] : []);
+    const total = options.reduce(function (sum, o) { return sum + optionPrice(o); }, 0);
 
-    const day = selectedDate ? new Date(selectedDate + 'T00:00:00').getDay() : null;
-    const isWeekend = day === 0 || day === 6;
-    const useWeekend = isWeekend && option.dataset.weekendPrice;
-
-    document.getElementById('totalAmountInput').value = useWeekend ? option.dataset.weekendPrice : option.dataset.price;
-    note.style.display = useWeekend ? '' : 'none';
+    document.getElementById('totalAmountInput').value = total > 0 ? total.toFixed(2) : '';
+    document.getElementById('weekendRateNote').style.display =
+      isWeekendDate() && options.some(function (o) { return o.dataset.weekendPrice; }) ? '' : 'none';
+    renderBookingItems();
     updateDownPayment();
+  }
+
+  function itemTitle(item) {
+    return item.option.dataset.room ? item.packageName + ' ' + item.room : item.packageName;
+  }
+
+  function itemSubtitle(item) {
+    const type = item.occasion === 'event'
+      ? 'Event · ' + (item.eventType === 'Others' ? item.eventTypeOther : item.eventType)
+      : occasionLabels[item.occasion];
+    return type + ' · ' + item.guests + ' guest' + (item.guests === 1 ? '' : 's');
+  }
+
+  function renderBookingItems() {
+    const box = document.getElementById('bookingItemsBox');
+    const list = document.getElementById('bookingItemsList');
+    list.innerHTML = '';
+
+    bookingItems.forEach(function (item, index) {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between gap-3 bg-cream border border-gold-deep/20 rounded-md px-3.5 py-2.5';
+
+      const info = document.createElement('div');
+      const title = document.createElement('div');
+      title.className = 'text-[14px] font-bold text-warm-black';
+      title.textContent = itemTitle(item);
+      const sub = document.createElement('div');
+      sub.className = 'text-[12px] text-warm-black/60';
+      sub.textContent = itemSubtitle(item);
+      info.append(title, sub);
+
+      const right = document.createElement('div');
+      right.className = 'flex items-center gap-3 shrink-0';
+      const price = document.createElement('span');
+      price.className = 'text-[14px] font-bold text-gold-deep';
+      price.textContent = formatPeso(optionPrice(item.option));
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.title = 'Remove from list';
+      remove.className = 'w-7 h-7 rounded-full border border-red-400/50 text-red-500 bg-transparent cursor-pointer hover:bg-red-500 hover:text-white transition-colors';
+      remove.textContent = '✕';
+      remove.addEventListener('click', function () {
+        bookingItems.splice(index, 1);
+        applyPackagePrice();
+      });
+      right.append(price, remove);
+
+      row.append(info, right);
+      list.appendChild(row);
+    });
+
+    box.style.display = bookingItems.length ? '' : 'none';
+
+    // With packages already in the list, the selection fields may be left
+    // empty — they're only required when nothing has been added yet.
+    const hasList = bookingItems.length > 0;
+    document.getElementById('occasionSelect').required = !hasList;
+    packageSelectEl.required = !hasList;
+    document.getElementById('guestCountInput').required = !hasList;
+    eventTypeSelect.required = !hasList;
   }
 
   function syncPackageFromSelect() {
@@ -968,6 +1118,237 @@
   paymentOptionSelect.addEventListener('change', updateDownPayment);
   updateDownPayment();
 
+  // ── Occasion: Swimming / Staycation / Event ─────────────────
+  // Only the chosen occasion's packages are offered, and Event Type is only
+  // used for Events (disabled for Swimming/Staycation). The server enforces
+  // the same package/occasion pairing.
+  const occasionSelect = document.getElementById('occasionSelect');
+  const eventTypeHint = document.getElementById('eventTypeHint');
+  const occasionLabels = { swimming: 'Swimming', staycation: 'Staycation', event: 'Event' };
+
+  function packageOccasion(option) {
+    return option && option.parentElement && option.parentElement.tagName === 'OPTGROUP'
+      ? option.parentElement.dataset.occasion
+      : null;
+  }
+
+  function applyOccasion() {
+    const occasion = occasionSelect.value;
+    const isEvent = occasion === 'event';
+
+    eventTypeSelect.disabled = !isEvent;
+    if (!isEvent && eventTypeSelect.value) {
+      eventTypeSelect.selectedIndex = 0;
+      toggleOtherEventType();
+    }
+    eventTypeHint.textContent = !occasion
+      ? '— select an occasion first'
+      : (isEvent ? '' : '— not needed for ' + occasionLabels[occasion]);
+    eventTypeHint.style.display = isEvent ? 'none' : '';
+
+    packageSelectEl.disabled = !occasion;
+    packageSelectEl.querySelectorAll('optgroup').forEach(function (group) {
+      const show = group.dataset.occasion === occasion;
+      group.hidden = !show;
+      group.disabled = !show;
+    });
+
+    // A package from another occasion can't stay selected.
+    if (packageOccasion(packageSelectEl.options[packageSelectEl.selectedIndex]) !== occasion) {
+      packageSelectEl.selectedIndex = 0;
+      roomUnavailableNotice.style.display = 'none';
+      syncPackageFromSelect();
+      applyPackagePrice();
+    }
+  }
+
+  occasionSelect.addEventListener('change', applyOccasion);
+
+  // ── "+ Add to list": several packages for the same date ─────
+  const guestCountInput = document.getElementById('guestCountInput');
+
+  // The package currently picked in the form, as a list item. Returns null
+  // when no package is picked, or { error } when it is incomplete.
+  function pendingSelection() {
+    const option = packageSelectEl.options[packageSelectEl.selectedIndex];
+    if (!option || !option.dataset.package) return null;
+
+    const name = option.dataset.room ? option.dataset.package + ' ' + option.dataset.room : option.dataset.package;
+    const occasion = occasionSelect.value;
+    let eventType = '';
+    let eventTypeOther = '';
+
+    if (occasion === 'event') {
+      eventType = eventTypeSelect.value;
+      if (!eventType) return { error: 'Please select an event type for ' + name + '.' };
+      if (eventType === 'Others') {
+        eventTypeOther = otherInput.value.trim();
+        if (!eventTypeOther) return { error: 'Please specify the event type for ' + name + '.' };
+      }
+    }
+
+    const guests = parseInt(guestCountInput.value, 10);
+    const max = parseInt(option.dataset.max, 10);
+    if (!guests || guests < 1) return { error: 'Please enter the number of guests for ' + name + '.' };
+    if (max && guests > max) return { error: 'Guest count exceeds the maximum allowed for ' + name + ' (Max: ' + max + ').' };
+
+    return { item: {
+      occasion: occasion,
+      eventType: eventType,
+      eventTypeOther: eventTypeOther,
+      packageName: option.dataset.package,
+      room: option.dataset.room || '',
+      guests: guests,
+      option: option,
+    } };
+  }
+
+  // Same rules the server enforces: no duplicates, one Event per day.
+  function cannotAdd(item, list) {
+    if (list.some(function (i) { return i.packageName === item.packageName && i.room === item.room; })) {
+      return itemTitle(item) + ' is already in your list.';
+    }
+    if (item.occasion === 'event' && list.some(function (i) { return i.occasion === 'event'; })) {
+      return 'Only one Event package can be booked per day.';
+    }
+    return null;
+  }
+
+  function resetSelection() {
+    packageSelectEl.selectedIndex = 0;
+    roomUnavailableNotice.style.display = 'none';
+    syncPackageFromSelect();
+    guestCountInput.value = '';
+    if (occasionSelect.value === 'event') {
+      eventTypeSelect.selectedIndex = 0;
+      toggleOtherEventType();
+    }
+  }
+
+  document.getElementById('addToListBtn').addEventListener('click', function () {
+    if (!selectedDate) { alert('Please select an event date first.'); return; }
+
+    const picked = pendingSelection();
+    if (!picked) { alert('Please select a package to add.'); return; }
+    if (picked.error) { alert(picked.error); return; }
+
+    const problem = cannotAdd(picked.item, bookingItems);
+    if (problem) { alert(problem); return; }
+
+    bookingItems.push(picked.item);
+    resetSelection();
+    applyPackagePrice();
+  });
+
+  // ── Booking Summary (opened by the form's submit guard) ─────
+  const summaryModal = document.getElementById('bookingSummaryModal');
+
+  function addHiddenInput(container, name, value) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    container.appendChild(input);
+  }
+
+  window.openBookingSummary = function () {
+    if (!selectedDate) { alert('Please select an event date.'); return; }
+
+    // Confirm Booking also books the package currently selected in the form.
+    const items = bookingItems.slice();
+    const picked = pendingSelection();
+    if (picked && picked.error) { alert(picked.error); return; }
+    if (picked) {
+      const problem = cannotAdd(picked.item, items);
+      if (problem) { alert(problem); return; }
+      items.push(picked.item);
+    }
+    if (!items.length) { alert('Please select at least one package.'); return; }
+
+    // What actually gets submitted: one items[] entry per package.
+    const inputs = document.getElementById('itemsInputs');
+    inputs.innerHTML = '';
+    items.forEach(function (item, i) {
+      addHiddenInput(inputs, 'items[' + i + '][occasion]', item.occasion);
+      addHiddenInput(inputs, 'items[' + i + '][event_type]', item.eventType);
+      addHiddenInput(inputs, 'items[' + i + '][event_type_other]', item.eventTypeOther);
+      addHiddenInput(inputs, 'items[' + i + '][package]', item.packageName);
+      addHiddenInput(inputs, 'items[' + i + '][room_number]', item.room);
+      addHiddenInput(inputs, 'items[' + i + '][guest_count]', item.guests);
+    });
+
+    // Summary content (textContent only — package text is admin-entered).
+    document.getElementById('summaryDate').textContent = formatDisplay(selectedDate);
+    const list = document.getElementById('summaryItems');
+    list.innerHTML = '';
+    items.forEach(function (item) {
+      const card = document.createElement('div');
+      card.className = 'border border-gold-deep/20 rounded-lg p-4 bg-cream';
+
+      const head = document.createElement('div');
+      head.className = 'flex justify-between items-start gap-3';
+      const title = document.createElement('div');
+      title.className = 'text-[15px] font-bold text-warm-black';
+      title.textContent = itemTitle(item);
+      const price = document.createElement('div');
+      price.className = 'text-[15px] font-bold text-gold-deep shrink-0';
+      price.textContent = formatPeso(optionPrice(item.option)) + (isWeekendDate() && item.option.dataset.weekendPrice ? ' (weekend)' : '');
+      head.append(title, price);
+
+      const sub = document.createElement('div');
+      sub.className = 'text-[13px] text-warm-black/60 mt-0.5';
+      sub.textContent = itemSubtitle(item);
+      card.append(head, sub);
+
+      if (item.option.dataset.description) {
+        const desc = document.createElement('div');
+        desc.className = 'text-[13px] text-warm-black/80 mt-2 pt-2 border-t border-gold-deep/10 leading-relaxed';
+        desc.style.whiteSpace = 'pre-wrap';
+        desc.textContent = item.option.dataset.description;
+        card.appendChild(desc);
+      }
+      list.appendChild(card);
+    });
+
+    const total = items.reduce(function (sum, item) { return sum + optionPrice(item.option); }, 0);
+    const isFull = paymentOptionSelect.value === 'full_payment';
+    const toPay = isFull ? total : Math.round(total * DOWN_PAYMENT_RATE * 100) / 100;
+    document.getElementById('summaryPaymentOption').textContent = paymentOptionSelect.options[paymentOptionSelect.selectedIndex].textContent;
+    document.getElementById('summaryModalTotal').textContent = formatPeso(total);
+    document.getElementById('summaryModalPayLabel').textContent = isFull ? 'Amount to Pay:' : DOWN_PAYMENT_PERCENT + '% Downpayment Amount:';
+    document.getElementById('summaryModalPay').textContent = formatPeso(toPay);
+    document.getElementById('summaryModalRemaining').textContent = formatPeso(Math.round((total - toPay) * 100) / 100);
+    document.getElementById('summaryModalRemainingRow').style.display = isFull ? 'none' : 'flex';
+
+    summaryModal.style.display = 'flex';
+  };
+
+  function closeBookingSummary() {
+    summaryModal.style.display = 'none';
+    document.getElementById('itemsInputs').innerHTML = '';
+  }
+
+  document.getElementById('summaryBackBtn').addEventListener('click', closeBookingSummary);
+  summaryModal.addEventListener('click', function (e) { if (e.target === summaryModal) closeBookingSummary(); });
+
+  const summaryConfirmBtn = document.getElementById('summaryConfirmBtn');
+  summaryConfirmBtn.addEventListener('click', function () {
+    summaryConfirmBtn.disabled = true;
+    summaryConfirmBtn.textContent = 'SUBMITTING...';
+    window.bookingSummaryConfirmed = true;
+    document.getElementById('bookingForm').requestSubmit(document.getElementById('confirmBookingBtn'));
+  });
+
+  // If the browser blocks the submit (a required field is empty), go back to
+  // the form so the customer can see the message, and reset the summary.
+  document.getElementById('bookingForm').addEventListener('invalid', function () {
+    if (!window.bookingSummaryConfirmed) return;
+    window.bookingSummaryConfirmed = false;
+    summaryConfirmBtn.disabled = false;
+    summaryConfirmBtn.textContent = 'CONFIRM BOOKING';
+    closeBookingSummary();
+  }, true);
+
   const urlParams = new URLSearchParams(window.location.search);
   const packageFromUrl = urlParams.get('package');
   let oldPackage = selectedPackage;
@@ -979,10 +1360,42 @@
     const directMatch = Array.from(packageSelectEl.options).find(opt => opt.value === packageFromUrl);
     const roomMatch = Array.from(packageSelectEl.options).find(opt => opt.dataset.package === packageFromUrl);
     const match = directMatch || roomMatch;
-    if (match) { packageSelectEl.value = match.value; oldPackage = packageFromUrl; }
+    if (match) {
+      packageSelectEl.value = match.value;
+      oldPackage = packageFromUrl;
+      // Pick the occasion that package belongs to (e.g. Discover's "Book Now").
+      if (packageOccasion(match)) occasionSelect.value = packageOccasion(match);
+    }
   }
   if (oldPackage) {
     packageSelectEl.dispatchEvent(new Event('change'));
+  }
+  // Set up Event Type / package filtering for the current occasion (also
+  // restores the state after a validation-failure reload).
+  applyOccasion();
+
+  // After a validation-failure reload, rebuild the submitted package list.
+  // The last entry there was the in-form selection, so clear the form's
+  // own fields to avoid showing it twice.
+  const oldItems = JSON.parse(dataEl.getAttribute('data-old-items') || '[]');
+  if (Array.isArray(oldItems) && oldItems.length) {
+    oldItems.forEach(function (old) {
+      const option = Array.from(packageSelectEl.options).find(function (o) {
+        return o.dataset.package === old.package && (o.dataset.room || '') === (old.room_number || '');
+      });
+      if (!option) return;
+      bookingItems.push({
+        occasion: old.occasion,
+        eventType: old.event_type || '',
+        eventTypeOther: old.event_type_other || '',
+        packageName: old.package,
+        room: old.room_number || '',
+        guests: parseInt(old.guest_count, 10) || 0,
+        option: option,
+      });
+    });
+    resetSelection();
+    applyPackagePrice();
   }
 
   function formatDisplay(dateStr) {

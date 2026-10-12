@@ -3,196 +3,290 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Profile | LorDane's Place</title>
+  <title>My Reservations | LorDane's Place</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
+  <style>
+    /* My Reservations: slim profile header + stat strip, status tabs, and
+       ticket-style cards (date stub | details | money & actions). */
+    .rv-page { --rv-surface: #fffcf5; --rv-tint: #f2ebdc; --rv-ink: #1a1208; --rv-soft: #5c4a33; --rv-faint: #8f7c62; --rv-line: #e8dcc4; --rv-gold: #b8860b; --rv-brown: #2c1a0e;
+      padding: 40px 0 72px; min-height: 100vh; font-family: 'Jost', sans-serif; color: var(--rv-ink); }
+    .rv-wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+    .rv-page [hidden] { display: none !important; } /* tabs hide cards whose class sets display */
+    .rv-flash { border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; font-size: 14px; }
+    .rv-flash-ok { background: #e3f3ea; color: #1f6b43; border: 1px solid #b9e0c9; }
+    .rv-flash-err { background: #fbe5e2; color: #9b2c20; border: 1px solid #f1bdb6; }
+
+    .rv-profile { background: var(--rv-surface); border: 1px solid var(--rv-line); border-radius: 12px; padding: 24px; display: grid; gap: 20px; }
+    .rv-profile-top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .rv-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--rv-gold); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 20px; flex-shrink: 0; }
+    .rv-who { flex: 1; min-width: 0; }
+    .rv-who h1 { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; line-height: 1.1; margin: 0; }
+    .rv-who p { margin: 4px 0 0; color: var(--rv-faint); font-size: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .rv-email { word-break: break-all; }
+    .rv-tier { background: #fbf0d9; color: var(--rv-gold); font-weight: 700; font-size: 12px; padding: 2px 10px; border-radius: 999px; }
+    .rv-btn { display: inline-block; background: var(--rv-gold); color: #fff; font-weight: 700; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; padding: 12px 20px; border-radius: 6px; text-decoration: none; transition: background .2s; }
+    .rv-btn:hover { background: #c9a84c; }
+    .rv-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .rv-stat { background: var(--rv-tint); border-radius: 10px; padding: 14px 16px; }
+    .rv-stat b { display: block; font-family: 'Cormorant Garamond', serif; font-size: 32px; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
+    .rv-stat span { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--rv-faint); font-weight: 600; }
+    .rv-stat-money b { color: var(--rv-gold); font-size: 28px; }
+
+    .rv-list-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 36px 0 14px; }
+    .rv-list-head h2 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 700; margin: 0; }
+    .rv-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .rv-tab { font: inherit; font-size: 14px; font-weight: 500; background: transparent; color: var(--rv-soft); border: 1px solid var(--rv-line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+    .rv-tab .rv-n { margin-left: 5px; color: var(--rv-faint); font-variant-numeric: tabular-nums; }
+    .rv-tab[aria-selected="true"] { background: var(--rv-brown); border-color: var(--rv-brown); color: #fff; }
+    .rv-tab[aria-selected="true"] .rv-n { color: #c9a84c; }
+    .rv-tab:focus-visible, .rv-act:focus-visible, .rv-btn:focus-visible { outline: 2px solid var(--rv-ink); outline-offset: 2px; }
+
+    .rv-list { display: grid; gap: 14px; }
+    .rv-ticket { display: grid; grid-template-columns: 96px minmax(0, 1fr) 240px; background: var(--rv-surface); border: 1px solid var(--rv-line); border-radius: 12px; overflow: hidden; scroll-margin-top: 110px; transition: box-shadow .3s; }
+    .rv-group { display: grid; grid-template-columns: 96px minmax(0, 1fr); background: var(--rv-surface); border: 1px solid var(--rv-line); border-radius: 12px; overflow: hidden; }
+    .is-dim { opacity: .72; }
+    .rv-stub { background: var(--rv-tint); border-right: 2px dashed var(--rv-line); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 6px; text-align: center; }
+    .rv-stub .m { font-size: 12px; letter-spacing: 2px; font-weight: 700; color: var(--rv-gold); }
+    .rv-stub .d { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 700; line-height: 1; font-variant-numeric: lining-nums; }
+    .rv-stub .w { font-size: 11px; color: var(--rv-faint); text-transform: uppercase; letter-spacing: 1px; }
+
+    .rv-body { padding: 16px 20px; min-width: 0; display: grid; gap: 8px; align-content: start; }
+    .rv-title { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+    .rv-title h3 { margin: 0; font-size: 18px; font-weight: 700; }
+    .rv-occ { font-size: 13px; color: var(--rv-faint); }
+    .rv-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--rv-soft); }
+    .rv-ref { color: var(--rv-faint); font-variant-numeric: tabular-nums; }
+    .rv-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .rv-chip { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
+    .rv-s-pending { color: #a86a00; background: #fbf0d9; }
+    .rv-s-approved { color: #2f8f5b; background: #e3f3ea; }
+    .rv-s-ongoing { color: #2f6fbf; background: #e3ecf8; }
+    .rv-s-completed { color: var(--rv-gold); background: var(--rv-tint); }
+    .rv-s-cancelled, .rv-s-rejected { color: #6b7680; background: #eceff1; }
+    .rv-p-unpaid { color: #c0392b; background: #fbe5e2; }
+    .rv-p-partial { color: #a86a00; background: #fbf0d9; }
+    .rv-p-paid { color: #2f8f5b; background: #e3f3ea; }
+    .rv-visit { font-size: 13px; color: var(--rv-soft); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .rv-visit svg { color: var(--rv-gold); flex-shrink: 0; }
+    .rv-muted { color: var(--rv-faint); font-size: 12px; }
+    .rv-link { color: var(--rv-gold); font-weight: 700; text-decoration: none; }
+    .rv-link:hover { text-decoration: underline; }
+    .rv-reason { margin: 0; font-size: 13px; color: #7a4f00; background: #fff6e0; border-radius: 6px; padding: 8px 12px; }
+    .rv-note { margin: 0; font-size: 13px; color: var(--rv-faint); font-style: italic; }
+
+    .rv-steps { max-width: 420px; margin-top: 2px; }
+    .rv-track { display: flex; align-items: center; }
+    .rv-step { display: flex; align-items: center; flex: 1; min-width: 0; }
+    .rv-step:last-child { flex: 0; }
+    .rv-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--rv-line); background: var(--rv-surface); flex-shrink: 0; }
+    .rv-bar { height: 2px; background: var(--rv-line); flex: 1; }
+    .rv-step.done .rv-dot { background: var(--rv-gold); border-color: var(--rv-gold); }
+    .rv-step.done .rv-bar { background: var(--rv-gold); }
+    .rv-step.now .rv-dot { background: var(--rv-surface); box-shadow: 0 0 0 3px #fbf0d9; }
+    .rv-step.now .rv-bar { background: var(--rv-line); }
+    .rv-step-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--rv-faint); margin-top: 3px; }
+    .rv-step-labels .cur { color: var(--rv-gold); font-weight: 700; }
+
+    .rv-money { border-left: 1px solid var(--rv-line); padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+    .rv-total { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
+    .rv-total small { display: block; font-family: 'Jost', sans-serif; font-size: 11px; color: var(--rv-faint); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+    .rv-pay { display: grid; gap: 4px; font-size: 12px; color: var(--rv-soft); }
+    .rv-pay-track { height: 6px; border-radius: 999px; background: var(--rv-tint); overflow: hidden; }
+    .rv-pay-fill { height: 100%; background: var(--rv-gold); border-radius: 999px; }
+    .rv-pay-row { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+    .rv-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+    .rv-acts form { margin: 0; }
+    .rv-act { font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; padding: 8px 12px; border-radius: 6px; cursor: pointer; background: transparent; border: 1px solid var(--rv-line); color: var(--rv-soft); transition: background .2s; }
+    .rv-act-primary { border-color: var(--rv-gold); color: var(--rv-gold); }
+    .rv-act-primary:hover { background: #fbf0d9; }
+    .rv-act-danger { border-color: #e9b7b1; color: #c0392b; }
+    .rv-act-danger:hover { background: #fbe5e2; }
+
+    .rv-group-body { min-width: 0; }
+    .rv-group-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--rv-line); }
+    .rv-group-head h3 { margin: 0; font-size: 16px; font-weight: 700; }
+    .rv-sum { font-size: 13px; color: var(--rv-soft); font-variant-numeric: tabular-nums; }
+    .rv-sum b { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--rv-ink); font-variant-numeric: lining-nums; }
+    .rv-sub { display: grid; grid-template-columns: minmax(0, 1fr) 240px; border-bottom: 1px solid var(--rv-line); scroll-margin-top: 110px; transition: box-shadow .3s; }
+    .rv-sub:last-child { border-bottom: 0; }
+
+    /* Cancel confirmation modal (system palette: cream, gold, brown) */
+    .rv-modal { position: fixed; inset: 0; z-index: 1100; background: rgba(26,18,8,.55); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 16px; font-family: 'Jost', sans-serif; }
+    .rv-modal[hidden] { display: none; }
+    .rv-modal-box { position: relative; background: #fffcf5; border: 1px solid #e8dcc4; border-radius: 16px; max-width: 520px; width: 100%; padding: 32px 28px 26px; text-align: center; box-shadow: 0 30px 60px rgba(26,18,8,.28); }
+    .rv-modal-close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: transparent; color: #8f7c62; display: grid; place-items: center; cursor: pointer; }
+    .rv-modal-close:hover { background: #f2ebdc; color: #1a1208; }
+    .rv-modal-icon { width: 54px; height: 54px; border-radius: 50%; background: #f5ead2; color: #b8860b; display: grid; place-items: center; margin: 0 auto 14px; }
+    .rv-modal-box h3 { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; color: #1a1208; margin: 0 0 8px; line-height: 1.1; }
+    .rv-modal-box > p { font-size: 14px; color: #5c4a33; line-height: 1.55; margin: 0 0 20px; }
+    .rv-modal-booking { display: flex; align-items: center; gap: 14px; text-align: left; background: #f7f1e4; border: 1px solid #e8dcc4; border-radius: 12px; padding: 12px; margin-bottom: 22px; }
+    .rv-modal-thumb { width: 96px; height: 72px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #e8dcc4; }
+    .rv-modal-info { flex: 1; min-width: 0; display: grid; gap: 3px; }
+    .rv-modal-info strong { font-size: 16px; color: #1a1208; }
+    .rv-modal-info > span { font-size: 13px; color: #8f7c62; font-variant-numeric: tabular-nums; }
+    .rv-modal-date { display: flex; align-items: center; gap: 6px; }
+    .rv-modal-date svg { color: #b8860b; flex-shrink: 0; }
+    .rv-modal-status { flex-shrink: 0; align-self: center; margin-left: 2px; padding: 4px 12px; border-radius: 999px; background: #f5ead2; color: #b8860b; font-size: 12px; font-weight: 700; position: relative; }
+    .rv-modal-status::before { content: ""; position: absolute; left: -15px; top: -12px; bottom: -12px; border-left: 1px solid #e8dcc4; }
+    .rv-modal-acts { display: flex; gap: 12px; }
+    .rv-modal-btn { flex: 1; font: inherit; font-size: 14px; font-weight: 600; padding: 13px; border-radius: 8px; cursor: pointer; background: #fffcf5; border: 1px solid #b8860b; color: #b8860b; transition: background .2s; }
+    .rv-modal-btn:hover { background: #fbf0d9; }
+    .rv-modal-btn-danger { background: #2c1a0e; border-color: #2c1a0e; color: #fff; }
+    .rv-modal-btn-danger:hover { background: #4a2f1a; }
+    .rv-modal-btn:focus-visible, .rv-modal-close:focus-visible { outline: 2px solid #1a1208; outline-offset: 2px; }
+    .rv-modal-btn[disabled] { opacity: .7; cursor: default; }
+    @media (max-width: 520px) {
+      .rv-br { display: none; }
+      .rv-modal-booking { flex-wrap: wrap; }
+      .rv-modal-status::before { display: none; }
+      .rv-modal-acts { flex-direction: column-reverse; }
+    }
+
+    .rv-empty { text-align: center; padding: 48px 16px; color: var(--rv-faint); border: 1px dashed var(--rv-line); border-radius: 12px; display: grid; gap: 14px; justify-items: center; }
+    .rv-empty p { margin: 0; font-family: 'Cormorant Garamond', serif; font-size: 24px; }
+
+    @media (max-width: 860px) {
+      .rv-ticket { grid-template-columns: 80px minmax(0, 1fr); }
+      .rv-ticket .rv-money { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--rv-line); }
+      .rv-group { grid-template-columns: 80px minmax(0, 1fr); }
+      .rv-sub { grid-template-columns: minmax(0, 1fr); }
+      .rv-sub .rv-money { border-left: 0; border-top: 1px dashed var(--rv-line); }
+      .rv-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 480px) {
+      .rv-ticket, .rv-group { grid-template-columns: minmax(0, 1fr); }
+      .rv-stub { flex-direction: row; gap: 8px; border-right: 0; border-bottom: 2px dashed var(--rv-line); justify-content: flex-start; padding: 10px 16px; }
+      .rv-stub .d { font-size: 28px; }
+      .rv-who h1 { font-size: 26px; }
+    }
+  </style>
 </head>
 <body class="bg-off-white text-warm-black font-body">
 
 @include('partials._navbar')
 
-<section class="py-12 md:py-24 bg-off-white min-h-screen" style="font-family: 'Jost', sans-serif;">
-  <div class="max-w-[1200px] mx-auto px-4">
+<section class="rv-page">
+  <div class="rv-wrap">
+    @php
+      $today = now()->toDateString();
 
-    {{-- PROFILE INFORMATION SECTION - BRANDED --}}
-    <div style="background: #FAF8F3; border: 1px solid #B8860B20; border-radius: 12px; margin-bottom: 3rem; overflow: hidden; shadow: 0 4px 20px rgba(184,134,11,0.05);">
-      <div style="padding: 3rem; border-bottom: 1px solid #B8860B10;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; font-weight: 700; margin-bottom: 2.5rem; color: #B8860B;">Profile Information</h2>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 3rem;">
-          <div>
-            <p style="font-size: 10px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Username</p>
-            <p style="font-size: 18px; font-weight: 600; color: #1A1208;">{{ $user->name }}</p>
-          </div>
-          <div>
-            <p style="font-size: 10px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Email Address</p>
-            <p style="font-size: 18px; font-weight: 600; color: #1A1208; word-break: break-all;">{{ $user->email }}</p>
-          </div>
-          <div>
-            <p style="font-size: 10px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Account Tier</p>
-            @php
-              // Tier follows how many events the customer has actually
-              // completed with us — a brand-new account starts as a New Member.
-              $completedCount = $bookings->where('status', \App\Models\Booking::STATUS_COMPLETED)->count();
-              $accountTier = $completedCount >= 2 ? 'Loyal Client' : ($completedCount === 1 ? 'Member' : 'New Member');
-            @endphp
-            <p style="font-size: 18px; font-weight: 700; color: #B8860B;">{{ $accountTier }}</p>
-          </div>
-          <div>
-            <p style="font-size: 10px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Member Since</p>
-            <p style="font-size: 18px; font-weight: 600; color: #1A1208;">{{ $user->created_at->format('M d, Y') }}</p>
-          </div>
+      // Which tab a booking belongs to.
+      $bucketOf = function ($b) use ($today) {
+          if ($b->isCancelledOrRejected()) return 'cancelled';
+          if ($b->status === \App\Models\Booking::STATUS_COMPLETED || $b->event_date->toDateString() < $today) return 'past';
+          return $b->status === \App\Models\Booking::STATUS_PENDING ? 'pending' : 'upcoming';
+      };
+
+      // Bookings on the same date (e.g. booked together with "+ Add to list")
+      // are shown as one card. Upcoming dates first (soonest first), then
+      // past dates (most recent first).
+      $groups = $bookings->groupBy(fn ($b) => $b->event_date->toDateString())
+          ->sortBy(fn ($g, $date) => $date >= $today ? '0' . $date : '1' . (99999999 - (int) str_replace('-', '', $date)));
+
+      $counts = ['upcoming' => 0, 'pending' => 0, 'past' => 0, 'cancelled' => 0];
+      foreach ($bookings as $b) { $counts[$bucketOf($b)]++; }
+
+      $completedCount = $bookings->where('status', \App\Models\Booking::STATUS_COMPLETED)->count();
+      $accountTier = $completedCount >= 2 ? 'Loyal Client' : ($completedCount === 1 ? 'Member' : 'New Member');
+      $balance = $bookings->reject(fn ($b) => $b->isCancelledOrRejected())->sum(fn ($b) => max(0, $b->remainingBalance()));
+      $initials = collect(preg_split('/\s+/', trim($user->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
+    @endphp
+
+    @if(session('success'))
+      <div class="rv-flash rv-flash-ok">{{ session('success') }}</div>
+    @endif
+    @if($errors->any())
+      <div class="rv-flash rv-flash-err">@foreach($errors->all() as $err)<div>{{ $err }}</div>@endforeach</div>
+    @endif
+
+    {{-- PROFILE HEADER --}}
+    <section class="rv-profile" aria-label="Profile">
+      <div class="rv-profile-top">
+        <div class="rv-avatar" aria-hidden="true">{{ $initials ?: '?' }}</div>
+        <div class="rv-who">
+          <h1>{{ $user->name }}</h1>
+          <p>
+            <span class="rv-email">{{ $user->email }}</span>
+            <span aria-hidden="true">·</span>
+            <span class="rv-tier">★ {{ $accountTier }}</span>
+            <span aria-hidden="true">·</span>
+            <span>Member since {{ $user->created_at->format('M d, Y') }}</span>
+          </p>
         </div>
+        <a href="{{ route('booking') }}" class="rv-btn">+ New Reservation</a>
       </div>
+      <div class="rv-stats">
+        <div class="rv-stat"><b>{{ $counts['upcoming'] }}</b><span>Upcoming</span></div>
+        <div class="rv-stat"><b>{{ $counts['pending'] }}</b><span>Pending approval</span></div>
+        <div class="rv-stat"><b>{{ $completedCount }}</b><span>Completed</span></div>
+        <div class="rv-stat rv-stat-money"><b>₱{{ number_format($balance, 0) }}</b><span>Balance to pay</span></div>
+      </div>
+    </section>
 
-      <div style="background: #B8860B05; padding: 2rem; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #B8860B10;">
-        <div style="display: flex; align-items: center; gap: 1.5rem;">
-          <div style="width: 48px; height: 48px; border-radius: 50%; background: #B8860B15; display: flex; align-items: center; justify-content: center; color: #B8860B;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-          <div>
-            <p style="font-size: 15px; font-weight: 700; color: #1A1208; margin: 0;">Reservation Summary</p>
-            <p style="font-size: 13px; color: #1A1208; margin: 0; opacity: 0.7;">You have currently entrusted us with {{ $bookings->count() }} reservations.</p>
-          </div>
-        </div>
-        <a href="{{ route('booking') }}" style="background: #B8860B; color: white; padding: 0.85rem 2rem; border-radius: 3px; text-decoration: none; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; transition: 0.3s; box-shadow: 0 4px 10px rgba(184,134,11,0.2);" onmouseover="this.style.background='#C9A84C'" onmouseout="this.style.background='#B8860B'">+ New Reservation</a>
+    {{-- RESERVATIONS --}}
+    <div class="rv-list-head">
+      <h2>My Reservations</h2>
+      <div class="rv-tabs" role="tablist" aria-label="Filter reservations">
+        @foreach(['upcoming' => 'Upcoming', 'pending' => 'Pending', 'past' => 'Past', 'cancelled' => 'Cancelled', 'all' => 'All'] as $key => $label)
+          <button type="button" class="rv-tab" role="tab" data-tab="{{ $key }}" aria-selected="false">
+            {{ $label }}<span class="rv-n">{{ $key === 'all' ? $bookings->count() : $counts[$key] }}</span>
+          </button>
+        @endforeach
       </div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; padding: 0 0.5rem;">
-      <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 700; color: #1A1208; margin: 0;">My Bookings</h2>
-      <p style="font-size: 11px; font-weight: 900; color: #B8860B90; text-transform: uppercase; letter-spacing: 0.2em; border-bottom: 2px solid #B8860B40; padding-bottom: 0.5rem;">{{ $bookings->count() }} TOTAL RECORDS</p>
-    </div>
+    <div class="rv-list" id="rvList">
+      @forelse($groups as $date => $group)
+        @php
+          $first = $group->first();
+          $buckets = $group->map($bucketOf)->unique()->implode(' ');
+          $allDead = $group->every(fn ($b) => $b->isCancelledOrRejected());
+        @endphp
 
-    <div style="display: flex; flex-direction: column; gap: 2rem;">
-      @forelse($bookings as $booking)
-        <div id="booking-{{ $booking->id }}" style="background: white; border: 1px solid #B8860B15; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.02); overflow: hidden; scroll-margin-top: 100px;">
-
-          {{-- Header --}}
-          <div style="padding: 2rem 3rem; border-bottom: 1px solid #B8860B08; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1.5rem; background: #FAF8F3;">
-            <div>
-              <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.75rem; font-weight: 700; color: #1A1208; margin: 0;">#LDP-{{ $booking->booking_number }}</h3>
-              <p style="font-size: 12px; color: #B8860B; font-weight: 600; margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">Reservation Confirmed on {{ $booking->created_at->format('F d, Y') }}</p>
+        @if($group->count() === 1)
+          <article class="rv-ticket {{ $allDead ? 'is-dim' : '' }}" id="booking-{{ $first->id }}" data-buckets="{{ $buckets }}">
+            <div class="rv-stub">
+              <span class="m">{{ strtoupper($first->event_date->format('M')) }}</span>
+              <span class="d">{{ $first->event_date->format('j') }}</span>
+              <span class="w">{{ $first->event_date->format('D') }} · {{ $first->event_date->format('Y') }}</span>
             </div>
-
-            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-              @php
-                $sColor = \App\Models\Booking::statusColor($booking->status);
-                $pColor = $booking->payment_status === 'fully_paid' ? '#3b82f6' : ($booking->payment_status === 'partially_paid' ? '#10b981' : '#ef4444');
-              @endphp
-              <span style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; background: {{ $sColor }}10; color: {{ $sColor }}; border: 1px solid {{ $sColor }}20;">{{ $booking->status }}</span>
-              <span style="padding: 0.5rem 1rem; border-radius: 100px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; background: {{ $pColor }}10; color: {{ $pColor }}; border: 1px solid {{ $pColor }}20;">{{ str_replace('_', ' ', $booking->payment_status) }}</span>
+            @include('partials._reservation-item', ['booking' => $first])
+          </article>
+        @else
+          @php
+            $live = $group->reject(fn ($b) => $b->isCancelledOrRejected());
+            $groupTotal = $live->sum(fn ($b) => (float) $b->total_amount);
+            $groupBalance = $live->sum(fn ($b) => max(0, $b->remainingBalance()));
+          @endphp
+          <article class="rv-group {{ $allDead ? 'is-dim' : '' }}" data-buckets="{{ $buckets }}">
+            <div class="rv-stub">
+              <span class="m">{{ strtoupper($first->event_date->format('M')) }}</span>
+              <span class="d">{{ $first->event_date->format('j') }}</span>
+              <span class="w">{{ $first->event_date->format('D') }} · {{ $first->event_date->format('Y') }}</span>
             </div>
-          </div>
-
-          {{-- Cancellation / Rejection Reason Banner --}}
-          @if(in_array($booking->status, ['rejected', 'cancelled']) && $booking->cancellation_reason)
-            <div style="padding: 14px 3rem; background: #fff3cd; border-bottom: 1px solid #ffc107;">
-              <p style="font-size: 11px; font-weight: 900; color: #856404; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 4px; display: flex; align-items: center; gap: 6px;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-                {{ $booking->status === 'rejected' ? 'Reason for Rejection' : 'Reason for Cancellation' }}
-              </p>
-              <p style="font-size: 14px; color: #533f03; margin: 0; line-height: 1.5;">{{ $booking->cancellation_reason }}</p>
+            <div class="rv-group-body">
+              <div class="rv-group-head">
+                <h3>{{ $group->count() }} packages on this date</h3>
+                <div class="rv-sum">Combined <b>₱{{ number_format($groupTotal, 0) }}</b> · balance ₱{{ number_format($groupBalance, 0) }}</div>
+              </div>
+              @foreach($group as $booking)
+                <div class="rv-sub {{ $booking->isCancelledOrRejected() ? 'is-dim' : '' }}" id="booking-{{ $booking->id }}">
+                  @include('partials._reservation-item', ['booking' => $booking])
+                </div>
+              @endforeach
             </div>
-          @endif
-
-          {{-- Content --}}
-          <div style="padding: 3rem;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem; margin-bottom: 4rem;">
-              <div>
-                <p style="font-size: 11px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">The Event Package</p>
-                <p style="font-size: 20px; font-weight: 700; color: #1A1208;">{{ $booking->event_type }} ({{ $booking->package }})</p>
-                @if($booking->room_number)
-                  <p style="font-size: 13px; font-weight: 600; color: #8a6a40; margin-top: 0.35rem;">Selected Room: Room {{ $booking->room_number }}</p>
-                @endif
-              </div>
-              <div>
-                <p style="font-size: 11px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Date of Celebration</p>
-                <p style="font-size: 20px; font-weight: 700; color: #1A1208;">{{ $booking->event_date->format('F d, Y') }}</p>
-              </div>
-              <div>
-                <p style="font-size: 11px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Event Schedule</p>
-                @if($booking->start_time && $booking->end_time)
-                  <p style="font-size: 20px; font-weight: 700; color: #1A1208;">{{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}</p>
-                @else
-                  <p style="font-size: 15px; font-weight: 600; color: #B8860B90; font-style: italic;">To be finalized during your venue visit</p>
-                @endif
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem; padding-bottom: 3rem; border-bottom: 1px solid #B8860B08;">
-              <div>
-                <p style="font-size: 11px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Guest Accommodation</p>
-                <p style="font-size: 20px; font-weight: 700; color: #1A1208;">{{ $booking->guest_count }} Guests Expected</p>
-              </div>
-              <div>
-                <p style="font-size: 11px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Total Investment</p>
-                <p style="font-size: 20px; font-weight: 700; color: #B8860B;">₱{{ number_format($booking->total_amount, 2) }}</p>
-              </div>
-              <div>
-                <p style="font-size: 11px; font-weight: 900; color: #B8860B; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Venue Visit</p>
-                @php $visit = $booking->visitSchedules->first(); @endphp
-                @if($visit)
-                  <p style="font-size: 18px; font-weight: 700; color: #1A1208;">{{ $visit->visit_date->format('M d, Y @ h:i A') }}</p>
-                  <p style="font-size: 10px; font-weight: 900; text-transform: uppercase; color: {{ $visit->status === 'confirmed' ? '#B8860B' : '#1A120840' }}; letter-spacing: 0.05em; margin-top: 0.25rem; display: flex; align-items: center; gap: 4px;">
-                    @if($visit->status === 'confirmed')
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><rect x="9" y="9" width="6" height="6" transform="rotate(45 12 12)"/></svg> Appointment Confirmed
-                    @else
-                      Awaiting confirmation
-                    @endif
-                  </p>
-                @else
-                  <a href="{{ route('visit-schedule.create', ['booking' => $booking->id]) }}" style="color: #B8860B; font-weight: 900; font-size: 13px; text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 2px solid #B8860B30; padding-bottom: 2px;">Schedule Walkthrough &rarr;</a>
-                @endif
-              </div>
-            </div>
-
-            <div style="margin-top: 2.5rem; display: flex; justify-content: flex-end; align-items: center; gap: 1rem; flex-wrap: wrap;">
-              @if($booking->isCancelledOrRejected())
-                {{-- no receipt/payment actions for a dead booking --}}
-              @elseif($booking->hasConfirmedPayment())
-                <a href="{{ route('booking.receipt', $booking->id) }}" style="background: #1A1208; color: white; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: none; transition: 0.3s;">View Receipt</a>
-              @else
-                <p style="margin: 0; font-size: 12.5px; color: #B8860B; font-style: italic; max-width: 320px; text-align: right;">Receipt not yet available. Payment confirmation is required.</p>
-              @endif
-              @if($booking->status === 'approved' && $booking->reschedule_status !== 'pending')
-                @if($booking->event_date->format('Y-m-d') >= date('Y-m-d'))
-                  <button type="button" 
-                    style="background: #B8860B; color: white; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border: none; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(184,134,11,0.25);"
-                    onmouseover="this.style.background='#C9A84C'" onmouseout="this.style.background='#B8860B'"
-                    onclick="openRescheduleModal({{ $booking->id }}, '{{ $booking->event_date->format('F d, Y') }}', '{{ optional($booking->visitSchedules->first())->visit_date ? $booking->visitSchedules->first()->visit_date->format('F d, Y') : 'Not scheduled' }}', {{ $booking->reschedule_count }})">
-                    Request Rescheduling
-                  </button>
-                @else
-                  <button type="button" disabled title="Event already completed"
-                    style="background: #e2e8f0; color: #94a3b8; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border: none; cursor: not-allowed; opacity: 0.8;">
-                    Event Completed
-                  </button>
-                @endif
-              @endif
-              @if($booking->canTransitionTo('cancelled') && !$booking->hasConfirmedPayment() && $booking->event_date->format('Y-m-d') >= date('Y-m-d'))
-                <form method="POST" action="{{ route('booking.cancel', $booking->id) }}" onsubmit="return confirm('Are you sure you want to cancel this booking? This cannot be undone.');">
-                  @csrf
-                  <button type="submit" style="background: transparent; color: #ef4444; padding: 0.85rem 2rem; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border: 1px solid #ef444440; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#ef44440a'" onmouseout="this.style.background='transparent'">
-                    Cancel Booking
-                  </button>
-                </form>
-              @endif
-            </div>
-
-            @if($booking->notes)
-              <div style="margin-top: 2.5rem; padding: 1.5rem 2rem; background: #FAF8F3; border-radius: 8px; font-size: 15px; color: #1A120860; font-style: italic; border-left: 4px solid #B8860B20;">
-                "{{ $booking->notes }}"
-              </div>
-            @endif
-          </div>
-        </div>
+          </article>
+        @endif
       @empty
-        <div style="text-align: center; padding: 8rem 2rem; background: #FAF8F3; border: 2px dashed #B8860B20; border-radius: 12px; color: #B8860B50;">
-          <p style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; margin-bottom: 2rem;">No reservation records found in our history.</p>
-          <a href="{{ route('booking') }}" style="background: #B8860B; color: white; padding: 1.25rem 3rem; border-radius: 8px; text-decoration: none; font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; box-shadow: 0 10px 30px rgba(184,134,11,0.2);">Start Booking Now</a>
+        <div class="rv-empty">
+          <p>You don't have any reservations yet.</p>
+          <a href="{{ route('booking') }}" class="rv-btn">Start Booking Now</a>
         </div>
       @endforelse
+      <div class="rv-empty" id="rvTabEmpty" hidden><p>No reservations here.</p></div>
     </div>
   </div>
 </section>
@@ -265,6 +359,36 @@
             </form>
         </div>
     </div>
+</div>
+
+{{-- Cancel confirmation (replaces the browser's confirm() dialog) --}}
+<div id="cancelModal" class="rv-modal" role="dialog" aria-modal="true" aria-labelledby="cancelModalTitle" hidden>
+  <div class="rv-modal-box">
+    <button type="button" class="rv-modal-close" id="cancelModalClose" aria-label="Close">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="rv-modal-icon" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+    </div>
+    <h3 id="cancelModalTitle">Cancel this booking?</h3>
+    <p>This can't be undone. The date will be released and you'll need<br class="rv-br"> to make a new reservation to book it again.</p>
+    <div class="rv-modal-booking">
+      <img id="cancelModalImage" src="" alt="" class="rv-modal-thumb">
+      <div class="rv-modal-info">
+        <strong id="cancelModalLabel"></strong>
+        <span id="cancelModalRef"></span>
+        <span class="rv-modal-date">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          <span id="cancelModalDate"></span>
+        </span>
+      </div>
+      <span class="rv-modal-status" id="cancelModalStatus"></span>
+    </div>
+    <div class="rv-modal-acts">
+      <button type="button" class="rv-modal-btn" id="cancelModalKeep">Keep Booking</button>
+      <button type="button" class="rv-modal-btn rv-modal-btn-danger" id="cancelModalConfirm">Yes, Cancel Booking</button>
+    </div>
+  </div>
 </div>
 
 @include('partials._footer')
@@ -355,10 +479,81 @@
     if (e.target === modal) closeRescheduleModal();
   });
 
+  // Cancel confirmation: every cancel form opens the styled modal first;
+  // "Yes, Cancel Booking" submits that form.
+  (function () {
+    const modal = document.getElementById('cancelModal');
+    const confirmBtn = document.getElementById('cancelModalConfirm');
+    const keepBtn = document.getElementById('cancelModalKeep');
+    let pendingForm = null;
+
+    function close() {
+      modal.hidden = true;
+      pendingForm = null;
+    }
+
+    document.querySelectorAll('.rv-cancel-form').forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        pendingForm = form;
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Yes, Cancel Booking';
+        document.getElementById('cancelModalLabel').textContent = form.dataset.label;
+        document.getElementById('cancelModalRef').textContent = form.dataset.ref;
+        document.getElementById('cancelModalDate').textContent = form.dataset.date;
+        document.getElementById('cancelModalStatus').textContent = form.dataset.status;
+        const img = document.getElementById('cancelModalImage');
+        img.src = form.dataset.image;
+        img.alt = form.dataset.label;
+        modal.hidden = false;
+        keepBtn.focus();
+      });
+    });
+
+    confirmBtn.addEventListener('click', function () {
+      if (!pendingForm) return;
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Cancelling...';
+      pendingForm.submit(); // form.submit() skips the submit listener above
+    });
+    keepBtn.addEventListener('click', close);
+    document.getElementById('cancelModalClose').addEventListener('click', close);
+    modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) close(); });
+  })();
+
+  // Reservation tabs: Upcoming / Pending / Past / Cancelled / All. A card
+  // shows in a tab when any booking on that date belongs to it.
+  (function () {
+    const tabs = document.querySelectorAll('.rv-tab');
+    const cards = document.querySelectorAll('#rvList [data-buckets]');
+    const empty = document.getElementById('rvTabEmpty');
+    if (!tabs.length || !cards.length) return;
+
+    function show(key) {
+      let visible = 0;
+      cards.forEach(function (card) {
+        const match = key === 'all' || card.dataset.buckets.split(' ').includes(key);
+        card.hidden = !match;
+        if (match) visible++;
+      });
+      tabs.forEach(function (t) { t.setAttribute('aria-selected', String(t.dataset.tab === key)); });
+      if (empty) empty.hidden = visible > 0;
+    }
+
+    tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.dataset.tab); }); });
+
+    // Open on Upcoming when there is something coming up, otherwise All. A
+    // notification link (#booking-42) opens All so that booking is visible.
+    const hasUpcoming = Array.from(cards).some(function (c) { return c.dataset.buckets.split(' ').includes('upcoming'); });
+    show(window.location.hash.startsWith('#booking-') || !hasUpcoming ? 'all' : 'upcoming');
+  })();
+
   // Highlight the booking a notification linked to (e.g. #booking-42)
   if (window.location.hash.startsWith('#booking-')) {
     const target = document.querySelector(window.location.hash);
     if (target) {
+      target.scrollIntoView({ block: 'start' });
       target.style.transition = 'box-shadow 0.4s ease';
       target.style.boxShadow = '0 0 0 3px #B8860B';
       setTimeout(() => { target.style.boxShadow = ''; }, 2500);

@@ -10,6 +10,7 @@ use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -23,7 +24,7 @@ class BookingController extends Controller
         // data would have already aged out, and the modal (plus the booking
         // it needs to attach the visit to) would silently disappear.
         if (session('booking_success')) {
-            session()->keep(['booking_success', 'new_booking_id', 'booking_number']);
+            session()->keep(['booking_success', 'new_booking_id', 'new_booking_ids', 'booking_number']);
         }
 
         // Packages only change via admin CRUD (which busts this key), so it's
@@ -51,113 +52,170 @@ class BookingController extends Controller
         return view('booking', compact('packages', 'approvedDates', 'blockedDates'));
     }
 
-    // Store new booking
+    // Store new booking — one or more packages for the same date. Each
+    // package becomes its own booking (own booking number, status and
+    // payments); they are created together or not at all.
     public function store(Request $request)
     {
+        // A plain single-package submission (no items[]) is treated as a
+        // one-item list, so both forms of the request go through one path.
+        if (!$request->has('items')) {
+            $request->merge(['items' => [$request->only(['occasion', 'event_type', 'event_type_other', 'package', 'room_number', 'guest_count'])]]);
+        }
+
         $request->validate([
-            'event_type'  => 'required|string|in:Birthday,Wedding,Debut,Baptismal,Christening,Christmas Party,Corporate Event,Reunion,Others',
-            'event_type_other' => 'required_if:event_type,Others|nullable|string|max:255',
-            'package'     => 'required|string',
+            'items'                    => 'required|array|min:1|max:10',
+            'items.*.occasion'         => 'required|in:' . implode(',', array_keys(Booking::OCCASIONS)),
+            // Event Type only applies to the "Event" occasion; Swimming and
+            // Staycation bookings don't choose one (the field is disabled).
+            'items.*.event_type'       => 'required_if:items.*.occasion,event|nullable|string|in:Birthday,Wedding,Debut,Baptismal,Christening,Christmas Party,Corporate Event,Reunion,Others',
+            'items.*.event_type_other' => 'required_if:items.*.event_type,Others|nullable|string|max:255',
+            'items.*.package'          => 'required|string',
+            'items.*.room_number'      => 'nullable|string',
+            'items.*.guest_count'      => 'required|integer|min:1',
             // after_or_equal (not after): a same-day booking is allowed to be
             // created — it's then subject to the same-day-unpaid auto-cancel
             // rule (BookingAutoCancelService) rather than being blocked here.
-            'event_date'  => 'required|date|after_or_equal:today',
-            'guest_count' => 'required|integer|min:1',
-            'notes'       => 'nullable|string|max:1000',
+            'event_date'     => 'required|date|after_or_equal:today',
+            'notes'          => 'nullable|string|max:1000',
             'payment_option' => 'required|in:' . implode(',', Booking::PAYMENT_OPTIONS),
-            'terms'        => 'accepted',
+            'terms'          => 'accepted',
+        ], [
+            'items.required'                   => 'Please add at least one package.',
+            'items.max'                        => 'You can book up to 10 packages at a time.',
+            'items.*.occasion.required'        => 'Please select an occasion.',
+            'items.*.occasion.in'              => 'Please select a valid occasion.',
+            'items.*.event_type.required_if'   => 'Please select an event type.',
+            'items.*.event_type_other.required_if' => 'Please specify the event type.',
+            'items.*.package.required'         => 'Please select a package.',
+            'items.*.guest_count.required'     => 'Please enter the number of guests.',
         ]);
 
-        // Resolve event type: if "Others" was selected, use the custom value
-        $eventType = $request->event_type === 'Others' ? $request->event_type_other : $request->event_type;
+        $date = $request->event_date;
 
-        $package = \App\Models\Package::where('name', $request->package)->first();
-
-        if (!$package) {
-            return back()->withErrors(['package' => 'The selected package does not exist.'])->withInput();
-        }
-
-        // The form's Total Amount field is only a read-only preview — the
-        // price always comes from the package record (weekend rate on Sat/Sun
-        // when the package has one), never from the request, so a tampered
-        // submission can't lower the total or the down payment.
-        $totalAmount = $package->priceForDate($request->event_date);
-        $downPaymentAmount = Booking::calculateDownPayment($totalAmount);
-
-        if ($request->guest_count > $package->max_guests) {
-            return back()->withErrors(['guest_count' => 'Guest count exceeds the maximum allowed for the ' . $package->name . ' package (Max: ' . $package->max_guests . ').'])->withInput();
-        }
-
-        $isBlocked = BlockedDate::where('date', $request->event_date)->exists();
-
-        if ($isBlocked) {
+        if (BlockedDate::where('date', $date)->exists()) {
             return back()->withErrors(['event_date' => 'This date is already reserved for another event. Please choose another available date.'])->withInput();
         }
 
-        $isRoomPackage = Booking::isRoomPackage($request->package);
+        $packages = \App\Models\Package::whereIn('name', collect($request->items)->pluck('package'))->get()->keyBy('name');
+        $prepared = [];
+        $seen = [];
+        $eventItems = 0;
 
-        if ($isRoomPackage) {
-            // A specific physical room is required, and it must belong to
-            // this package's room group — never trust the submitted value.
-            $request->validate([
-                'room_number' => ['required', 'string', 'in:' . implode(',', Booking::roomsFor($request->package))],
-            ]);
+        foreach ($request->items as $item) {
+            $package = $packages->get($item['package']);
 
-            // Backend re-check — the room may have been taken by someone else
-            // since the page loaded (do not rely on the frontend list alone).
-            if (!Booking::isRoomAvailable($request->package, $request->event_date, $request->room_number)) {
-                return back()->withErrors(['room_number' => 'This room is no longer available for the selected date. Please select another available room.'])->withInput();
+            if (!$package) {
+                return back()->withErrors(['package' => 'The selected package does not exist.'])->withInput();
             }
-        } else {
-            // One Event Per Day (venue-wide): only applies to non-room
-            // packages — room bookings are governed by per-room availability.
-            $hasApprovedBooking = Booking::where('event_date', $request->event_date)
-                ->where('status', 'approved')
-                ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
-                ->exists();
 
-            if ($hasApprovedBooking) {
-                return back()->withErrors(['event_date' => 'This date is already reserved for another event. Please choose another available date.'])->withInput();
+            // The form only lists packages for the chosen occasion; enforce
+            // the same pairing here so a crafted request can't mix them.
+            if (Booking::occasionForPackage($package->name) !== $item['occasion']) {
+                return back()->withErrors(['package' => 'Please select a package that matches the chosen occasion.'])->withInput();
             }
+
+            if ((int) $item['guest_count'] > $package->max_guests) {
+                return back()->withErrors(['guest_count' => 'Guest count exceeds the maximum allowed for the ' . $package->name . ' package (Max: ' . $package->max_guests . ').'])->withInput();
+            }
+
+            $isRoomPackage = Booking::isRoomPackage($package->name);
+            $roomNumber = $isRoomPackage ? ($item['room_number'] ?? null) : null;
+
+            if ($isRoomPackage) {
+                // A specific physical room is required, and it must belong to
+                // this package's room group — never trust the submitted value.
+                if (!in_array($roomNumber, Booking::roomsFor($package->name), true)) {
+                    return back()->withErrors(['room_number' => 'Please select a valid room for ' . $package->name . '.'])->withInput();
+                }
+
+                // Backend re-check — the room may have been taken by someone
+                // else since the page loaded.
+                if (!Booking::isRoomAvailable($package->name, $date, $roomNumber)) {
+                    return back()->withErrors(['room_number' => $package->name . ' ' . $roomNumber . ' is no longer available for the selected date. Please select another available room.'])->withInput();
+                }
+            } else {
+                // One Event Per Day (venue-wide): another customer's approved
+                // non-room booking holds the date. The same customer's own
+                // packages on that day don't block each other.
+                $takenByOthers = Booking::where('event_date', $date)
+                    ->where('status', 'approved')
+                    ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
+                    ->where('user_id', '!=', Auth::id())
+                    ->exists();
+
+                if ($takenByOthers) {
+                    return back()->withErrors(['event_date' => 'This date is already reserved for another event. Please choose another available date.'])->withInput();
+                }
+            }
+
+            $key = $package->name . '|' . $roomNumber;
+            if (isset($seen[$key])) {
+                return back()->withErrors(['package' => $package->name . ($roomNumber ? ' ' . $roomNumber : '') . ' is already in your list.'])->withInput();
+            }
+            $seen[$key] = true;
+
+            if ($item['occasion'] === 'event' && ++$eventItems > 1) {
+                return back()->withErrors(['package' => 'Only one Event package can be booked per day.'])->withInput();
+            }
+
+            // The price always comes from the package record (weekend rate on
+            // Sat/Sun when the package has one), never from the request.
+            $totalAmount = $package->priceForDate($date);
+
+            $prepared[] = [
+                'event_type'  => $item['occasion'] === 'event'
+                    ? ($item['event_type'] === 'Others' ? $item['event_type_other'] : $item['event_type'])
+                    : Booking::OCCASIONS[$item['occasion']],
+                'package'     => $package->name,
+                'room_number' => $roomNumber,
+                'guest_count' => (int) $item['guest_count'],
+                'total_amount' => $totalAmount,
+                'down_payment_amount' => Booking::calculateDownPayment($totalAmount),
+            ];
         }
 
-        // Two unique constraints can trip here: the booking number (two
-        // customers booking at the same moment) and, for rooms, the partial
-        // unique index on room/date. A booking-number clash just retries with
-        // a fresh number; a room clash is reported to the customer.
-        $booking = null;
+        // All bookings are created in one transaction. A booking-number clash
+        // (two customers booking at the same moment) retries the whole set
+        // with fresh numbers; a room clash (partial unique index on
+        // room/date) is reported to the customer.
+        $bookings = null;
 
-        for ($attempt = 1; $attempt <= 3 && !$booking; $attempt++) {
+        for ($attempt = 1; $attempt <= 3 && !$bookings; $attempt++) {
             try {
-                $booking = Booking::create([
-                    'user_id'     => Auth::id(),
-                    'booking_number' => Booking::nextBookingNumber(),
-                    'event_type'  => $eventType,
-                    'package'     => $request->package,
-                    'room_number' => $isRoomPackage ? $request->room_number : null,
-                    'event_date'  => $request->event_date,
-                    'guest_count' => $request->guest_count,
-                    'notes'       => $request->notes,
-                    'status'      => 'pending',
-                    'total_amount' => $totalAmount,
-                    'down_payment_amount' => $downPaymentAmount,
-                    'payment_option' => $request->payment_option,
-                    'payment_status' => 'unpaid',
-                ]);
+                $bookings = DB::transaction(function () use ($prepared, $request, $date) {
+                    return array_map(fn ($data) => Booking::create($data + [
+                        'user_id'        => Auth::id(),
+                        'booking_number' => Booking::nextBookingNumber(),
+                        'event_date'     => $date,
+                        'notes'          => $request->notes,
+                        'status'         => 'pending',
+                        'payment_option' => $request->payment_option,
+                        'payment_status' => 'unpaid',
+                    ]), $prepared);
+                });
             } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
-                if ($isRoomPackage && !Booking::isRoomAvailable($request->package, $request->event_date, $request->room_number)) {
-                    return back()->withErrors(['room_number' => 'This room was just booked by another customer. Please select another available room.'])->withInput();
+                foreach ($prepared as $data) {
+                    if ($data['room_number'] && !Booking::isRoomAvailable($data['package'], $date, $data['room_number'])) {
+                        return back()->withErrors(['room_number' => $data['package'] . ' ' . $data['room_number'] . ' was just booked by another customer. Please select another available room.'])->withInput();
+                    }
                 }
             }
         }
 
-        if (!$booking) {
+        if (!$bookings) {
             return back()->withErrors(['event_date' => 'We could not complete your booking right now. Please try again.'])->withInput();
         }
 
-        NotificationService::bookingSubmitted($booking);
+        foreach ($bookings as $booking) {
+            NotificationService::bookingSubmitted($booking);
+        }
 
-        return redirect()->route('booking')->with('booking_success', true)->with('new_booking_id', $booking->id)->with('booking_number', $booking->booking_number);
+        return redirect()->route('booking')
+            ->with('booking_success', true)
+            ->with('new_booking_id', $bookings[0]->id)
+            ->with('new_booking_ids', array_map(fn ($b) => $b->id, $bookings))
+            ->with('booking_number', implode(', ', array_map(fn ($b) => $b->booking_number, $bookings)));
     }
 
     // AJAX: Check if a date is available (One Event Per Day)

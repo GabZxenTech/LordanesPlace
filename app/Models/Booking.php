@@ -126,6 +126,45 @@ class Booking extends Model
         'Dormitory Room' => ['103', '303'],
     ];
 
+    /**
+     * Packages listed under "Swimming" in the booking form's package list.
+     * Every other non-room package (including new ones an admin adds) is
+     * listed under "Event".
+     */
+    public const SWIM_PACKAGES = ['Day Swim', 'Night Swim', '22 Hours Overnight'];
+
+    /** Booking form "Occasion" choices (value => label). */
+    public const OCCASIONS = [
+        'swimming'   => 'Swimming',
+        'staycation' => 'Staycation',
+        'event'      => 'Event',
+    ];
+
+    /**
+     * Which occasion a package belongs to: rooms are Staycation, the
+     * SWIM_PACKAGES are Swimming, everything else is an Event package.
+     */
+    public static function occasionForPackage(string $package): string
+    {
+        if (static::isRoomPackage($package)) {
+            return 'staycation';
+        }
+
+        return in_array($package, self::SWIM_PACKAGES, true) ? 'swimming' : 'event';
+    }
+
+    /** Photo for a package (same images as the Discover page; pool shot for swimming). */
+    public static function packageImage(string $package): string
+    {
+        return asset('images/' . match ($package) {
+            'Standard Room'  => 'StandardRoom.jpg',
+            'Family Room'    => 'FamilyRoom.jpg',
+            'Dormitory Room' => 'DormitoryRoom.jpg',
+            'Venue Hall', 'Full Event Package' => 'Venue Halll.jpg',
+            default          => 'LORDANES_BG.jpg',
+        });
+    }
+
     public static function isRoomPackage(string $package): bool
     {
         return array_key_exists($package, self::ROOM_GROUPS);

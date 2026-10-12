@@ -36,6 +36,10 @@ class VisitScheduleController extends Controller
 
         $request->validate([
             'booking_id' => 'required|exists:bookings,id',
+            // A multi-package booking sends every booking from that submission
+            // so the one visit applies to all of them.
+            'booking_ids'   => 'nullable|array|max:10',
+            'booking_ids.*' => 'integer',
             'visit_date' => 'required|date|after_or_equal:today',
             'visit_time' => ['required', \Illuminate\Validation\Rule::in($allowedTimes)],
             'notes'      => 'nullable|string|max:1000',
@@ -62,13 +66,23 @@ class VisitScheduleController extends Controller
 
         $visitDateTime = \Carbon\Carbon::parse($request->visit_date . ' ' . $request->visit_time);
 
-        VisitSchedule::create([
-            'booking_id' => $booking->id,
-            'user_id'    => Auth::id(),
-            'visit_date' => $visitDateTime,
-            'notes'      => $request->notes,
-            'status'     => 'pending',
-        ]);
+        // Same ownership scoping for any other bookings from the same
+        // submission; they share this booking's date, so the check above
+        // covers them too.
+        $bookingIds = Booking::whereIn('id', array_merge([$booking->id], $request->input('booking_ids', [])))
+            ->where('user_id', Auth::id())
+            ->whereDate('event_date', $booking->event_date)
+            ->pluck('id');
+
+        foreach ($bookingIds as $bookingId) {
+            VisitSchedule::create([
+                'booking_id' => $bookingId,
+                'user_id'    => Auth::id(),
+                'visit_date' => $visitDateTime,
+                'notes'      => $request->notes,
+                'status'     => 'pending',
+            ]);
+        }
 
         return redirect()->route('booking')->with('visit_success', true);
     }

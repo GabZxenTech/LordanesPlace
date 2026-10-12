@@ -77,14 +77,16 @@ class BlockedDateController extends Controller
     {
         $booking = Booking::findOrFail($id);
 
-        // One Event Per Day: check if another approved booking exists on this
-        // date. Doesn't apply to room-type packages — a room's uniqueness for
-        // its date was already guaranteed when the booking was created.
+        // One Event Per Day: check if another customer's approved booking
+        // exists on this date (one customer may book several packages for
+        // the same day). Doesn't apply to room-type packages — a room's
+        // uniqueness for its date was already guaranteed at creation.
         if (!Booking::isRoomPackage($booking->package)) {
             $hasConflict = Booking::where('event_date', $booking->event_date)
                 ->where('status', 'approved')
                 ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
                 ->where('id', '!=', $booking->id)
+                ->where('user_id', '!=', $booking->user_id)
                 ->exists();
 
             if ($hasConflict) {
@@ -298,6 +300,7 @@ class BlockedDateController extends Controller
                 ->where('status', 'approved')
                 ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
                 ->where('id', '!=', $booking->id)
+                ->where('user_id', '!=', $booking->user_id)
                 ->exists();
 
             if ($hasConflict) {
