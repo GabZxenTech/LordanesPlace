@@ -25,7 +25,7 @@
     .rv-who { flex: 1; min-width: 0; }
     .rv-who h1 { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; line-height: 1.1; margin: 0; }
     .rv-who p { margin: 4px 0 0; color: var(--rv-faint); font-size: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .rv-email { word-break: break-all; }
+    .rv-email { overflow-wrap: anywhere; } /* wraps only when the address can't fit */
     .rv-tier { background: #fbf0d9; color: var(--rv-gold); font-weight: 700; font-size: 12px; padding: 2px 10px; border-radius: 999px; }
     .rv-btn { display: inline-block; background: var(--rv-gold); color: #fff; font-weight: 700; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; padding: 12px 20px; border-radius: 6px; text-decoration: none; transition: background .2s; }
     .rv-btn:hover { background: #c9a84c; }
@@ -156,6 +156,25 @@
       .rv-sub .rv-money { border-left: 0; border-top: 1px dashed var(--rv-line); }
       .rv-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
+    /* Phones: avatar + details on one row, the button full-width below, and
+       the name/email/tier/member-since lines stacked instead of squeezed. */
+    @media (max-width: 640px) {
+      .rv-page { padding-top: 24px; }
+      .rv-profile { padding: 18px; gap: 16px; }
+      .rv-profile-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; align-items: center; }
+      .rv-profile-top .rv-btn { grid-column: 1 / -1; text-align: center; }
+      .rv-avatar { width: 48px; height: 48px; font-size: 17px; }
+      .rv-who p { flex-direction: column; align-items: flex-start; gap: 4px; font-size: 13px; }
+      .rv-who p > span[aria-hidden] { display: none; }
+      .rv-stats { gap: 10px; }
+      .rv-stat { padding: 12px 14px; }
+      .rv-stat b { font-size: 28px; }
+      .rv-stat-money b { font-size: 24px; }
+      .rv-list-head { margin-top: 28px; }
+      .rv-list-head h2 { font-size: 30px; }
+      .rv-body, .rv-money { padding: 14px 16px; }
+      .rv-group-head { padding: 12px 16px; }
+    }
     @media (max-width: 480px) {
       .rv-ticket, .rv-group { grid-template-columns: minmax(0, 1fr); }
       .rv-stub { flex-direction: row; gap: 8px; border-right: 0; border-bottom: 2px dashed var(--rv-line); justify-content: flex-start; padding: 10px 16px; }
@@ -180,11 +199,15 @@
           return $b->status === \App\Models\Booking::STATUS_PENDING ? 'pending' : 'upcoming';
       };
 
-      // Bookings on the same date (e.g. booked together with "+ Add to list")
-      // are shown as one card. Upcoming dates first (soonest first), then
-      // past dates (most recent first).
-      $groups = $bookings->groupBy(fn ($b) => $b->event_date->toDateString())
-          ->sortBy(fn ($g, $date) => $date >= $today ? '0' . $date : '1' . (99999999 - (int) str_replace('-', '', $date)));
+      // Bookings made together (a date range or several packages — same
+      // booking_group) are one card; older ones without a group are grouped
+      // by date. Upcoming first (soonest first), then past (most recent first).
+      $groups = $bookings->groupBy(fn ($b) => $b->booking_group ?: 'd' . $b->event_date->toDateString())
+          ->map(fn ($g) => $g->sortBy(fn ($b) => $b->event_date->toDateString() . '|' . $b->package . '|' . $b->room_number)->values())
+          ->sortBy(function ($g) use ($today) {
+              $date = $g->last()->event_date->toDateString() >= $today ? $g->first()->event_date->toDateString() : $g->last()->event_date->toDateString();
+              return $date >= $today ? '0' . $date : '1' . (99999999 - (int) str_replace('-', '', $date));
+          });
 
       $counts = ['upcoming' => 0, 'pending' => 0, 'past' => 0, 'cancelled' => 0];
       foreach ($bookings as $b) { $counts[$bucketOf($b)]++; }
@@ -268,13 +291,17 @@
               <span class="w">{{ $first->event_date->format('D') }} · {{ $first->event_date->format('Y') }}</span>
             </div>
             <div class="rv-group-body">
+              @php
+                $last = $group->last()->event_date;
+                $isRange = !$first->event_date->isSameDay($last);
+              @endphp
               <div class="rv-group-head">
-                <h3>{{ $group->count() }} packages on this date</h3>
+                <h3>{{ $isRange ? $first->event_date->format('M d') . ' – ' . $last->format('M d, Y') . ' · ' . $group->count() . ' bookings' : $group->count() . ' packages on this date' }}</h3>
                 <div class="rv-sum">Combined <b>₱{{ number_format($groupTotal, 0) }}</b> · balance ₱{{ number_format($groupBalance, 0) }}</div>
               </div>
               @foreach($group as $booking)
                 <div class="rv-sub {{ $booking->isCancelledOrRejected() ? 'is-dim' : '' }}" id="booking-{{ $booking->id }}">
-                  @include('partials._reservation-item', ['booking' => $booking])
+                  @include('partials._reservation-item', ['booking' => $booking, 'showDate' => $isRange])
                 </div>
               @endforeach
             </div>

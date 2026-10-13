@@ -13,6 +13,7 @@
     /* Calendar-specific styles that are hard to replicate in pure Tailwind */
     .cal-day:hover:not(.unavailable):not(.past):not(.empty) { background: rgba(184,134,11,0.15); color: #B8860B; }
     .cal-day.selected { background: #B8860B; color: #fff; font-weight: 700; }
+    .cal-day.in-range { background: #f1e3bf; color: #6b4d06; font-weight: 600; border-radius: 0; }
     .cal-day.unavailable { background: #fde8e8; color: #e74c3c; cursor: pointer; }
     .cal-day.past { color: rgba(26,18,8,0.25); cursor: not-allowed; }
     .cal-day.beyond-year { background: #f0f0f0; color: rgba(26,18,8,0.20); cursor: not-allowed; }
@@ -148,7 +149,13 @@
         <div class="flex items-center gap-1.5 text-[11px] text-warm-black/60">
           <div class="w-3 h-3 rounded-sm bg-gold-deep"></div> Selected
         </div>
+        <div class="flex items-center gap-1.5 text-[11px] text-warm-black/60">
+          <div class="w-3 h-3 rounded-sm" style="background: #f1e3bf;"></div> In range
+        </div>
       </div>
+      <p id="rangeHint" class="text-[12px] text-warm-black/60 mt-3 mb-0" style="display: none;">
+        <strong class="text-gold-deep">Swimming &amp; Staycation:</strong> click a start date, then a later end date to book several days in a row. Each day is charged separately.
+      </p>
 
       {{-- Blocked Date Alert Box --}}
       <div id="blockedDateAlert" class="hidden mt-6 bg-[#fde8e8] border border-[#e74c3c] rounded-xl p-5 flex gap-4 items-center animate-[popIn_0.3s_ease]">
@@ -188,12 +195,14 @@
       <form method="POST" action="{{ route('booking.store') }}" id="bookingForm">
         @csrf
         <input type="hidden" name="event_date" id="eventDateInput" value="{{ old('event_date') }}" required />
+        <input type="hidden" name="event_end_date" id="eventEndDateInput" value="{{ old('event_end_date') }}" />
         
         {{-- Hidden data container for JS --}}
         <div id="booking-data" class="hidden" 
              data-blocked-dates="{{ json_encode($blockedDates ?? []) }}"
              data-approved-dates="{{ json_encode($approvedDates ?? []) }}"
              data-old-date="{{ old('event_date') }}"
+             data-old-end-date="{{ old('event_end_date') }}"
              data-booking-success="{{ session('booking_success') ? 'true' : 'false' }}"
              data-visit-success="{{ session('visit_success') ? 'true' : 'false' }}"
              data-check-date-url="{{ route('booking.check-date') }}"
@@ -957,28 +966,81 @@
   const roomUnavailableNotice = document.getElementById('roomUnavailableNotice');
   let selectedPackage = packageHiddenInput.value;
 
-  const oldDate = dataEl.getAttribute('data-old-date');
-  if (oldDate) {
-    selectedDate = oldDate;
-    document.getElementById('selectedDateText').textContent = 'Selected: ' + formatDisplay(oldDate);
-  }
+  // Last day of a Swimming/Staycation date range (inclusive); null = one day.
+  let selectedEndDate = null;
 
-  // Packages added with "+ Add to list" for the selected date. Each entry
+  // Packages added with "+ Add to list" for the selected date(s). Each entry
   // keeps a reference to its <option> for label/price/description.
   const bookingItems = [];
 
-  function isWeekendDate() {
-    if (!selectedDate) return false;
-    const day = new Date(selectedDate + 'T00:00:00').getDay();
+  function addDays(dateStr, n) {
+    const d = new Date(dateStr + 'T00:00:00');
+    d.setDate(d.getDate() + n);
+    return formatDate(d);
+  }
+
+  // Every booked day: selectedDate .. selectedEndDate (inclusive).
+  function selectedDates() {
+    if (!selectedDate) return [];
+    const dates = [selectedDate];
+    if (selectedEndDate) {
+      for (let d = addDays(selectedDate, 1); d <= selectedEndDate; d = addDays(d, 1)) dates.push(d);
+    }
+    return dates;
+  }
+
+  function isWeekend(dateStr) {
+    const day = new Date(dateStr + 'T00:00:00').getDay();
     return day === 0 || day === 6;
   }
 
-  // Package price for the selected date: the weekend rate on Saturday/Sunday
-  // when the package has one.
+  function isWeekendDate() {
+    return selectedDates().some(isWeekend);
+  }
+
+  // One day's price: the weekend rate on Saturday/Sunday when the package has one.
+  function dayPrice(option, dateStr) {
+    const useWeekend = dateStr && isWeekend(dateStr) && option.dataset.weekendPrice;
+    return parseFloat(useWeekend ? option.dataset.weekendPrice : option.dataset.price) || 0;
+  }
+
+  // A package's price for the whole selection (each day paid separately).
   function optionPrice(option) {
     if (!option || !option.dataset.price) return 0;
-    const useWeekend = isWeekendDate() && option.dataset.weekendPrice;
-    return parseFloat(useWeekend ? option.dataset.weekendPrice : option.dataset.price) || 0;
+    const dates = selectedDates();
+    if (!dates.length) return dayPrice(option, null);
+    return dates.reduce(function (sum, d) { return sum + dayPrice(option, d); }, 0);
+  }
+
+  // Ranges are for Swimming/Staycation only — Events are a single day.
+  function rangeAllowed() {
+    const occasion = document.getElementById('occasionSelect');
+    return !!occasion && (occasion.value === 'swimming' || occasion.value === 'staycation')
+      && bookingItems.every(function (item) { return item.occasion !== 'event'; });
+  }
+
+  function selectionLabel() {
+    const dates = selectedDates();
+    if (!dates.length) return 'Please select a date from the calendar';
+    if (dates.length === 1) return 'Selected: ' + formatDisplay(dates[0]);
+    const opts = { weekday: 'short', month: 'short', day: 'numeric' };
+    const from = new Date(dates[0] + 'T00:00:00').toLocaleDateString('en-PH', opts);
+    const to = new Date(dates[dates.length - 1] + 'T00:00:00').toLocaleDateString('en-PH', Object.assign({ year: 'numeric' }, opts));
+    return 'Selected: ' + from + ' – ' + to + ' (' + dates.length + ' days)';
+  }
+
+  function syncDateInputs() {
+    document.getElementById('eventDateInput').value = selectedDate || '';
+    document.getElementById('eventEndDateInput').value = selectedEndDate || '';
+    document.getElementById('selectedDateText').textContent = selectionLabel();
+  }
+
+  const oldDate = dataEl.getAttribute('data-old-date');
+  if (oldDate) {
+    selectedDate = oldDate;
+    const oldEnd = dataEl.getAttribute('data-old-end-date');
+    if (oldEnd && oldEnd > oldDate) selectedEndDate = oldEnd;
+    syncDateInputs();
   }
 
   // Total preview = every listed package + the package currently selected
@@ -1005,7 +1067,8 @@
     const type = item.occasion === 'event'
       ? 'Event · ' + (item.eventType === 'Others' ? item.eventTypeOther : item.eventType)
       : occasionLabels[item.occasion];
-    return type + ' · ' + item.guests + ' guest' + (item.guests === 1 ? '' : 's');
+    const days = selectedDates().length;
+    return type + ' · ' + item.guests + ' guest' + (item.guests === 1 ? '' : 's') + (days > 1 ? ' · ' + days + ' days' : '');
   }
 
   function renderBookingItems() {
@@ -1085,7 +1148,7 @@
   packageSelectEl.addEventListener('change', function() {
     roomUnavailableNotice.style.display = 'none';
     syncPackageFromSelect();
-    if (selectedDate) refreshRoomAvailability(selectedDate);
+    if (selectedDate) refreshRoomAvailability();
   });
 
   // Dynamic Payment Option Summary (Full Payment vs. Downpayment)
@@ -1231,8 +1294,11 @@
 
   // Same rules the server enforces: no duplicates, one Event per day.
   function cannotAdd(item, list) {
-    if (selectedDate && approvedDates.includes(selectedDate) && item.occasion !== 'staycation') {
+    if (item.occasion !== 'staycation' && selectedDates().some(function (d) { return approvedDates.includes(d); })) {
       return EVENT_DAY_ROOMS_ONLY;
+    }
+    if (item.occasion === 'event' && selectedEndDate) {
+      return 'Event packages are booked for a single date. Pick one day for the Event, or book it separately.';
     }
     if (list.some(function (i) { return i.packageName === item.packageName && i.room === item.room; })) {
       return itemTitle(item) + ' is already in your list.';
@@ -1308,7 +1374,7 @@
     });
 
     // Summary content (textContent only — package text is admin-entered).
-    document.getElementById('summaryDate').textContent = formatDisplay(selectedDate);
+    document.getElementById('summaryDate').textContent = selectionLabel().replace('Selected: ', '');
     const list = document.getElementById('summaryItems');
     list.innerHTML = '';
     items.forEach(function (item) {
@@ -1322,7 +1388,7 @@
       title.textContent = itemTitle(item);
       const price = document.createElement('div');
       price.className = 'text-[15px] font-bold text-gold-deep shrink-0';
-      price.textContent = formatPeso(optionPrice(item.option)) + (isWeekendDate() && item.option.dataset.weekendPrice ? ' (weekend)' : '');
+      price.textContent = formatPeso(optionPrice(item.option)) + (isWeekendDate() && item.option.dataset.weekendPrice ? (selectedDates().length > 1 ? ' (incl. weekend rate)' : ' (weekend)') : '');
       head.append(title, price);
 
       const sub = document.createElement('div');
@@ -1456,16 +1522,34 @@
 
   const EVENT_DAY_ROOMS_ONLY = 'This date already has an event — only Staycation (rooms) can be booked on this day.';
 
-  // Called when the occasion changes: an event day picked for Staycation
-  // can't stay selected once the customer switches to Swimming/Event.
+  function showDateMessage(message) {
+    document.getElementById('blockedDateReason').textContent = message;
+    document.getElementById('blockedDateAlert').classList.remove('hidden');
+  }
+
+  function clearSelection(message) {
+    selectedDate = null;
+    selectedEndDate = null;
+    syncDateInputs();
+    if (message) showDateMessage(message);
+    applyPackagePrice();
+    renderCalendar();
+  }
+
+  // Called when the occasion or the package list changes: a range only
+  // stays for Swimming/Staycation, and an event day picked for Staycation
+  // can't stay selected once Swimming/Event is involved.
   function checkSelectedDateForOccasion() {
-    if (selectedDate && approvedDates.includes(selectedDate) && !roomsOnly()) {
-      selectedDate = null;
-      document.getElementById('eventDateInput').value = '';
-      document.getElementById('selectedDateText').textContent = 'Please select an available date';
-      document.getElementById('blockedDateReason').textContent = EVENT_DAY_ROOMS_ONLY;
-      document.getElementById('blockedDateAlert').classList.remove('hidden');
+    if (selectedEndDate && !rangeAllowed()) {
+      selectedEndDate = null;
+      syncDateInputs();
+      showDateMessage('Event packages are booked for a single date, so your selection is now just ' + formatDisplay(selectedDate) + '.');
       applyPackagePrice();
+      refreshRoomAvailability();
+    }
+    if (selectedDates().some(function (d) { return approvedDates.includes(d); }) && !roomsOnly()) {
+      clearSelection(EVENT_DAY_ROOMS_ONLY);
+      return;
     }
     renderCalendar();
   }
@@ -1482,6 +1566,7 @@
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const unavailables = getUnavailableDates();
+    const chosen = selectedDates();
 
     for (let i = 0; i < firstDay; i++) {
       const empty = document.createElement('div');
@@ -1506,11 +1591,16 @@
         });
       } else {
         if (formatDate(today) === dateStr) div.classList.add('today');
-        if (selectedDate === dateStr) div.classList.add('selected');
+        if (chosen.includes(dateStr)) {
+          div.classList.add(dateStr === selectedDate || dateStr === selectedEndDate ? 'selected' : 'in-range');
+        }
         div.addEventListener('click', () => selectDate(dateStr, div));
       }
       grid.appendChild(div);
     }
+
+    const hint = document.getElementById('rangeHint');
+    if (hint) hint.style.display = rangeAllowed() ? '' : 'none';
   }
 
   function showBlockedReason(dateStr) {
@@ -1523,40 +1613,32 @@
     } else {
       reason = 'This date has been blocked by the venue admin (e.g. maintenance, private hold, or holiday).';
     }
-    
-    const alertBox = document.getElementById('blockedDateAlert');
-    const reasonText = document.getElementById('blockedDateReason');
-    
-    reasonText.textContent = reason;
-    alertBox.classList.remove('hidden');
-    
-    // Unselect any selected date
-    selectedDate = null;
-    document.getElementById('eventDateInput').value = '';
-    applyPackagePrice();
-    document.getElementById('selectedDateText').textContent = 'Please select an available date';
-    renderCalendar();
+    clearSelection(reason);
   }
 
-  // Re-check every individual room's availability for a date and annotate/
-  // disable the matching <option>s — called on date change AND package change,
-  // per "a room booked on one date may be available on another."
-  function refreshRoomAvailability(dateStr) {
-    if (!dateStr) return;
+  // Re-check every room's availability for ALL selected days and annotate/
+  // disable the matching <option>s — a room must be free on every day of a
+  // range. Called on date change AND package change.
+  function refreshRoomAvailability() {
+    const dates = selectedDates();
+    if (!dates.length) return;
 
-    fetch(roomAvailabilityUrl + '?date=' + dateStr)
-      .then(res => res.json())
-      .then(data => {
+    Promise.all(dates.map(function (d) {
+      return fetch(roomAvailabilityUrl + '?date=' + d).then(function (res) { return res.json(); });
+    }))
+      .then(results => {
         let selectedBecameUnavailable = false;
 
         Array.from(packageSelectEl.options).forEach(opt => {
           if (!opt.dataset.roomType) return;
 
-          const pkgAvailability = data[opt.dataset.package] || {};
-          const available = pkgAvailability[opt.dataset.room] !== false; // default true if missing
+          const available = results.every(function (data) {
+            const pkgAvailability = data[opt.dataset.package] || {};
+            return pkgAvailability[opt.dataset.room] !== false; // default true if missing
+          });
 
           opt.disabled = !available;
-          opt.textContent = opt.dataset.label + (available ? ' — AVAILABLE' : ' — BOOKED');
+          opt.textContent = opt.dataset.label + (available ? ' — AVAILABLE' : (dates.length > 1 ? ' — BOOKED ON SOME DAYS' : ' — BOOKED'));
 
           if (opt.selected && !available) selectedBecameUnavailable = true;
         });
@@ -1567,6 +1649,7 @@
           roomNumberHiddenInput.value = '';
           roomUnavailableNotice.style.display = 'block';
           syncSelectPlaceholders();
+          applyPackagePrice();
         }
       })
       .catch(() => {
@@ -1575,42 +1658,55 @@
   }
 
   // Annotate rooms immediately if a date/package survived a validation-failure reload
-  if (selectedDate) refreshRoomAvailability(selectedDate);
+  if (selectedDate) refreshRoomAvailability();
 
   function selectDate(dateStr, el) {
-    document.querySelectorAll('.cal-day.selected').forEach(d => d.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedDate = dateStr;
-    document.getElementById('eventDateInput').value = dateStr;
-    document.getElementById('selectedDateText').textContent = 'Selected: ' + formatDisplay(dateStr);
-
     // Hide blocked alert if it was showing
     document.getElementById('blockedDateAlert').classList.add('hidden');
 
+    // A second click on a later day ends a range (Swimming/Staycation only).
+    // Every day in between must be available.
+    // A range that would cross an unavailable day isn't allowed — the click
+    // then starts a new selection at that day instead (with a message).
+    let rangeProblem = null;
+    if (rangeAllowed() && selectedDate && !selectedEndDate && dateStr > selectedDate) {
+      const unavailables = getUnavailableDates();
+      for (let d = addDays(selectedDate, 1); d < dateStr; d = addDays(d, 1)) {
+        if (unavailables.includes(d)) {
+          rangeProblem = formatDisplay(d) + ' is not available, so a range can\'t include it. Your selection now starts on ' + formatDisplay(dateStr) + '.';
+          break;
+        }
+      }
+      if (!rangeProblem) {
+        selectedEndDate = dateStr;
+        syncDateInputs();
+        applyPackagePrice();
+        refreshRoomAvailability();
+        renderCalendar();
+        return;
+      }
+    }
+
+    // Otherwise this click starts a new selection (a single day so far).
+    selectedDate = dateStr;
+    selectedEndDate = null;
+    syncDateInputs();
     applyPackagePrice();
-    refreshRoomAvailability(dateStr);
+    refreshRoomAvailability();
+    renderCalendar();
+    if (rangeProblem) showDateMessage(rangeProblem);
 
     // Real-time AJAX validation: double-check with the server
     fetch(checkDateUrl + '?date=' + dateStr + (roomsOnly() ? '&rooms_only=1' : ''))
       .then(res => res.json())
       .then(data => {
-        if (!data.available) {
-          // Date became unavailable (e.g., just approved by admin)
-          selectedDate = null;
-          document.getElementById('eventDateInput').value = '';
-          applyPackagePrice();
-          document.getElementById('selectedDateText').textContent = 'Please select an available date';
-          
-          const alertBox = document.getElementById('blockedDateAlert');
-          const reasonText = document.getElementById('blockedDateReason');
-          reasonText.textContent = data.reason;
-          alertBox.classList.remove('hidden');
-
-          // Add to local approved dates so calendar re-renders correctly
+        if (!data.available && selectedDate === dateStr) {
+          // Date became unavailable (e.g., just approved by admin).
+          // Add to local approved dates so the calendar re-renders correctly.
           if (!approvedDates.includes(dateStr)) {
             approvedDates.push(dateStr);
           }
-          renderCalendar();
+          clearSelection(data.reason);
         }
       })
       .catch(() => {

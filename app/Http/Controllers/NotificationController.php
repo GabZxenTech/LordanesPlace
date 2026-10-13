@@ -44,6 +44,11 @@ class NotificationController extends Controller
     // partial the navbar uses on page load (so it's escaped and identical).
     public function poll()
     {
+        // No cron on the host: keep automatic rules (overdue visits -> missed,
+        // unpaid past-due bookings) current while anyone is on the site.
+        // Throttled to once a minute site-wide.
+        \App\Services\BookingAutoCancelService::runThrottled();
+
         $unread = $this->scoped()->unread();
         $unreadCount = (clone $unread)->count();
         $notifications = $unread->latest()->limit(5)->get();

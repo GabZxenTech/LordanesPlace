@@ -22,6 +22,9 @@
 
   <div class="rv-meta">
     <span class="rv-ref">#{{ $booking->booking_number }}</span>
+    @if(!empty($showDate))
+      <span><b>{{ $booking->event_date->format('D, M d') }}</b></span>
+    @endif
     <span>{{ $booking->guest_count }} {{ $booking->guest_count == 1 ? 'guest' : 'guests' }}</span>
     <span>
       @if($booking->start_time && $booking->end_time)

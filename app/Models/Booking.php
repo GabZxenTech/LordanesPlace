@@ -305,6 +305,7 @@ class Booking extends Model
         'payment_status',
         'down_payment_paid_at',
         'booking_number',
+        'booking_group',
         'reschedule_count',
         'reschedule_status',
         'requested_event_date',

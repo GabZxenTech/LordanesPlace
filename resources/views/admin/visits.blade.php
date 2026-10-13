@@ -17,6 +17,25 @@
     .v-rescheduled { background: #e1f5fe; color: #0277bd; border: 1px solid #b3e5fc; }
     .v-completed { background: #f5f0e8; color: #8a6a40; border: 1px solid #d4c4a0; }
     .v-missed { background: #fde8e8; color: #e74c3c; border: 1px solid #f5c6cb; }
+
+    /* Remove-visit confirmation (same look as the customer cancel dialog) */
+    .rm-modal { position: fixed; inset: 0; z-index: 1100; background: rgba(26,18,8,.55); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .rm-modal[hidden] { display: none; }
+    .rm-box { position: relative; background: #fffcf5; border: 1px solid #e8dcc4; border-radius: 16px; max-width: 460px; width: 100%; padding: 30px 26px 24px; text-align: center; box-shadow: 0 30px 60px rgba(26,18,8,.28); font-family: 'Jost', sans-serif; }
+    .rm-close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: transparent; color: #8f7c62; display: grid; place-items: center; cursor: pointer; }
+    .rm-close:hover { background: #f2ebdc; color: #1a1208; }
+    .rm-icon { width: 54px; height: 54px; border-radius: 50%; background: #f5ead2; color: #b8860b; display: grid; place-items: center; margin: 0 auto 14px; }
+    .rm-box h3 { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 700; color: #1a1208; margin: 0 0 8px; }
+    .rm-box > p { font-size: 14px; color: #5c4a33; line-height: 1.55; margin: 0 0 18px; }
+    .rm-card { background: #f7f1e4; border: 1px solid #e8dcc4; border-radius: 12px; padding: 12px 14px; display: grid; gap: 3px; text-align: left; margin-bottom: 20px; }
+    .rm-card strong { font-size: 15px; color: #1a1208; }
+    .rm-card span { font-size: 13px; color: #8f7c62; }
+    .rm-acts { display: flex; gap: 12px; margin: 0; }
+    .rm-btn { flex: 1; font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 600; padding: 12px; border-radius: 8px; cursor: pointer; background: #fffcf5; border: 1px solid #b8860b; color: #b8860b; }
+    .rm-btn:hover { background: #fbf0d9; }
+    .rm-btn-danger { background: #2c1a0e; border-color: #2c1a0e; color: #fff; }
+    .rm-btn-danger:hover { background: #4a2f1a; }
+    .rm-btn:focus-visible, .rm-close:focus-visible { outline: 2px solid #1a1208; outline-offset: 2px; }
   </style>
 </head>
 <body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
@@ -32,6 +51,11 @@
     @if(session('success'))
       <div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 15px; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg> {{ session('success') }}</div>
     @endif
+    @if($errors->any())
+      <div style="background: #f8d7da; border: 1px solid #dc3545; color: #721c24; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 14px;">
+        @foreach($errors->all() as $err)<div>{{ $err }}</div>@endforeach
+      </div>
+    @endif
 
     <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; overflow: hidden;">
       <div style="padding: 18px 24px; border-bottom: 1px solid #d4c4a0; background: #f5edd8;">
@@ -41,7 +65,7 @@
       {{-- Filters (client-side; see partials._list-filter) --}}
       <div class="lf-bar" data-list-filter="admin-visits" data-default-tab="upcoming">
         <div class="lf-tabs" role="tablist" aria-label="Filter visits">
-          @foreach(['upcoming' => 'Upcoming', 'needs' => 'Needs confirmation', 'completed' => 'Completed', 'missed' => 'Missed', 'all' => 'All'] as $tabKey => $tabLabel)
+          @foreach(['upcoming' => 'Upcoming', 'pending' => 'Pending', 'confirmed' => 'Confirmed', 'rescheduled' => 'Rescheduled', 'completed' => 'Completed', 'missed' => 'Missed', 'all' => 'All'] as $tabKey => $tabLabel)
             <button type="button" class="lf-tab" role="tab" data-filter-tab="{{ $tabKey }}" aria-selected="false">{{ $tabLabel }}<span class="lf-n" data-count></span></button>
           @endforeach
         </div>
@@ -67,25 +91,45 @@
             </tr>
           </thead>
           <tbody data-list-rows="admin-visits">
-            @forelse($visits as $visit)
+            @php
+              // Bookings made together (a date range or several packages share a
+              // booking_group) each have a visit at the same time — show them as
+              // one row; the actions apply to the whole group.
+              $visitRows = $visits->groupBy(fn ($v) => $v->booking && $v->booking->booking_group
+                  ? $v->booking->booking_group . '|' . $v->visit_date->format('YmdHi') . '|' . $v->status
+                  : 'v' . $v->id);
+            @endphp
+            @forelse($visitRows as $rowVisits)
               @php
-                $visitTabs = [];
-                if (in_array($visit->status, ['pending', 'confirmed', 'rescheduled'], true) && $visit->visit_date->gte(now()->startOfDay())) $visitTabs[] = 'upcoming';
-                if ($visit->status === 'pending') $visitTabs[] = 'needs';
-                if (in_array($visit->status, ['completed', 'missed'], true)) $visitTabs[] = $visit->status;
+                $visit = $rowVisits->first();
+                $rowBookings = $rowVisits->pluck('booking')->sortBy('event_date')->values();
+                // Every visit is in its own status tab; open visits that are
+                // still ahead are also under "Upcoming".
+                $visitTabs = [$visit->status];
+                if (in_array($visit->status, \App\Models\VisitSchedule::OPEN_STATUSES, true) && $visit->visit_date->gte(now())) $visitTabs[] = 'upcoming';
               @endphp
               <tr data-tabs="{{ implode(' ', $visitTabs) ?: 'other' }}"
                 data-visit="{{ $visit->visit_date->timestamp }}"
-                data-search="{{ mb_strtolower($visit->user->name . ' ' . $visit->user->email . ' ' . $visit->booking->booking_number . ' ' . $visit->booking->package . ' ' . $visit->booking->event_type) }}"
+                data-search="{{ mb_strtolower($visit->user->name . ' ' . $visit->user->email . ' ' . $rowBookings->map(fn ($b) => $b->booking_number . ' ' . $b->package . ' ' . $b->event_type)->implode(' ')) }}"
                 style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
                 <td style="padding: 14px 20px;">
                   <div style="font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $visit->user->name }}</div>
                   <div style="font-size: 12px; color: #8a6a40;">{{ $visit->user->email }}</div>
                 </td>
                 <td style="padding: 14px 20px;">
-                  <div style="font-size: 14px; color: #2c1a0e;">{{ $visit->booking->event_type }} <span style="color: #8a6a40;">· {{ $visit->booking->package }}{{ $visit->booking->room_number ? ' ' . $visit->booking->room_number : '' }}</span></div>
-                  <div style="font-size: 11px; color: #8a6a40; font-family: monospace;">{{ $visit->booking->booking_number }}</div>
-                  <div style="font-size: 11px; color: #c9a84c; font-weight: 700;">Event: {{ $visit->booking->event_date->format('M d, Y') }}</div>
+                  @if($rowBookings->count() === 1)
+                    <div style="font-size: 14px; color: #2c1a0e;">{{ $visit->booking->event_type }} <span style="color: #8a6a40;">· {{ $visit->booking->package }}{{ $visit->booking->room_number ? ' ' . $visit->booking->room_number : '' }}</span></div>
+                    <div style="font-size: 11px; color: #8a6a40; font-family: monospace;">{{ $visit->booking->booking_number }}</div>
+                    <div style="font-size: 11px; color: #c9a84c; font-weight: 700;">Event: {{ $visit->booking->event_date->format('M d, Y') }}</div>
+                  @else
+                    @php
+                      $first = $rowBookings->first()->event_date; $last = $rowBookings->last()->event_date;
+                      $packagesLine = $rowBookings->map(fn ($b) => $b->package . ($b->room_number ? ' ' . $b->room_number : ''))->unique()->implode(', ');
+                    @endphp
+                    <div style="font-size: 14px; color: #2c1a0e;">{{ $rowBookings->pluck('event_type')->unique()->implode(' + ') }} <span style="color: #8a6a40;">· {{ $packagesLine }}</span></div>
+                    <div style="font-size: 11px; color: #8a6a40; font-family: monospace;">{{ $rowBookings->count() }} bookings · {{ $rowBookings->first()->booking_number }} – {{ $rowBookings->last()->booking_number }}</div>
+                    <div style="font-size: 11px; color: #c9a84c; font-weight: 700;">Event: {{ $first->isSameDay($last) ? $first->format('M d, Y') : $first->format('M d') . ' – ' . $last->format('M d, Y') }}</div>
+                  @endif
                 </td>
                 <td style="padding: 14px 20px;">
                   <div style="font-size: 14px; color: #2c1a0e; font-weight: 600;">{{ $visit->visit_date->format('M d, Y') }}</div>
@@ -95,18 +139,23 @@
                   <span class="visit-status v-{{ $visit->status }}">
                     {{ $visit->status }}
                   </span>
+                  @if($visit->status === 'missed' && $visit->booking && !$visit->booking->hasFinalStatus())
+                    {{-- Required-visit policy: the booking is cancelled if this
+                         is still missed one day after the visit time. --}}
+                    <div style="font-size: 10px; color: #c0392b; margin-top: 4px; max-width: 150px; line-height: 1.3;">Booking auto-cancels {{ $visit->visit_date->copy()->addDay()->format('M d, h:i A') }} unless completed or rescheduled</div>
+                  @endif
                 </td>
                 <td style="padding: 14px 20px;">
                   <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    @if($visit->status === 'pending')
+                    @if($visit->canConfirm())
                       <form method="POST" action="{{ route('admin.visits.confirm', $visit->id) }}">
                         @csrf
                         <button type="submit" style="background: transparent; border: 1px solid #28a745; color: #28a745; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#28a745'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#28a745';">Confirm</button>
                       </form>
                     @endif
                     
-                    @if(!in_array($visit->status, ['completed', 'missed']))
-                      <button type="button" 
+                    @if($visit->canReschedule())
+                      <button type="button"
                         class="open-visit-modal-btn"
                         style="background: transparent; border: 1px solid #3498db; color: #3498db; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;" 
                         data-id="{{ $visit->id }}"
@@ -115,11 +164,23 @@
                         onmouseover="this.style.background='#3498db'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#3498db';">
                         Reschedule
                       </button>
-                      
+                    @endif
+
+                    @if($visit->canComplete())
                       <form method="POST" action="{{ route('admin.visits.complete', $visit->id) }}">
                         @csrf
                         <button type="submit" style="background: transparent; border: 1px solid #8a6a40; color: #8a6a40; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#8a6a40'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#8a6a40';">Complete</button>
                       </form>
+                    @endif
+
+                    @if($visit->canRemove())
+                      <button type="button" class="remove-visit-btn"
+                        data-action="{{ route('admin.visits.destroy', $visit->id) }}"
+                        data-client="{{ $visit->user->name }}"
+                        data-booking="{{ $rowBookings->count() > 1 ? $rowBookings->count() . ' bookings · ' . $rowBookings->first()->booking_number . ' – ' . $rowBookings->last()->booking_number : $visit->booking->booking_number . ' · ' . $visit->booking->package }}"
+                        data-when="{{ $visit->visit_date->format('M d, Y · h:i A') }}"
+                        style="background: transparent; border: 1px solid #e0a39b; color: #c0392b; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.background='#c0392b'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#c0392b';">Remove</button>
                     @endif
                   </div>
                 </td>
@@ -153,9 +214,60 @@
     </div>
   </div>
 
+  {{-- REMOVE VISIT CONFIRMATION --}}
+  <div id="removeVisitModal" class="rm-modal" role="dialog" aria-modal="true" aria-labelledby="removeVisitTitle" hidden>
+    <div class="rm-box">
+      <button type="button" class="rm-close" id="removeVisitClose" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="rm-icon" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+      </div>
+      <h3 id="removeVisitTitle">Remove this visit?</h3>
+      <p>It will be hidden from this list. The booking, its payments and the visit record are kept in the database.</p>
+      <div class="rm-card">
+        <strong id="removeVisitClient"></strong>
+        <span id="removeVisitBooking"></span>
+        <span id="removeVisitWhen"></span>
+      </div>
+      <form method="POST" action="" id="removeVisitForm" class="rm-acts">
+        @csrf
+        @method('DELETE')
+        <button type="button" class="rm-btn" id="removeVisitKeep">Keep</button>
+        <button type="submit" class="rm-btn rm-btn-danger" id="removeVisitConfirm">Yes, Remove</button>
+      </form>
+    </div>
+  </div>
+
   <div id="visit-data" class="hidden" data-base-url="{{ url('admin/visits') }}"></div>
 
   <script>
+    // Remove: confirm in a styled dialog, then submit the DELETE form.
+    (function () {
+      const modal = document.getElementById('removeVisitModal');
+      const form = document.getElementById('removeVisitForm');
+      const confirmBtn = document.getElementById('removeVisitConfirm');
+      const close = function () { modal.hidden = true; };
+
+      document.querySelectorAll('.remove-visit-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          form.action = btn.dataset.action;
+          document.getElementById('removeVisitClient').textContent = btn.dataset.client;
+          document.getElementById('removeVisitBooking').textContent = btn.dataset.booking;
+          document.getElementById('removeVisitWhen').textContent = 'Visit: ' + btn.dataset.when;
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Yes, Remove';
+          modal.hidden = false;
+          document.getElementById('removeVisitKeep').focus();
+        });
+      });
+      form.addEventListener('submit', function () { confirmBtn.disabled = true; confirmBtn.textContent = 'Removing...'; });
+      document.getElementById('removeVisitKeep').addEventListener('click', close);
+      document.getElementById('removeVisitClose').addEventListener('click', close);
+      modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) close(); });
+    })();
+
     const visitData = document.getElementById('visit-data');
     const visitBaseUrl = visitData.getAttribute('data-base-url');
 

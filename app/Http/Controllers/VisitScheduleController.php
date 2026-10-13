@@ -38,7 +38,7 @@ class VisitScheduleController extends Controller
             'booking_id' => 'required|exists:bookings,id',
             // A multi-package booking sends every booking from that submission
             // so the one visit applies to all of them.
-            'booking_ids'   => 'nullable|array|max:10',
+            'booking_ids'   => 'nullable|array|max:100',
             'booking_ids.*' => 'integer',
             'visit_date' => 'required|date|after_or_equal:today',
             'visit_time' => ['required', \Illuminate\Validation\Rule::in($allowedTimes)],
@@ -66,12 +66,13 @@ class VisitScheduleController extends Controller
 
         $visitDateTime = \Carbon\Carbon::parse($request->visit_date . ' ' . $request->visit_time);
 
-        // Same ownership scoping for any other bookings from the same
-        // submission; they share this booking's date, so the check above
-        // covers them too.
+        // Same ownership scoping for the other bookings from the same
+        // submission (several packages and/or a range of days). booking_id is
+        // the first one — the earliest day — so the date check above covers
+        // the whole group.
         $bookingIds = Booking::whereIn('id', array_merge([$booking->id], $request->input('booking_ids', [])))
             ->where('user_id', Auth::id())
-            ->whereDate('event_date', $booking->event_date)
+            ->whereDate('event_date', '>=', $booking->event_date)
             ->pluck('id');
 
         foreach ($bookingIds as $bookingId) {
@@ -100,47 +101,122 @@ class VisitScheduleController extends Controller
     // Admin view of all schedules
     public function adminIndex()
     {
+        // Mark overdue visits "missed" (and apply the other automatic rules)
+        // before listing, so the page never shows a stale status.
+        \App\Services\BookingAutoCancelService::run();
+
         $visits = VisitSchedule::with(['user', 'booking'])->orderBy('visit_date', 'asc')->get();
         return view('admin.visits', compact('visits'));
     }
 
-    // Admin confirm visit
+    /**
+     * The visit plus its twins: bookings made together (a date range or
+     * several packages share a booking_group) get one visit row each, at the
+     * same time. The admin sees them as one row, so every action applies to
+     * all of them.
+     */
+    private function visitGroup(VisitSchedule $visit)
+    {
+        $group = $visit->booking?->booking_group;
+
+        if (!$group) {
+            return collect([$visit]);
+        }
+
+        return VisitSchedule::with('booking')
+            ->where('status', $visit->status)
+            ->where('visit_date', $visit->visit_date)
+            ->whereHas('booking', fn ($q) => $q->where('booking_group', $group))
+            ->get();
+    }
+
+    // Admin confirm visit — only a visit still waiting for confirmation.
     public function confirm($id)
     {
-        VisitSchedule::findOrFail($id)->update(['status' => 'confirmed']);
+        $visit = VisitSchedule::with('booking')->findOrFail($id);
+
+        if (!$visit->canConfirm()) {
+            return back()->withErrors(['visit' => 'Only a pending visit can be confirmed (this one is ' . $visit->status . ').']);
+        }
+
+        foreach ($this->visitGroup($visit) as $v) {
+            if ($v->canConfirm()) {
+                $v->update(['status' => VisitSchedule::STATUS_CONFIRMED]);
+            }
+        }
+
         return back()->with('success', 'Visit confirmed.');
     }
 
-    // Admin reschedule visit
+    // Admin reschedule visit — updates the same record(s) (no duplicate rows).
     public function reschedule(Request $request, $id)
     {
         $request->validate([
-            'visit_date' => 'required|date|after_or_equal:today',
+            'visit_date' => 'required|date|after:now',
         ], [
-            'visit_date.after_or_equal' => 'The Site Visit date cannot be in the past.',
+            'visit_date.after' => 'The new visit date and time must be in the future.',
         ]);
 
-        $visit = VisitSchedule::findOrFail($id);
+        $visit = VisitSchedule::with('booking')->findOrFail($id);
+
+        if (!$visit->canReschedule()) {
+            return back()->withErrors(['visit' => 'This visit can no longer be rescheduled.']);
+        }
+
+        $visits = $this->visitGroup($visit)->filter->canReschedule();
+
+        // The visit must come before the earliest event day it covers.
         $visitDateOnly = \Carbon\Carbon::parse($request->visit_date)->startOfDay();
-        $eventDateOnly = \Carbon\Carbon::parse($visit->booking->event_date)->startOfDay();
-        
-        // Validation: Visit date must be strictly BEFORE event date
+        $eventDateOnly = $visits->map(fn ($v) => $v->booking->event_date)->min()->copy()->startOfDay();
+
         if ($visitDateOnly->greaterThanOrEqualTo($eventDateOnly)) {
             return back()->withErrors(['visit_date' => 'The Site Visit must be scheduled before your event date.']);
         }
 
-        $visit->update([
-            'visit_date' => $request->visit_date,
-            'status'     => 'rescheduled',
-        ]);
+        foreach ($visits as $v) {
+            $v->update([
+                'visit_date' => $request->visit_date,
+                'status'     => VisitSchedule::STATUS_RESCHEDULED,
+            ]);
+        }
 
         return back()->with('success', 'Visit rescheduled.');
     }
 
-    // Admin mark completed
+    // Admin mark completed — final; a completed visit is never marked missed.
     public function complete($id)
     {
-        VisitSchedule::findOrFail($id)->update(['status' => 'completed']);
+        $visit = VisitSchedule::with('booking')->findOrFail($id);
+
+        if (!$visit->canComplete()) {
+            return back()->withErrors(['visit' => 'This visit can no longer be marked as completed.']);
+        }
+
+        foreach ($this->visitGroup($visit) as $v) {
+            if ($v->canComplete()) {
+                $v->update(['status' => VisitSchedule::STATUS_COMPLETED]);
+            }
+        }
+
         return back()->with('success', 'Visit marked as completed.');
+    }
+
+    // Admin remove — hides old visits from the list (soft delete). The
+    // bookings, payments and the visit rows themselves stay in the database.
+    public function destroy($id)
+    {
+        $visit = VisitSchedule::with('booking')->findOrFail($id);
+
+        if (!$visit->canRemove()) {
+            return back()->withErrors(['visit' => 'This visit still belongs to an upcoming reservation and can\'t be removed.']);
+        }
+
+        foreach ($this->visitGroup($visit) as $v) {
+            if ($v->canRemove()) {
+                $v->delete();
+            }
+        }
+
+        return back()->with('success', 'Visit removed from the list.');
     }
 }

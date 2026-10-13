@@ -145,6 +145,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/visits/{id}/confirm', [VisitScheduleController::class, 'confirm'])->name('visits.confirm');
     Route::post('/visits/{id}/reschedule', [VisitScheduleController::class, 'reschedule'])->name('visits.reschedule');
     Route::post('/visits/{id}/complete', [VisitScheduleController::class, 'complete'])->name('visits.complete');
+    Route::delete('/visits/{id}', [VisitScheduleController::class, 'destroy'])->name('visits.destroy');
 
     // Packages CRUD
     Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
