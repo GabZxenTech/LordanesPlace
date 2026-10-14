@@ -105,6 +105,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Cancel own booking (client)
     Route::post('/booking/{id}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
 
+    // Delete a finished booking from "My Reservations" (hidden for the customer only)
+    Route::post('/booking/{id}/delete', [BookingController::class, 'deleteForCustomer'])->name('booking.delete');
+
     // Notifications (client)
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/poll', [\App\Http\Controllers\NotificationController::class, 'poll'])->name('notifications.poll');

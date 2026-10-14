@@ -145,6 +145,9 @@ class VisitScheduleController extends Controller
             }
         }
 
+        // One notification per visit group (bookings made together share it).
+        \App\Services\NotificationService::visitConfirmed($visit->fresh('booking'));
+
         return back()->with('success', 'Visit confirmed.');
     }
 
@@ -180,6 +183,8 @@ class VisitScheduleController extends Controller
             ]);
         }
 
+        \App\Services\NotificationService::visitRescheduled($visit->fresh('booking'));
+
         return back()->with('success', 'Visit rescheduled.');
     }
 
@@ -197,6 +202,8 @@ class VisitScheduleController extends Controller
                 $v->update(['status' => VisitSchedule::STATUS_COMPLETED]);
             }
         }
+
+        \App\Services\NotificationService::visitCompleted($visit->fresh('booking'));
 
         return back()->with('success', 'Visit marked as completed.');
     }

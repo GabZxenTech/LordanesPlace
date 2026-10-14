@@ -99,9 +99,11 @@
         Visits
       </a>
 
-      <a href="{{ route('admin.chat.index') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('admin.chat.*') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}">
+      <a href="{{ route('admin.chat.index') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; position: relative; {{ request()->routeIs('admin.chat.*') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Chat
+        {{-- People with chat messages the admin hasn't read yet; updated live by the notification polling. --}}
+        <span id="adminChatBadge" title="Unread chats" style="position: absolute; right: 20px; {{ ($adminUnreadChats ?? 0) > 0 ? 'display: inline-flex;' : 'display: none;' }} align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 10px; background: #e74c3c; color: white; font-size: 10px; font-weight: 700;">{{ ($adminUnreadChats ?? 0) > 9 ? '9+' : ($adminUnreadChats ?? 0) }}</span>
       </a>
 
       <a href="{{ route('admin.reports.index') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('admin.reports.*') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}">
@@ -162,6 +164,14 @@
       panel.style.display = 'none';
     }
   });
+
+  // Red number on "Chat": people whose messages the admin hasn't read yet.
+  function setAdminChatBadge(count) {
+    const badge = document.getElementById('adminChatBadge');
+    if (!badge) return;
+    badge.textContent = count > 9 ? '9+' : count;
+    badge.style.display = count > 0 ? 'inline-flex' : 'none';
+  }
 
   // ---- Mark notifications read without reloading the page ----
   function adminNotifRefreshUi(unreadCount) {
@@ -241,6 +251,7 @@
           const list = document.getElementById('adminNotifList');
           if (list && data.ids.join(',') !== currentIds()) list.innerHTML = data.html;
           adminNotifRefreshUi(data.unread_count);
+          if (typeof data.unread_chats === 'number') setAdminChatBadge(data.unread_chats);
         })
         .catch(function () { /* transient failure — try again next tick */ });
     }

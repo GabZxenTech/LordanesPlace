@@ -209,8 +209,11 @@ class BlockedDateController extends Controller
             'event_date'  => 'required|date',
             'start_time'  => 'nullable|date_format:H:i',
             'end_time'    => ['nullable', 'date_format:H:i', function ($attribute, $value, $fail) use ($request) {
-                if ($value && $request->filled('start_time') && $value <= $request->start_time) {
-                    $fail('The end time must be after the start time.');
+                // An end time earlier than the start means the next day
+                // (overnight packages, e.g. 7:00 PM – 7:00 AM); only an end
+                // equal to the start is invalid.
+                if ($value && $request->filled('start_time') && $value === $request->start_time) {
+                    $fail('The end time must be different from the start time.');
                 }
             }],
             'guest_count' => 'required|integer|min:1',
@@ -228,6 +231,18 @@ class BlockedDateController extends Controller
 
             if ($hasConflict) {
                 return back()->withErrors(['event_date' => 'Cannot update: another event is already approved on this date. Only one event per day is allowed.'])->withInput();
+            }
+        }
+
+        // No double booking: the (new) package/room must be free on the (new)
+        // date, ignoring this booking itself.
+        if ($booking->event_date->format('Y-m-d') !== $request->event_date || $booking->package !== $request->package) {
+            $free = $booking->room_number && Booking::isRoomPackage($request->package)
+                ? Booking::isRoomAvailable($request->package, $request->event_date, $booking->room_number, $booking->id)
+                : Booking::isPackageAvailable($request->package, $request->event_date, $booking->id);
+
+            if (!$free) {
+                return back()->withErrors(['event_date' => 'Cannot update: ' . $request->package . ($booking->room_number ? ' ' . $booking->room_number : '') . ' is already booked on that date.'])->withInput();
             }
         }
 
@@ -295,6 +310,11 @@ class BlockedDateController extends Controller
                 return back()->withErrors(['error' => 'Cannot approve reschedule: ' . $booking->package . ' ' . $booking->room_number . ' is no longer available on ' . $booking->requested_event_date->format('F d, Y') . '.']);
             }
         } else {
+            // The same package can't already be booked (even pending) on the new date.
+            if (!Booking::isPackageAvailable($booking->package, $booking->requested_event_date->toDateString(), $booking->id)) {
+                return back()->withErrors(['error' => 'Cannot approve reschedule: ' . $booking->package . ' is already booked on ' . $booking->requested_event_date->format('F d, Y') . '.']);
+            }
+
             // One Event Per Day: check if the requested date has an existing approved booking
             $hasConflict = Booking::where('event_date', $booking->requested_event_date)
                 ->where('status', 'approved')

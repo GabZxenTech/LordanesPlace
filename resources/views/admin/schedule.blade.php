@@ -182,8 +182,8 @@
                   <td style="padding: 14px 20px;">
                     <div style="font-size: 14px; color: #2c1a0e; font-weight: 600;">{{ $booking->event_date->format('M d, Y') }}</div>
                     <div style="font-size: 11px; color: #8a6a40;">
-                      @if($booking->start_time && $booking->end_time)
-                        {{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}
+                      @if($booking->scheduleLabel())
+                        {{ $booking->scheduleLabel(' - ') }}
                       @else
                         <span style="color: #e74c3c;">Schedule not yet assigned</span>
                       @endif
@@ -337,14 +337,14 @@
             <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Event Start Time <span style="font-weight: 400;">(optional)</span></label>
             <select name="start_time" id="edit_start_time" style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-family: 'Jost', sans-serif; box-sizing: border-box;">
               <option value="">-- Not yet assigned --</option>
-              @for($i = 8; $i <= 22; $i++) @foreach(['00', '30'] as $min) @php $val = sprintf('%02d:%s', $i, $min); @endphp <option value="{{ $val }}">{{ \Carbon\Carbon::createFromFormat('H:i', $val)->format('h:i A') }}</option> @endforeach @endfor
+              @for($i = 0; $i <= 23; $i++) @foreach(['00', '30'] as $min) @php $val = sprintf('%02d:%s', $i, $min); @endphp <option value="{{ $val }}">{{ \Carbon\Carbon::createFromFormat('H:i', $val)->format('h:i A') }}</option> @endforeach @endfor
             </select>
           </div>
           <div>
             <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Event End Time <span style="font-weight: 400;">(optional)</span></label>
             <select name="end_time" id="edit_end_time" style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-family: 'Jost', sans-serif; box-sizing: border-box;">
               <option value="">-- Not yet assigned --</option>
-              @for($i = 8; $i <= 22; $i++) @foreach(['00', '30'] as $min) @php $val = sprintf('%02d:%s', $i, $min); @endphp <option value="{{ $val }}">{{ \Carbon\Carbon::createFromFormat('H:i', $val)->format('h:i A') }}</option> @endforeach @endfor
+              @for($i = 0; $i <= 23; $i++) @foreach(['00', '30'] as $min) @php $val = sprintf('%02d:%s', $i, $min); @endphp <option value="{{ $val }}">{{ \Carbon\Carbon::createFromFormat('H:i', $val)->format('h:i A') }}</option> @endforeach @endfor
             </select>
           </div>
         </div>

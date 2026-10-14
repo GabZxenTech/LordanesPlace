@@ -116,6 +116,39 @@ class Booking extends Model
     }
 
     /**
+     * "08:00 AM – 04:00 PM", with "(next day)" when the end time is not after
+     * the start (overnight packages, e.g. Night Swim 7:00 PM – 7:00 AM).
+     * Null while no schedule is set.
+     */
+    public function scheduleLabel(string $separator = ' – '): ?string
+    {
+        if (!$this->start_time || !$this->end_time) {
+            return null;
+        }
+
+        $start = \Carbon\Carbon::parse($this->start_time);
+        $end = \Carbon\Carbon::parse($this->end_time);
+
+        return $start->format('h:i A') . $separator . $end->format('h:i A')
+            . ($end->format('H:i') <= $start->format('H:i') ? ' (next day)' : '');
+    }
+
+    /**
+     * A customer may delete (hide) a booking from "My Reservations" when it
+     * didn't go ahead: cancelled or rejected, or its date passed without
+     * being completed. Completed bookings stay as the customer's history,
+     * and upcoming ones must be cancelled first.
+     */
+    public function customerCanDelete(): bool
+    {
+        if ($this->status === self::STATUS_COMPLETED) {
+            return false;
+        }
+
+        return $this->isCancelledOrRejected() || $this->event_date->lt(now()->startOfDay());
+    }
+
+    /**
      * Fixed physical room numbers behind each room-type package. Lives here
      * as code (not a `rooms` table/model) since the list is static and not
      * admin-editable — avoids a second, parallel room-booking system.
@@ -210,7 +243,33 @@ class Booking extends Model
             ->exists();
     }
 
-    /** Availability of every room in every room-type package, for one date. */
+    /**
+     * A non-room package (Swimming / Event) can be held by only one active
+     * booking per date — pending counts, so the first booking gets it — the
+     * same rule rooms follow per room. Other packages that day are unaffected.
+     */
+    public static function isPackageAvailable(string $package, string $date, ?int $excludeId = null): bool
+    {
+        return !static::where('package', $package)
+            ->whereNull('room_number')
+            ->where('event_date', $date)
+            ->whereNotIn('status', [self::STATUS_CANCELLED, self::STATUS_REJECTED])
+            ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
+            ->exists();
+    }
+
+    /** Whether this exact package (and room) is free on a date, ignoring this booking. */
+    public function slotAvailableOn(string $date): bool
+    {
+        return $this->room_number
+            ? static::isRoomAvailable($this->package, $date, $this->room_number, $this->id)
+            : static::isPackageAvailable($this->package, $date, $this->id);
+    }
+
+    /**
+     * Availability of every room in every room-type package for one date,
+     * plus every non-room package under "_packages" (name => bool).
+     */
     public static function roomAvailabilityForDate(string $date): array
     {
         $result = [];
@@ -221,6 +280,17 @@ class Booking extends Model
                 $result[$package][$room] = self::isRoomAvailable($package, $date, $room);
             }
         }
+
+        $taken = static::whereNull('room_number')
+            ->where('event_date', $date)
+            ->whereNotIn('status', [self::STATUS_CANCELLED, self::STATUS_REJECTED])
+            ->pluck('package')
+            ->all();
+
+        $result['_packages'] = Package::pluck('name')
+            ->reject(fn ($name) => self::isRoomPackage($name))
+            ->mapWithKeys(fn ($name) => [$name => !in_array($name, $taken, true)])
+            ->all();
 
         return $result;
     }
@@ -320,6 +390,7 @@ class Booking extends Model
         'down_payment_paid_at' => 'datetime',
         'requested_event_date' => 'date',
         'requested_visit_date' => 'date',
+        'hidden_by_customer_at' => 'datetime',
     ];
 
     public function user()

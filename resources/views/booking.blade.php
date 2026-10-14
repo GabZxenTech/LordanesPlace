@@ -300,7 +300,7 @@
           </select>
           <input type="hidden" name="package" id="packageHiddenInput" value="{{ old('package') }}" />
           <input type="hidden" name="room_number" id="roomNumberHiddenInput" value="{{ old('room_number') }}" />
-          <div id="roomUnavailableNotice" class="text-red-500 text-[12px] mt-1" style="display:none;">That room is no longer available for the selected date — please choose another.</div>
+          <div id="roomUnavailableNotice" class="text-red-500 text-[12px] mt-1" style="display:none;">That package or room is already booked for the selected date — please choose another.</div>
           @error('package') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
           @error('room_number') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
         </div>
@@ -1630,12 +1630,26 @@
         let selectedBecameUnavailable = false;
 
         Array.from(packageSelectEl.options).forEach(opt => {
-          if (!opt.dataset.roomType) return;
+          if (!opt.dataset.package) return;
 
+          // Rooms: free per room. Other packages: one booking per package per
+          // day (the endpoint's "_packages" map) — the first booking holds it.
           const available = results.every(function (data) {
+            if (!opt.dataset.roomType) {
+              return !data._packages || data._packages[opt.dataset.package] !== false;
+            }
             const pkgAvailability = data[opt.dataset.package] || {};
             return pkgAvailability[opt.dataset.room] !== false; // default true if missing
           });
+
+          if (!opt.dataset.roomType) {
+            // Non-room options keep their price label; only mark them when taken.
+            if (!opt.dataset.label) opt.dataset.label = opt.textContent.trim();
+            opt.disabled = !available;
+            opt.textContent = opt.dataset.label + (available ? '' : (dates.length > 1 ? ' — BOOKED ON SOME DAYS' : ' — BOOKED'));
+            if (opt.selected && !available) selectedBecameUnavailable = true;
+            return;
+          }
 
           opt.disabled = !available;
           opt.textContent = opt.dataset.label + (available ? ' — AVAILABLE' : (dates.length > 1 ? ' — BOOKED ON SOME DAYS' : ' — BOOKED'));

@@ -177,6 +177,12 @@ class BookingController extends Controller
                         return back()->withErrors(['room_number' => $package->name . ' ' . $roomNumber . ' is not available on ' . $label($date) . '. Please choose another room or other dates.'])->withInput();
                     }
                 } else {
+                    // The same package can't be booked twice for one date —
+                    // the first active booking (pending counts) holds it.
+                    if (!Booking::isPackageAvailable($package->name, $date)) {
+                        return back()->withErrors(['package' => $package->name . ' is already booked on ' . $label($date) . '. Please choose another date or package.'])->withInput();
+                    }
+
                     // One Event Per Day (venue-wide): another customer's
                     // approved non-room booking holds the date. The same
                     // customer's own packages on that day don't block each other.
@@ -203,6 +209,11 @@ class BookingController extends Controller
                     'guest_count' => (int) $item['guest_count'],
                     'total_amount' => $totalAmount,
                     'down_payment_amount' => Booking::calculateDownPayment($totalAmount),
+                    // Packages with a fixed time slot (e.g. the swimming
+                    // packages) get it right away; others stay unset until
+                    // the admin assigns a time.
+                    'start_time'  => $package->start_time && $package->end_time ? $package->start_time : null,
+                    'end_time'    => $package->start_time && $package->end_time ? $package->end_time : null,
                 ];
             }
         }
@@ -234,6 +245,9 @@ class BookingController extends Controller
                 foreach ($prepared as $data) {
                     if ($data['room_number'] && !Booking::isRoomAvailable($data['package'], $data['event_date'], $data['room_number'])) {
                         return back()->withErrors(['room_number' => $data['package'] . ' ' . $data['room_number'] . ' on ' . $label($data['event_date']) . ' was just booked by another customer. Please choose another room or other dates.'])->withInput();
+                    }
+                    if (!$data['room_number'] && !Booking::isPackageAvailable($data['package'], $data['event_date'])) {
+                        return back()->withErrors(['package' => $data['package'] . ' on ' . $label($data['event_date']) . ' was just booked by another customer. Please choose another date or package.'])->withInput();
                     }
                 }
             }
@@ -323,10 +337,36 @@ class BookingController extends Controller
         // query per booking (N+1).
         $bookings = Booking::with(['visitSchedules', 'payments'])
             ->where('user_id', $user->id)
+            ->whereNull('hidden_by_customer_at') // deleted from "My Reservations"
             ->orderBy('event_date', 'desc')
             ->get();
 
-        return view('profile', compact('user', 'bookings'));
+        // Account tier counts every completed booking, including ones the
+        // customer has since deleted from their list.
+        $completedCount = Booking::where('user_id', $user->id)
+            ->where('status', Booking::STATUS_COMPLETED)
+            ->count();
+
+        return view('profile', compact('user', 'bookings', 'completedCount'));
+    }
+
+    // Delete a finished booking from "My Reservations" (Client action). It is
+    // only hidden from the customer — the booking, payments and visits stay
+    // for the admin, reports and history. Can't be undone by the customer.
+    public function deleteForCustomer($id)
+    {
+        $booking = Booking::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->whereNull('hidden_by_customer_at')
+            ->firstOrFail();
+
+        if (!$booking->customerCanDelete()) {
+            return back()->withErrors(['delete' => 'Only cancelled, rejected or past bookings can be deleted. Completed bookings stay in your history, and upcoming ones must be cancelled first.']);
+        }
+
+        $booking->forceFill(['hidden_by_customer_at' => now()])->save();
+
+        return back()->with('success', 'Booking #' . $booking->booking_number . ' was deleted from your reservations.');
     }
 
     // Cancel own booking (Client action)
@@ -394,6 +434,11 @@ class BookingController extends Controller
 
         if ($hasConflict) {
             return back()->withErrors(['requested_event_date' => 'This date is already reserved for another event. Please choose another available date.'])->withInput();
+        }
+
+        // The same package (or room) can't already be booked on the new date.
+        if (!$booking->slotAvailableOn($request->requested_event_date)) {
+            return back()->withErrors(['requested_event_date' => $booking->package . ($booking->room_number ? ' ' . $booking->room_number : '') . ' is already booked on that date. Please choose another date.'])->withInput();
         }
 
         // Fee: FREE for first reschedule, ₱5,000 for subsequent

@@ -27,8 +27,8 @@
     @endif
     <span>{{ $booking->guest_count }} {{ $booking->guest_count == 1 ? 'guest' : 'guests' }}</span>
     <span>
-      @if($booking->start_time && $booking->end_time)
-        {{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}
+      @if($booking->scheduleLabel())
+        {{ $booking->scheduleLabel() }}
       @else
         <em>Schedule set during your venue visit</em>
       @endif
@@ -114,7 +114,7 @@
       </button>
     @endif
     @if($booking->canTransitionTo('cancelled') && !$booking->hasConfirmedPayment() && $isUpcomingDate)
-      <form method="POST" action="{{ route('booking.cancel', $booking->id) }}" class="rv-cancel-form"
+      <form method="POST" action="{{ route('booking.cancel', $booking->id) }}" class="rv-cancel-form" data-kind="cancel"
         data-label="{{ $booking->package }}{{ $booking->room_number ? ' ' . $booking->room_number : '' }}"
         data-ref="#{{ $booking->booking_number }}"
         data-date="{{ $booking->event_date->format('F d, Y') }}"
@@ -122,6 +122,20 @@
         data-status="{{ $booking->status === 'pending' ? 'Pending approval' : ($booking->status === 'approved' ? 'Upcoming' : ucfirst($booking->status)) }}">
         @csrf
         <button type="submit" class="rv-act rv-act-danger">Cancel</button>
+      </form>
+    @endif
+    @if($booking->customerCanDelete())
+      {{-- Removes it from this list only; the admin keeps the record. --}}
+      <form method="POST" action="{{ route('booking.delete', $booking->id) }}" class="rv-delete-form" data-kind="delete"
+        data-label="{{ $booking->package }}{{ $booking->room_number ? ' ' . $booking->room_number : '' }}"
+        data-ref="#{{ $booking->booking_number }}"
+        data-date="{{ $booking->event_date->format('F d, Y') }}"
+        data-image="{{ \App\Models\Booking::packageImage($booking->package) }}"
+        data-status="{{ $isDead ? ucfirst($booking->status) : ($booking->status === 'completed' ? 'Completed' : 'Past') }}">
+        @csrf
+        <button type="submit" class="rv-act rv-act-danger">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align: -1px; margin-right: 3px;"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Delete
+        </button>
       </form>
     @endif
   </div>

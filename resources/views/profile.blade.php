@@ -212,7 +212,8 @@
       $counts = ['upcoming' => 0, 'pending' => 0, 'past' => 0, 'cancelled' => 0];
       foreach ($bookings as $b) { $counts[$bucketOf($b)]++; }
 
-      $completedCount = $bookings->where('status', \App\Models\Booking::STATUS_COMPLETED)->count();
+      // From the controller: all-time completed bookings (deleted ones too).
+      $completedCount = $completedCount ?? $bookings->where('status', \App\Models\Booking::STATUS_COMPLETED)->count();
       $accountTier = $completedCount >= 2 ? 'Loyal Client' : ($completedCount === 1 ? 'Member' : 'New Member');
       $balance = $bookings->reject(fn ($b) => $b->isCancelledOrRejected())->sum(fn ($b) => max(0, $b->remainingBalance()));
       $initials = collect(preg_split('/\s+/', trim($user->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
@@ -398,7 +399,7 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
     </div>
     <h3 id="cancelModalTitle">Cancel this booking?</h3>
-    <p>This can't be undone. The date will be released and you'll need<br class="rv-br"> to make a new reservation to book it again.</p>
+    <p id="cancelModalText">This can't be undone. The date will be released and you'll need<br class="rv-br"> to make a new reservation to book it again.</p>
     <div class="rv-modal-booking">
       <img id="cancelModalImage" src="" alt="" class="rv-modal-thumb">
       <div class="rv-modal-info">
@@ -514,17 +515,36 @@
     const keepBtn = document.getElementById('cancelModalKeep');
     let pendingForm = null;
 
+    // The same dialog confirms both actions; each has its own wording.
+    const kinds = {
+      cancel: {
+        title: 'Cancel this booking?',
+        text: 'This can\'t be undone. The date will be released and you\'ll need to make a new reservation to book it again.',
+        confirm: 'Yes, Cancel Booking',
+        busy: 'Cancelling...',
+      },
+      delete: {
+        title: 'Delete this booking?',
+        text: 'It will be removed from your reservations and can\'t be brought back.',
+        confirm: 'Yes, Delete',
+        busy: 'Deleting...',
+      },
+    };
+
     function close() {
       modal.hidden = true;
       pendingForm = null;
     }
 
-    document.querySelectorAll('.rv-cancel-form').forEach(function (form) {
+    document.querySelectorAll('.rv-cancel-form, .rv-delete-form').forEach(function (form) {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         pendingForm = form;
+        const kind = kinds[form.dataset.kind] || kinds.cancel;
+        document.getElementById('cancelModalTitle').textContent = kind.title;
+        document.getElementById('cancelModalText').textContent = kind.text;
         confirmBtn.disabled = false;
-        confirmBtn.textContent = 'Yes, Cancel Booking';
+        confirmBtn.textContent = kind.confirm;
         document.getElementById('cancelModalLabel').textContent = form.dataset.label;
         document.getElementById('cancelModalRef').textContent = form.dataset.ref;
         document.getElementById('cancelModalDate').textContent = form.dataset.date;
@@ -540,7 +560,7 @@
     confirmBtn.addEventListener('click', function () {
       if (!pendingForm) return;
       confirmBtn.disabled = true;
-      confirmBtn.textContent = 'Cancelling...';
+      confirmBtn.textContent = (kinds[pendingForm.dataset.kind] || kinds.cancel).busy;
       pendingForm.submit(); // form.submit() skips the submit listener above
     });
     keepBtn.addEventListener('click', close);

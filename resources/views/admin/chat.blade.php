@@ -8,6 +8,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
+  <style>
+    /* Conversations with messages the admin hasn't read yet */
+    .chat-unread-dot { display: none; width: 9px; height: 9px; border-radius: 50%; background: #e74c3c; flex-shrink: 0; }
+    .chat-item.is-unread { background: #fbf3df; }
+    .chat-item.is-unread .chat-unread-dot { display: inline-block; }
+    .chat-item.is-unread p { color: #2c1a0e !important; font-weight: 600; }
+  </style>
 </head>
 <body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
 
@@ -28,10 +35,13 @@
         </div>
         <div id="conversationList" style="flex: 1; overflow-y: auto;">
           @foreach($conversations as $conv)
-            <div class="chat-item" data-name="{{ $conv->user->name ?? 'Guest' }}" onclick="openChat({{ $conv->id }}, this.dataset.name, this)"
+            @php $isUnread = in_array($conv->id, $unreadIds ?? [], true); @endphp
+            <div class="chat-item {{ $isUnread ? 'is-unread' : '' }}" data-name="{{ $conv->user->name ?? 'Guest' }}" onclick="openChat({{ $conv->id }}, this.dataset.name, this)"
                  style="padding: 16px 24px; border-bottom: 1px solid #e8dcc8; cursor: pointer; transition: background 0.2s;">
               <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
-                <span style="font-size: 15px; font-weight: 600; color: #2c1a0e;">{{ $conv->user->name ?? 'Guest' }}</span>
+                <span style="font-size: 15px; font-weight: 600; color: #2c1a0e; display: flex; align-items: center; gap: 8px;">
+                  <span class="chat-unread-dot" title="New message" aria-label="New message"></span>{{ $conv->user->name ?? 'Guest' }}
+                </span>
                 <span style="font-size: 10px; color: #8a6a40; text-transform: uppercase;">{{ $conv->last_message_at->diffForHumans() }}</span>
               </div>
               <p style="font-size: 13px; color: #8a6a40; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $conv->messages->first()->body ?? 'No messages' }}</p>
@@ -96,6 +106,9 @@
 
     function loadMessages(id) {
       $.get(`{{ route('admin.chat.index') }}/${id}`, function(data) {
+        // Opening a conversation marks it read: clear its dot and update the Chat badge.
+        $(`.chat-item[onclick^="openChat(${id},"]`).removeClass('is-unread');
+        if (typeof data.unread_chats === 'number' && typeof setAdminChatBadge === 'function') setAdminChatBadge(data.unread_chats);
         let html = '';
         data.messages.forEach(msg => {
           const isAdmin = msg.role === 'admin';

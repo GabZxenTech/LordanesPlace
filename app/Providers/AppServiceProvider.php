@@ -87,6 +87,8 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('adminNotifications', $notifications);
             $view->with('adminUnreadCount', $unreadCount);
+            // People whose chat messages the admin hasn't read yet (Chat badge).
+            $view->with('adminUnreadChats', Auth::check() && Auth::user()->role === 'admin' ? \App\Models\Conversation::unreadCountForAdmin() : 0);
         });
     }
 }

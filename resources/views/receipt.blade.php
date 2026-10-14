@@ -159,9 +159,8 @@
             <tr>
                 <td class="label">Time Slot</td>
                 <td class="value">
-                    @if($booking->start_time && $booking->end_time)
-                        {{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }} -
-                        {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}
+                    @if($booking->scheduleLabel())
+                        {{ $booking->scheduleLabel(' - ') }}
                     @else
                         To be finalized
                     @endif

@@ -104,7 +104,7 @@
       <p class="text-[18px] font-bold text-gold-deep mb-4">₱24,000 <span class="text-[12px] font-normal text-warm-black/50">Weekend</span></p>
       <ul class="space-y-1.5 mb-4">
         <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Max 30 pax</li>
-        <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> 3 Aircon Rooms</li>
+        <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Kitchen Access</li>
         <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> With Videoke</li>
       </ul>
       <p class="text-[12px] text-warm-black/50 mb-5">Extra Guest: ₱300/head</p>
@@ -120,8 +120,8 @@
       <p class="text-[18px] font-bold text-gold-deep mb-4">₱30,000 <span class="text-[12px] font-normal text-warm-black/50">Weekend</span></p>
       <ul class="space-y-1.5 mb-4">
         <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Max 30 pax</li>
-        <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> 3 Aircon Rooms</li>
         <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Kitchen Access</li>
+        <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> With Videoke</li>
       </ul>
       <p class="text-[12px] text-warm-black/50 mb-5">Extra Guest: ₱300/head</p>
       <button onclick="window.location.href='{{ route('booking', ['package' => '22 Hours Overnight']) }}'" class="w-full bg-gold-deep text-white py-3 rounded font-bold text-[15px] tracking-wide border-none cursor-pointer transition-all duration-300 hover:bg-gold-mid">RESERVE</button>
@@ -215,10 +215,12 @@
       </div>
       <div class="p-5 md:p-6">
         <h4 class="text-[16px] md:text-[18px] font-bold text-warm-black mb-2">Standard Room</h4>
-        <p class="text-[15px] text-warm-black/90 font-normal leading-[1.6] mb-3">Comfortable air-conditioned room good for up to 4 guests.</p>
+        <ul class="space-y-1.5 mb-3">
+          <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Air-conditioned room</li>
+          <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Max 4 pax</li>
+        </ul>
         <p class="text-[18px] font-bold text-gold-deep mb-3">₱4,500 <span class="text-[12px] font-normal text-warm-black/50">/ solo rate</span></p>
-        <div class="flex justify-between items-center">
-          <span class="text-[15px] text-warm-black/60"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Good for 4 pax</span>
+        <div class="flex justify-end items-center">
           <button onclick="window.location.href='{{ route('booking', ['package' => 'Standard Room']) }}'" class="bg-gold-deep text-white px-4 py-2 rounded text-[12px] font-bold tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid">BOOK NOW</button>
         </div>
       </div>
@@ -232,10 +234,12 @@
       </div>
       <div class="p-5 md:p-6">
         <h4 class="text-[16px] md:text-[18px] font-bold text-warm-black mb-2">Family Room</h4>
-        <p class="text-[15px] text-warm-black/90 font-normal leading-[1.6] mb-3">Spacious air-conditioned room perfect for families or small groups.</p>
+        <ul class="space-y-1.5 mb-3">
+          <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Spacious air-conditioned room</li>
+          <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Max 7 pax</li>
+        </ul>
         <p class="text-[18px] font-bold text-gold-deep mb-3">₱8,500 <span class="text-[12px] font-normal text-warm-black/50">/ solo rate</span></p>
-        <div class="flex justify-between items-center">
-          <span class="text-[15px] text-warm-black/60"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Good for 7 pax</span>
+        <div class="flex justify-end items-center">
           <button onclick="window.location.href='{{ route('booking', ['package' => 'Family Room']) }}'" class="bg-gold-deep text-white px-4 py-2 rounded text-[12px] font-bold tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid">BOOK NOW</button>
         </div>
       </div>
@@ -249,10 +253,12 @@
       </div>
       <div class="p-5 md:p-6">
         <h4 class="text-[16px] md:text-[18px] font-bold text-warm-black mb-2">Dormitory Room</h4>
-        <p class="text-[15px] text-warm-black/90 font-normal leading-[1.6] mb-3">Large air-conditioned dormitory ideal for big groups and sleepovers.</p>
+        <ul class="space-y-1.5 mb-3">
+          <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Large air-conditioned dormitory</li>
+          <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Max 15 pax</li>
+        </ul>
         <p class="text-[18px] font-bold text-gold-deep mb-3">₱11,500 <span class="text-[12px] font-normal text-warm-black/50">/ solo rate</span></p>
-        <div class="flex justify-between items-center">
-          <span class="text-[15px] text-warm-black/60"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Good for 15 pax</span>
+        <div class="flex justify-end items-center">
           <button onclick="window.location.href='{{ route('booking', ['package' => 'Dormitory Room']) }}'" class="bg-gold-deep text-white px-4 py-2 rounded text-[12px] font-bold tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid">BOOK NOW</button>
         </div>
       </div>
@@ -268,10 +274,13 @@
       </div>
       <div class="p-6 md:p-8 flex flex-col justify-center">
         <h4 class="text-[18px] md:text-[22px] font-bold text-warm-black mb-2">Venue Hall / Pavilion</h4>
-        <p class="text-[15px] md:text-[16px] text-warm-black/90 font-normal leading-[1.6] mb-4">Grand event hall with 2 preparation rooms — perfect for parties, reunions, and special events.</p>
+        <ul class="space-y-1.5 mb-4">
+          <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Grand event hall</li>
+          <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> 2 Preparation Rooms</li>
+          <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Max 220 pax</li>
+        </ul>
         <p class="text-[22px] font-bold text-gold-deep mb-4">₱35,000</p>
-        <div class="flex justify-between items-center">
-          <span class="text-[15px] text-warm-black/60"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Good for up to 220 pax</span>
+        <div class="flex justify-end items-center">
           <button onclick="window.location.href='{{ route('booking', ['package' => 'Venue Hall']) }}'" class="bg-gold-deep text-white px-6 py-2.5 rounded text-[15px] font-bold tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid">BOOK NOW</button>
         </div>
       </div>

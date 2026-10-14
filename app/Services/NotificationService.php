@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Booking;
 use App\Models\Notification;
 use App\Models\User;
+use App\Models\VisitSchedule;
 
 class NotificationService
 {
@@ -151,6 +152,41 @@ class NotificationService
             'reschedule_requested',
             'Reschedule Requested',
             "{$booking->user->name} requested to reschedule their booking currently set for {$booking->event_date->format('F d, Y')}."
+        );
+    }
+
+    /**
+     * Venue-visit updates from the admin (Confirm / Reschedule / Complete).
+     * Bookings made together share one visit time, so callers send this once
+     * per visit group, linked to its first booking.
+     */
+    public static function visitConfirmed(VisitSchedule $visit): void
+    {
+        self::toCustomer(
+            $visit->booking,
+            'visit_confirmed',
+            'Venue Visit Confirmed',
+            "Your venue visit on {$visit->visit_date->format('F d, Y \a\t h:i A')} is confirmed. See you there!"
+        );
+    }
+
+    public static function visitRescheduled(VisitSchedule $visit): void
+    {
+        self::toCustomer(
+            $visit->booking,
+            'visit_rescheduled',
+            'Venue Visit Rescheduled',
+            "Your venue visit was moved to {$visit->visit_date->format('F d, Y \a\t h:i A')}."
+        );
+    }
+
+    public static function visitCompleted(VisitSchedule $visit): void
+    {
+        self::toCustomer(
+            $visit->booking,
+            'visit_completed',
+            'Venue Visit Completed',
+            "Thank you for visiting LorDane's Place! Your venue visit on {$visit->visit_date->format('F d, Y')} has been marked as completed."
         );
     }
 }

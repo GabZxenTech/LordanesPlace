@@ -56,6 +56,8 @@ class NotificationController extends Controller
 
         return response()->json([
             'unread_count' => $unreadCount,
+            // People whose chat messages the admin hasn't read (Chat badge).
+            'unread_chats' => \App\Models\Conversation::unreadCountForAdmin(),
             'ids' => $notifications->pluck('id'),
             'html' => $notifications
                 ->map(fn ($notif) => view('partials._admin-notif-item', compact('notif'))->render())

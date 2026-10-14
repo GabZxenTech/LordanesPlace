@@ -72,7 +72,8 @@ class ChatController extends Controller
             'body' => $request->message,
         ]);
 
-        Conversation::find($request->conversation_id)->update(['last_message_at' => now()]);
+        // Replying means the admin has read the conversation.
+        Conversation::find($request->conversation_id)->forceFill(['last_message_at' => now(), 'admin_read_at' => now()])->save();
 
         return response()->json(['success' => true, 'message' => $message]);
     }
@@ -112,7 +113,10 @@ class ChatController extends Controller
             $q->latest()->limit(1);
         }])->orderBy('last_message_at', 'desc')->get();
 
-        return view('admin.chat', compact('conversations'));
+        // Which conversations have messages the admin hasn't read yet.
+        $unreadIds = Conversation::unreadForAdmin()->pluck('id')->all();
+
+        return view('admin.chat', compact('conversations', 'unreadIds'));
     }
 
     public function adminConversationsJson()
@@ -129,8 +133,14 @@ class ChatController extends Controller
      */
     public function adminOpenChat($id)
     {
-        $messages = Message::where('conversation_id', $id)->get();
-        return response()->json(['messages' => $messages]);
+        $conversation = Conversation::findOrFail($id);
+
+        // Opening (and the 5-second refresh while it stays open) counts as
+        // read, which clears it from the unread badge.
+        $conversation->markReadByAdmin();
+
+        $messages = Message::where('conversation_id', $conversation->id)->get();
+        return response()->json(['messages' => $messages, 'unread_chats' => Conversation::unreadCountForAdmin()]);
     }
 
     /**
