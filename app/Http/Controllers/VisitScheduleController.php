@@ -91,7 +91,9 @@ class VisitScheduleController extends Controller
     // Client view of their own schedules
     public function index()
     {
-        $visits = VisitSchedule::where('user_id', Auth::id())
+        // "Remove" in the admin panel only hides a visit from the admin list.
+        $visits = VisitSchedule::withTrashed()
+            ->where('user_id', Auth::id())
             ->with('booking')
             ->orderBy('visit_date', 'asc')
             ->get();

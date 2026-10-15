@@ -58,17 +58,17 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-        // Dropdowns intentionally load ONLY unread notifications (latest 5) so the
-        // bell never accumulates already-read history. Full history lives on the
+        // Dropdowns show the latest notifications, read and unread (unread ones
+        // are bold); the badge counts unread only. Full history lives on the
         // dedicated "View All Notifications" page.
         View::composer('partials._navbar', function ($view) {
             $notifications = collect();
             $unreadCount = 0;
 
             if (Auth::check()) {
-                $unread = Notification::forRecipient('customer', Auth::id())->unread();
-                $unreadCount = (clone $unread)->count();
-                $notifications = $unread->latest()->limit(5)->get();
+                $unreadCount = Notification::forRecipient('customer', Auth::id())->unread()->count();
+                $notifications = Notification::forRecipient('customer', Auth::id())
+                    ->latest()->limit(Notification::DROPDOWN_LIMIT)->get();
             }
 
             $view->with('navNotifications', $notifications);
@@ -80,9 +80,9 @@ class AppServiceProvider extends ServiceProvider
             $unreadCount = 0;
 
             if (Auth::check() && Auth::user()->role === 'admin') {
-                $unread = Notification::forRecipient('admin', Auth::id())->unread();
-                $unreadCount = (clone $unread)->count();
-                $notifications = $unread->latest()->limit(5)->get();
+                $unreadCount = Notification::forRecipient('admin', Auth::id())->unread()->count();
+                $notifications = Notification::forRecipient('admin', Auth::id())
+                    ->latest()->limit(Notification::DROPDOWN_LIMIT)->get();
             }
 
             $view->with('adminNotifications', $notifications);

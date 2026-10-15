@@ -335,6 +335,10 @@ class BlockedDateController extends Controller
         if ($booking->requested_visit_date) {
             $visit = $booking->visitSchedules->first();
             if ($visit) {
+                // A visit the admin removed from the list is active again.
+                if ($visit->trashed()) {
+                    $visit->restore();
+                }
                 $visit->update([
                     'visit_date' => $booking->requested_visit_date,
                     'status'     => 'rescheduled',

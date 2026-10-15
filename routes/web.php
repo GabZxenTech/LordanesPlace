@@ -167,6 +167,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/chat/{id}', [App\Http\Controllers\ChatController::class, 'adminOpenChat'])->name('chat.open');
     Route::post('/chat/reply', [App\Http\Controllers\ChatController::class, 'adminReply'])->name('chat.reply');
     Route::post('/chat/toggle-status', [App\Http\Controllers\ChatController::class, 'toggleStatus'])->name('chat.toggle-status');
+    Route::post('/chat/delete', [App\Http\Controllers\ChatController::class, 'adminDeleteConversations'])->name('chat.delete');
 
     // Reports
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -178,4 +179,5 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 // Open to guests, so throttled per user/IP to stop message flooding.
 Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'send'])->middleware('throttle:20,1')->name('chat.send');
 Route::get('/chat/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
+Route::get('/chat/unread', [App\Http\Controllers\ChatController::class, 'unread'])->name('chat.unread');
 Route::get('/chat/admin-status', [App\Http\Controllers\ChatController::class, 'getAdminStatus'])->name('chat.admin-status');

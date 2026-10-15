@@ -1,4 +1,20 @@
 <!-- HEADER / NAVBAR -->
+<style>
+  /* Bell dropdown: unread notifications are bold (like unread chats); read ones stay listed. */
+  .nav-notif-item.is-unread { background: rgba(184,134,11,0.10); }
+  .nav-notif-title { font-weight: 500; }
+  .nav-notif-item.is-unread .nav-notif-title { font-weight: 700; }
+  .nav-notif-item.is-unread .nav-notif-msg { color: #1A1208; font-weight: 600; }
+  .nav-notif-dot { display: none; width: 7px; height: 7px; border-radius: 50%; background: #ef4444; margin-right: 6px; vertical-align: 1px; }
+  .nav-notif-item.is-unread .nav-notif-dot { display: inline-block; }
+  .nav-notif-acts { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+  .nav-notif-btn { width: 24px; height: 24px; padding: 0; border-radius: 50%; border: 1px solid rgba(184,134,11,0.3); background: transparent; color: #B8860B; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s; }
+  .nav-notif-btn:hover { background: #B8860B; color: #fff; }
+  .nav-notif-read { display: none; }
+  .nav-notif-item.is-unread .nav-notif-read { display: flex; }
+  .nav-notif-del { color: #b03a2e; border-color: rgba(176,58,46,0.3); }
+  .nav-notif-del:hover { background: #b03a2e; color: #fff; }
+</style>
 <header class="sticky top-0 z-[100] border-b border-gold-deep/20 shadow-sm bg-cream">
   <div class="flex justify-between items-center px-[5%] lg:px-[8%] py-[12px] md:py-[14px] gap-5">
     <!-- Logo -->
@@ -50,7 +66,7 @@
                 @include('partials._nav-notif-item', ['notif' => $notif])
               @endforeach
             </div>
-            <p id="navNotifEmpty" class="px-4 py-6 text-center text-[13px] text-warm-black/50 m-0" style="{{ $navUnreadCount > 0 ? 'display: none;' : '' }}">No new notifications.</p>
+            <p id="navNotifEmpty" class="px-4 py-6 text-center text-[13px] text-warm-black/50 m-0" style="{{ $navNotifications->isNotEmpty() ? 'display: none;' : '' }}">No notifications yet.</p>
             <a href="{{ route('notifications.index') }}" class="block text-center px-4 py-3 text-[12px] font-bold text-gold-deep uppercase tracking-wide no-underline hover:bg-gold-deep/5 border-t border-gold-deep/10">View All Notifications</a>
           </div>
         </div>
@@ -207,11 +223,11 @@
     if (empty) empty.style.display = remaining === 0 ? '' : 'none';
   }
 
-  function navNotifPost(path, onDone) {
+  function navNotifPost(path, onDone, method) {
     const menu = document.getElementById('navNotifMenu');
     if (!menu) return;
     fetch(menu.dataset.notifBase + path, {
-      method: 'POST',
+      method: method || 'POST',
       headers: {
         'X-CSRF-TOKEN': menu.dataset.csrf,
         'Accept': 'application/json',
@@ -228,19 +244,34 @@
     e.stopPropagation();
     navNotifPost('/' + id + '/read', function (unreadCount) {
       const item = document.querySelector('#navNotifList .nav-notif-item[data-notif-id="' + id + '"]');
-      if (item) item.remove();
+      if (item) navNotifSetRead(item);
       navNotifRefreshUi(unreadCount);
     });
+  }
+
+  // Read notifications stay in the list; they just stop being bold.
+  function navNotifSetRead(item) {
+    item.classList.remove('is-unread');
+    item.dataset.sig = item.dataset.notifId + 'r';
   }
 
   function markAllNavNotifsRead(e) {
     e.preventDefault();
     e.stopPropagation();
     navNotifPost('/read-all', function (unreadCount) {
-      const list = document.getElementById('navNotifList');
-      if (list) list.innerHTML = '';
+      document.querySelectorAll('#navNotifList .nav-notif-item').forEach(navNotifSetRead);
       navNotifRefreshUi(unreadCount);
     });
+  }
+
+  function deleteNavNotif(e, id) {
+    e.preventDefault();
+    e.stopPropagation();
+    navNotifPost('/' + id, function (unreadCount) {
+      const item = document.querySelector('#navNotifList .nav-notif-item[data-notif-id="' + id + '"]');
+      if (item) item.remove();
+      navNotifRefreshUi(unreadCount);
+    }, 'DELETE');
   }
 
   // ---- Notification bell: pick up new notifications without a reload ----
@@ -253,7 +284,7 @@
 
     function currentIds() {
       return Array.from(document.querySelectorAll('#navNotifList .nav-notif-item'))
-        .map(function (el) { return el.dataset.notifId; }).join(',');
+        .map(function (el) { return el.dataset.sig; }).join(',');
     }
 
     function poll() {

@@ -398,8 +398,13 @@ class Booking extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Includes visits the admin removed from the Visits list: removing only
+     * hides them there, so the customer still sees "Visit completed" and the
+     * auto-cancel check still counts a completed visit as done.
+     */
     public function visitSchedules()
     {
-        return $this->hasMany(VisitSchedule::class);
+        return $this->hasMany(VisitSchedule::class)->withTrashed();
     }
 }

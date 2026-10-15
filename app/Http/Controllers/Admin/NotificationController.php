@@ -41,7 +41,7 @@ class NotificationController extends Controller
         return view('admin.notifications', compact('notifications', 'filter', 'unreadCount'));
     }
 
-    // Bell polling: unread count + the latest 5 unread, rendered with the same
+    // Bell polling: unread count + the latest notifications (read and unread), rendered with the same
     // partial the sidebar uses on page load (so it's escaped and identical).
     public function poll()
     {
@@ -50,15 +50,14 @@ class NotificationController extends Controller
         // Throttled to once a minute site-wide.
         \App\Services\BookingAutoCancelService::runThrottled();
 
-        $unread = $this->scoped()->unread();
-        $unreadCount = (clone $unread)->count();
-        $notifications = $unread->latest()->limit(5)->get();
+        $unreadCount = $this->scoped()->unread()->count();
+        $notifications = $this->scoped()->latest()->limit(Notification::DROPDOWN_LIMIT)->get();
 
         return response()->json([
             'unread_count' => $unreadCount,
             // People whose chat messages the admin hasn't read (Chat badge).
             'unread_chats' => \App\Models\Conversation::unreadCountForAdmin(),
-            'ids' => $notifications->pluck('id'),
+            'ids' => $notifications->map(fn ($n) => $n->id . ($n->is_read ? 'r' : 'u')),
             'html' => $notifications
                 ->map(fn ($notif) => view('partials._admin-notif-item', compact('notif'))->render())
                 ->implode(''),

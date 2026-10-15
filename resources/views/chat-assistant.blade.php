@@ -199,11 +199,17 @@
 
   .chat-send:hover { background: #F0D060; }
   .d-none { display: none !important; }
+
+  /* Unread admin reply while the chat is closed */
+  .chat-toggle { position: relative; }
+  .chat-unread-dot { position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; border-radius: 50%; background: #e53935; border: 2px solid #fff; display: none; }
+  .chat-toggle.has-unread .chat-unread-dot { display: block; }
 </style>
 
 <!-- CHAT BUBBLE -->
 <div class="chat-bubble">
-  <button class="chat-toggle" onclick="toggleChat()" id="chatToggleBtn">
+  <button class="chat-toggle" onclick="toggleChat()" id="chatToggleBtn" aria-label="Open chat">
+    <span class="chat-unread-dot" aria-hidden="true"></span>
     <svg id="chatIconOpen" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     <svg id="chatIconClose" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
   </button>
@@ -244,7 +250,7 @@
   let lastMessageId = 0;
 
   const quickResponses = {
-    pricing: "Our packages start at ₱5,000 for basic events and ₱15,000 for overnight stays. Contact us for detailed package inclusion!",
+    pricing: "From memorable events and relaxing swimming getaways to comfortable room stays, we have the perfect package for your next special moment!\n\nEnjoy our packages starting at just **₱12,000**!\n\nBook now and <a href='{{ route('discover') }}' style='color: #D4A017;'>explore our packages</a>!",
     booking: "You can book by filling out our booking form here: <a href='/booking' style='color: #D4A017;'>Click Here to Book</a>",
     location: "We are located at Pulong Buhangin, Santa Maria, Bulacan, Philippines. Near the McDonald's Pulong Buhangin.",
     amenities: "We offer: Olympic-size swimming pool, Air-conditioned Function Hall (200 pax), Outdoor Garden, Full Kitchen, and Free Parking."
@@ -252,6 +258,10 @@
 
   function toggleChat() {
     chatOpen = !chatOpen;
+    if (chatOpen) {
+      setChatUnread(false);
+      if (greeted) pollMessages(); // re-opened: fetch (and mark read) right away
+    }
     document.getElementById('chatWindow').classList.toggle('open', chatOpen);
     document.getElementById('chatIconOpen').style.display = chatOpen ? 'none' : '';
     document.getElementById('chatIconClose').style.display = chatOpen ? '' : 'none';
@@ -297,13 +307,24 @@
     }, 500);
   }
 
+  // Ids of messages already on screen. The history load, the 3-second poll
+  // and re-opening the chat can fetch the same new message at the same time;
+  // each one is shown only once.
+  const shownMessageIds = new Set();
+
+  function rememberMessage(msg) {
+    shownMessageIds.add(msg.id);
+    lastMessageId = Math.max(lastMessageId, msg.id);
+  }
+
   function loadHistory() {
     $.get('{{ route("chat.messages") }}', function(res) {
       if (res.messages.length > 0) {
         document.getElementById('chatMessages').innerHTML = ''; // Clear and reload
+        shownMessageIds.clear();
         res.messages.forEach(msg => {
           addMessage(msg.role === 'admin' ? 'bot' : 'user', msg.body);
-          lastMessageId = msg.id;
+          rememberMessage(msg);
         });
       }
     });
@@ -322,7 +343,7 @@
       message: text
     }, function(res) {
       if (res.success) {
-        lastMessageId = res.message.id;
+        rememberMessage(res.message);
       } else {
         console.error("Chat send failed:", res.error);
         alert("Chat Send Error: " + res.error);
@@ -333,17 +354,35 @@
     });
   }
 
-  // Polling for new messages
-  setInterval(() => {
-    if (chatOpen) {
-      $.get('{{ route("chat.messages") }}', { last_id: lastMessageId }, function(res) {
-        res.messages.forEach(msg => {
-          if (msg.role === 'admin') {
-            addMessage('bot', msg.body);
-          }
-          lastMessageId = msg.id;
-        });
+  // Red dot on the bubble when the admin replied and the chat is closed.
+  // Opening the chat loads the messages, which marks them read on the server.
+  function setChatUnread(on) {
+    document.getElementById('chatToggleBtn').classList.toggle('has-unread', !!on);
+  }
+
+  function checkChatUnread() {
+    if (chatOpen || document.hidden) return;
+    $.get('{{ route("chat.unread") }}', function(res) {
+      if (!chatOpen) setChatUnread(res.unread);
+    });
+  }
+
+  checkChatUnread();
+  setInterval(checkChatUnread, 10000);
+
+  // Polling for new messages (also marks them read while the chat is open)
+  function pollMessages() {
+    if (!chatOpen) return;
+    $.get('{{ route("chat.messages") }}', { last_id: lastMessageId }, function(res) {
+      res.messages.forEach(msg => {
+        if (shownMessageIds.has(msg.id)) return;
+        if (msg.role === 'admin') {
+          addMessage('bot', msg.body);
+        }
+        rememberMessage(msg);
       });
-    }
-  }, 3000);
+    });
+  }
+
+  setInterval(pollMessages, 3000);
 </script>

@@ -17,11 +17,13 @@ class Conversation extends Model
         'session_id',
         'last_message_at',
         'admin_read_at',
+        'customer_read_at',
     ];
 
     protected $casts = [
         'last_message_at' => 'datetime',
         'admin_read_at' => 'datetime',
+        'customer_read_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -58,5 +60,19 @@ class Conversation extends Model
     public function markReadByAdmin(): void
     {
         $this->forceFill(['admin_read_at' => now()])->save();
+    }
+
+    /** An admin reply the customer/guest hasn't seen yet (red dot on the chat bubble). */
+    public function hasUnreadForCustomer(): bool
+    {
+        return $this->messages()
+            ->where('role', 'admin')
+            ->when($this->customer_read_at, fn ($q) => $q->where('created_at', '>', $this->customer_read_at))
+            ->exists();
+    }
+
+    public function markReadByCustomer(): void
+    {
+        $this->forceFill(['customer_read_at' => now()])->save();
     }
 }

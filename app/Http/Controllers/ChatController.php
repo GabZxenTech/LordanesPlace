@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ChatController extends Controller
 {
@@ -83,18 +84,15 @@ class ChatController extends Controller
      */
     public function getMessages(Request $request)
     {
-        $userId = Auth::id();
-        $sessionId = session()->getId();
-
-        if ($userId) {
-            $conversation = Conversation::where('user_id', $userId)->first();
-        } else {
-            $conversation = Conversation::where('session_id', $sessionId)->first();
-        }
+        $conversation = $this->currentConversation();
 
         if (!$conversation) {
             return response()->json(['messages' => []]);
         }
+
+        // Only the open chat window asks for messages, so the customer has
+        // now seen the admin's replies (clears the red dot on the bubble).
+        $conversation->markReadByCustomer();
 
         $lastId = $request->query('last_id', 0);
         $messages = Message::where('conversation_id', $conversation->id)
@@ -102,6 +100,25 @@ class ChatController extends Controller
             ->get();
 
         return response()->json(['messages' => $messages]);
+    }
+
+    /**
+     * Whether the admin replied since the customer/guest last opened the
+     * chat; the closed chat bubble polls this to show its red dot.
+     */
+    public function unread()
+    {
+        $conversation = $this->currentConversation();
+
+        return response()->json(['unread' => $conversation ? $conversation->hasUnreadForCustomer() : false]);
+    }
+
+    /** The conversation of the logged-in user, or of this guest's session. */
+    private function currentConversation(): ?Conversation
+    {
+        return Auth::id()
+            ? Conversation::where('user_id', Auth::id())->first()
+            : Conversation::where('session_id', session()->getId())->first();
     }
 
     /**
@@ -141,6 +158,30 @@ class ChatController extends Controller
 
         $messages = Message::where('conversation_id', $conversation->id)->get();
         return response()->json(['messages' => $messages, 'unread_chats' => Conversation::unreadCountForAdmin()]);
+    }
+
+    /**
+     * Admin: permanently delete the selected conversations and all their
+     * messages. The customer's chat history goes with it; if they message
+     * again, a new conversation is started.
+     */
+    public function adminDeleteConversations(Request $request)
+    {
+        $data = $request->validate([
+            'ids'   => 'required|array|min:1|max:500',
+            'ids.*' => 'integer|distinct',
+        ]);
+
+        $deleted = DB::transaction(function () use ($data) {
+            Message::whereIn('conversation_id', $data['ids'])->delete();
+            return Conversation::whereIn('id', $data['ids'])->delete();
+        });
+
+        return response()->json([
+            'success' => true,
+            'deleted' => $deleted,
+            'unread_chats' => Conversation::unreadCountForAdmin(),
+        ]);
     }
 
     /**

@@ -7,6 +7,23 @@
   html.admin-sidebar-collapsed .admin-sidebar-spacer { width: 0 !important; }
   .admin-sidebar-open-btn { display: none; }
   html.admin-sidebar-collapsed .admin-sidebar-open-btn { display: flex; }
+
+  /* Bell dropdown: unread notifications are bold (like unread chats); read ones stay listed. */
+  .admin-notif-item { display: flex; align-items: flex-start; gap: 8px; padding: 12px 18px; border-bottom: 1px solid #e8dcc8; }
+  .admin-notif-item.is-unread { background: rgba(201,168,76,0.12); }
+  .admin-notif-title { font-size: 13px; font-weight: 500; color: #2c1a0e; margin: 0; }
+  .admin-notif-item.is-unread .admin-notif-title { font-weight: 700; }
+  .admin-notif-msg { font-size: 12px; color: #8a6a40; margin: 4px 0 0; white-space: pre-line; }
+  .admin-notif-item.is-unread .admin-notif-msg { color: #2c1a0e; font-weight: 600; }
+  .admin-notif-dot { display: none; width: 7px; height: 7px; border-radius: 50%; background: #e74c3c; margin-right: 6px; vertical-align: 1px; }
+  .admin-notif-item.is-unread .admin-notif-dot { display: inline-block; }
+  .admin-notif-acts { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+  .admin-notif-btn { width: 24px; height: 24px; padding: 0; border-radius: 50%; border: 1px solid #d4c4a0; background: transparent; color: #c9a84c; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s; }
+  .admin-notif-btn:hover { background: #c9a84c; color: #fff; }
+  .admin-notif-read { display: none; }
+  .admin-notif-item.is-unread .admin-notif-read { display: flex; }
+  .admin-notif-del { color: #c0392b; border-color: rgba(192,57,43,0.35); }
+  .admin-notif-del:hover { background: #c0392b; color: #fff; }
 </style>
 <script>
   (function () {
@@ -80,7 +97,7 @@
               @include('partials._admin-notif-item', ['notif' => $notif])
             @endforeach
           </div>
-          <p id="adminNotifEmpty" style="padding: 24px 18px; text-align: center; font-size: 13px; color: #8a6a40; margin: 0; {{ $adminUnreadCount > 0 ? 'display: none;' : '' }}">No new notifications.</p>
+          <p id="adminNotifEmpty" style="padding: 24px 18px; text-align: center; font-size: 13px; color: #8a6a40; margin: 0; {{ $adminNotifications->isNotEmpty() ? 'display: none;' : '' }}">No notifications yet.</p>
           <a href="{{ route('admin.notifications.index') }}" style="display: block; text-align: center; padding: 12px 18px; font-size: 12px; font-weight: 700; color: #c9a84c; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; border-top: 1px solid #e8dcc8;">View All Notifications</a>
         </div>
       </div>
@@ -192,11 +209,11 @@
     if (empty) empty.style.display = remaining === 0 ? '' : 'none';
   }
 
-  function adminNotifPost(path, onDone) {
+  function adminNotifPost(path, onDone, method) {
     const panel = document.getElementById('adminNotifPanel');
     if (!panel) return;
     fetch(panel.dataset.notifBase + path, {
-      method: 'POST',
+      method: method || 'POST',
       headers: {
         'X-CSRF-TOKEN': panel.dataset.csrf,
         'Accept': 'application/json',
@@ -213,19 +230,34 @@
     e.stopPropagation();
     adminNotifPost('/' + id + '/read', function (unreadCount) {
       const item = document.querySelector('#adminNotifList .admin-notif-item[data-notif-id="' + id + '"]');
-      if (item) item.remove();
+      if (item) adminNotifSetRead(item);
       adminNotifRefreshUi(unreadCount);
     });
+  }
+
+  // Read notifications stay in the list; they just stop being bold.
+  function adminNotifSetRead(item) {
+    item.classList.remove('is-unread');
+    item.dataset.sig = item.dataset.notifId + 'r';
   }
 
   function markAllAdminNotifsRead(e) {
     e.preventDefault();
     e.stopPropagation();
     adminNotifPost('/read-all', function (unreadCount) {
-      const list = document.getElementById('adminNotifList');
-      if (list) list.innerHTML = '';
+      document.querySelectorAll('#adminNotifList .admin-notif-item').forEach(adminNotifSetRead);
       adminNotifRefreshUi(unreadCount);
     });
+  }
+
+  function deleteAdminNotif(e, id) {
+    e.preventDefault();
+    e.stopPropagation();
+    adminNotifPost('/' + id, function (unreadCount) {
+      const item = document.querySelector('#adminNotifList .admin-notif-item[data-notif-id="' + id + '"]');
+      if (item) item.remove();
+      adminNotifRefreshUi(unreadCount);
+    }, 'DELETE');
   }
 
   // ---- Pick up new notifications without a reload ----
@@ -237,7 +269,7 @@
 
     function currentIds() {
       return Array.from(document.querySelectorAll('#adminNotifList .admin-notif-item'))
-        .map(function (el) { return el.dataset.notifId; }).join(',');
+        .map(function (el) { return el.dataset.sig; }).join(',');
     }
 
     function poll() {

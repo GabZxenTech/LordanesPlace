@@ -73,13 +73,15 @@ class VisitSchedule extends Model
 
     /**
      * A visit can be removed from the list once it no longer matters for an
-     * active reservation: its booking is completed/cancelled/rejected, or the
-     * event date has passed. Removing an open visit of an upcoming booking
-     * would silently drop its required visit, so that isn't allowed.
+     * active reservation: the visit itself is completed, its booking is
+     * completed/cancelled/rejected, or the event date has passed. Removing an
+     * open visit of an upcoming booking would silently drop its required
+     * visit, so that isn't allowed.
      */
     public function canRemove(): bool
     {
-        return $this->bookingIsClosed()
+        return $this->status === self::STATUS_COMPLETED
+            || $this->bookingIsClosed()
             || ($this->booking && $this->booking->event_date->lt(now()->startOfDay()));
     }
 
