@@ -182,23 +182,67 @@ class BlockedDateController extends Controller
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'note'   => 'nullable|string|max:255',
+            // Optional change to the booking price made while recording the
+            // payment (+ extra charges, − discount).
+            'price_adjustment'  => 'nullable|numeric|between:-10000000,10000000',
+            'adjustment_reason' => 'nullable|string|max:120',
         ]);
 
-        if ($booking->remainingBalance() <= 0) {
+        $adjustment = round((float) $request->input('price_adjustment', 0), 2);
+        $newTotal = round((float) $booking->total_amount + $adjustment, 2);
+
+        if ($adjustment != 0 && $newTotal < $booking->amountPaid()) {
+            return back()->withErrors(['price_adjustment' => 'The adjusted price (₱' . number_format($newTotal, 2) . ') can\'t be lower than what has already been paid (₱' . number_format($booking->amountPaid(), 2) . ').']);
+        }
+
+        $remaining = round($newTotal - $booking->amountPaid(), 2);
+
+        if ($remaining <= 0) {
             return back()->withErrors(['amount' => 'This booking is already fully paid — there is no remaining balance to confirm.']);
         }
 
-        if ((float) $request->amount > $booking->remainingBalance() + 0.01) {
-            return back()->withErrors(['amount' => 'That amount exceeds the remaining balance of ₱' . number_format($booking->remainingBalance(), 2) . '.']);
+        if ((float) $request->amount > $remaining + 0.01) {
+            return back()->withErrors(['amount' => 'That amount exceeds the remaining balance of ₱' . number_format($remaining, 2) . '.']);
         }
 
-        $payment = PaymentService::recordPayment($booking, (float) $request->amount, $request->note);
+        // The adjustment is written on the payment note so the ledger shows why the price changed.
+        $note = $request->note;
+        if ($adjustment != 0) {
+            $label = 'Price adjustment ' . ($adjustment > 0 ? '+' : '−') . '₱' . number_format(abs($adjustment), 2)
+                . ($request->filled('adjustment_reason') ? ' (' . $request->adjustment_reason . ')' : '');
+            $note = mb_substr(trim($label . ($note ? ' · ' . $note : '')), 0, 255);
+        }
 
-        if (!$payment) {
+        // New price and payment are saved together: if the payment can't be
+        // recorded, the price change is rolled back too.
+        try {
+            $payment = \Illuminate\Support\Facades\DB::transaction(function () use ($booking, $adjustment, $newTotal, $request, $note) {
+                if ($adjustment != 0) {
+                    $booking->update([
+                        'total_amount' => $newTotal,
+                        'down_payment_amount' => Booking::calculateDownPayment($newTotal),
+                    ]);
+                }
+
+                $payment = PaymentService::recordPayment($booking, (float) $request->amount, $note);
+
+                if (!$payment) {
+                    throw new \RuntimeException('payment not recorded');
+                }
+
+                return $payment;
+            }, 1);
+        } catch (\RuntimeException $e) {
+            $booking->refresh();
             return back()->withErrors(['amount' => 'Payment could not be recorded.']);
         }
 
-        return back()->with('success', 'Payment of ₱' . number_format($payment->amount, 2) . ' confirmed for ' . $booking->user->name . '.');
+        $message = 'Payment of ₱' . number_format($payment->amount, 2) . ' confirmed for ' . $booking->user->name . '.';
+        if ($adjustment != 0) {
+            $message .= ' New total price: ₱' . number_format($newTotal, 2) . '.';
+        }
+
+        return back()->with('success', $message);
     }
 
     // Update booking details

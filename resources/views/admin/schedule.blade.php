@@ -285,6 +285,7 @@
                               data-id="{{ $booking->id }}"
                               data-remaining="{{ $booking->remainingBalance() }}"
                               data-total="{{ $booking->total_amount }}"
+                              data-paid="{{ $booking->amountPaid() }}"
                               data-downpayment="{{ $dp25 }}"
                               data-name="{{ addslashes($booking->user->name) }}">
                               {{ $booking->hasConfirmedPayment() ? 'Record Additional Payment' : 'Record Payment' }}
@@ -402,10 +403,27 @@
             <div id="pm_after_dp" style="font-size: 16px; color: #2c1a0e; font-weight: 700;">₱0.00</div>
           </div>
         </div>
+        <div id="pm_adjust_note" style="display: none; font-size: 11px; color: #8a6a40; margin-top: 10px;"></div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed #d4c4a0; margin-top: 12px; padding-top: 10px;">
+          <span style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Remaining after this payment</span>
+          <span id="pm_after_payment" style="font-size: 16px; color: #2c1a0e; font-weight: 700;">₱0.00</span>
+        </div>
       </div>
 
       <form method="POST" action="" id="paymentForm">
         @csrf
+
+        {{-- Price adjustment (optional): extra charges or a discount --}}
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Price Adjustment (₱) <span style="font-weight: 400;">(optional)</span></label>
+          <div style="display: flex; gap: 8px;">
+            <input type="number" name="price_adjustment" id="pm_adjustment" step="0.01" placeholder="e.g. 2000 or -1000" oninput="refreshPaymentBreakdown(true)"
+              style="flex: 1; min-width: 0; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
+            <input type="text" name="adjustment_reason" id="pm_adjustment_reason" maxlength="120" placeholder="Reason (e.g. extra 10 pax)"
+              style="flex: 1.3; min-width: 0; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
+          </div>
+          <p style="font-size: 11px; color: #8a6a40; margin: 6px 0 0;">Positive adds to the price, negative is a discount. The new price is saved with this payment.</p>
+        </div>
 
         {{-- Payment Type Selector --}}
         <div style="margin-bottom: 16px;">
@@ -422,7 +440,7 @@
         {{-- Amount Field --}}
         <div style="margin-bottom: 16px;">
           <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Amount Actually Received (₱)</label>
-          <input type="number" name="amount" id="payment_amount" required min="0.01" step="0.01"
+          <input type="number" name="amount" id="payment_amount" required min="0.01" step="0.01" oninput="refreshPaymentBreakdown(false)"
             style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;"
             onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='#d4c4a0'" />
           <p id="pm_amount_hint" style="font-size: 11px; color: #8a6a40; margin: 6px 0 0;">Pre-filled with the 25% downpayment — adjust if needed.</p>
@@ -614,61 +632,95 @@
 
     document.querySelectorAll('.record-payment-btn').forEach(btn => {
       btn.addEventListener('click', function() {
-        const id          = this.getAttribute('data-id');
-        const remaining   = parseFloat(this.getAttribute('data-remaining'))   || 0;
-        const total       = parseFloat(this.getAttribute('data-total'))       || 0;
-        const downpayment = parseFloat(this.getAttribute('data-downpayment')) || 0;
-        const name        = this.getAttribute('data-name');
-        openPaymentModal(id, remaining, name, total, downpayment);
+        openPaymentModal(
+          this.getAttribute('data-id'),
+          this.getAttribute('data-name'),
+          parseFloat(this.getAttribute('data-total')) || 0,
+          parseFloat(this.getAttribute('data-paid'))  || 0
+        );
       });
     });
 
-    function openPaymentModal(id, remaining, name, total, downpayment) {
-      const fmt = n => '₱' + parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const pmFmt = n => (n < 0 ? '−' : '') + '₱' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const pmRound = n => Math.round(n * 100) / 100;
+    const DOWN_PAYMENT_RATE = {{ \App\Models\Booking::DOWN_PAYMENT_RATE }};
 
+    function openPaymentModal(id, name, total, paid) {
       document.getElementById('paymentForm').action = bookingBaseUrl + '/' + id + '/record-payment';
       document.getElementById('payment_customer_name').textContent = 'Customer: ' + name;
 
-      // Populate breakdown banner
-      document.getElementById('pm_total').textContent       = fmt(total);
-      document.getElementById('pm_remaining').textContent   = fmt(remaining);
-      document.getElementById('pm_downpayment').textContent = fmt(downpayment);
-      document.getElementById('pm_after_dp').textContent    = fmt(Math.max(0, total - downpayment));
-
-      // Store values on the modal for the type-change handler
+      // Base values; the banner is recomputed from these as the admin types.
       const modal = document.getElementById('paymentModal');
-      modal.dataset.remaining   = remaining;
-      modal.dataset.downpayment = downpayment;
+      modal.dataset.total = total;
+      modal.dataset.paid  = paid;
 
-      // Default to 25% downpayment type
+      document.getElementById('pm_adjustment').value = '';
+      document.getElementById('pm_adjustment_reason').value = '';
       document.getElementById('pm_type').value = 'downpayment';
-      document.getElementById('payment_amount').value = parseFloat(downpayment).toFixed(2);
-      document.getElementById('payment_amount').max   = parseFloat(remaining).toFixed(2);
-      document.getElementById('payment_amount').readOnly = false;
-      document.getElementById('pm_amount_hint').textContent = 'Pre-filled with the 25% downpayment — adjust if needed.';
       document.getElementById('payment_note').value = '';
+      onPaymentTypeChange();
 
-      document.getElementById('paymentModal').classList.add('open');
+      modal.classList.add('open');
+    }
+
+    // Current numbers, including the price adjustment being typed.
+    function paymentFigures() {
+      const modal = document.getElementById('paymentModal');
+      const adj   = parseFloat(document.getElementById('pm_adjustment').value) || 0;
+      const total = pmRound((parseFloat(modal.dataset.total) || 0) + adj);
+      const paid  = parseFloat(modal.dataset.paid) || 0;
+      const dp    = pmRound(total * DOWN_PAYMENT_RATE);
+      return { adj, total, paid, dp, remaining: pmRound(total - paid) };
+    }
+
+    // Live update of the banner. When the price changes, the pre-filled
+    // amount follows it (unless the admin is typing a partial amount).
+    function refreshPaymentBreakdown(priceChanged) {
+      const f = paymentFigures();
+      const type = document.getElementById('pm_type').value;
+      const amtInput = document.getElementById('payment_amount');
+
+      if (priceChanged && type === 'full') amtInput.value = Math.max(0, f.remaining).toFixed(2);
+      if (priceChanged && type === 'downpayment') amtInput.value = Math.max(0, Math.min(f.dp, f.remaining)).toFixed(2);
+
+      document.getElementById('pm_total').textContent       = pmFmt(f.total);
+      document.getElementById('pm_remaining').textContent   = pmFmt(f.remaining);
+      document.getElementById('pm_downpayment').textContent = pmFmt(f.dp);
+      document.getElementById('pm_after_dp').textContent    = pmFmt(Math.max(0, f.total - f.dp));
+
+      const adjNote = document.getElementById('pm_adjust_note');
+      if (f.adj) {
+        adjNote.style.display = 'block';
+        adjNote.textContent = 'Price ' + (f.adj > 0 ? 'increased' : 'decreased') + ' by ' + pmFmt(Math.abs(f.adj)) + ' (was ' + pmFmt(parseFloat(document.getElementById('paymentModal').dataset.total) || 0) + ')';
+      } else {
+        adjNote.style.display = 'none';
+      }
+
+      const amount = parseFloat(amtInput.value) || 0;
+      const after = pmRound(f.remaining - amount);
+      const afterEl = document.getElementById('pm_after_payment');
+      afterEl.textContent = after < 0 ? 'Over by ' + pmFmt(-after) : pmFmt(after);
+      afterEl.style.color = after < 0 ? '#c0392b' : (after === 0 ? '#28a745' : '#2c1a0e');
+
+      // Browser-side guard; the server checks the same thing.
+      amtInput.max = Math.max(0, f.remaining).toFixed(2);
+      amtInput.setCustomValidity(after < 0 ? 'The amount is more than the remaining balance of ' + pmFmt(f.remaining) + '.' : '');
+      document.getElementById('pm_adjustment').setCustomValidity(f.remaining <= 0 && f.adj ? 'The adjusted price can\'t be lower than what has already been paid.' : '');
     }
 
     function onPaymentTypeChange() {
-      const modal      = document.getElementById('paymentModal');
-      const remaining  = parseFloat(modal.dataset.remaining)  || 0;
-      const downpay    = parseFloat(modal.dataset.downpayment) || 0;
-      const type       = document.getElementById('pm_type').value;
-      const amtInput   = document.getElementById('payment_amount');
-      const hint       = document.getElementById('pm_amount_hint');
-
-      amtInput.max = remaining.toFixed(2);
+      const f        = paymentFigures();
+      const type     = document.getElementById('pm_type').value;
+      const amtInput = document.getElementById('payment_amount');
+      const hint     = document.getElementById('pm_amount_hint');
 
       if (type === 'full') {
-        amtInput.value    = remaining.toFixed(2);
+        amtInput.value    = Math.max(0, f.remaining).toFixed(2);
         amtInput.readOnly = true;
         amtInput.style.opacity = '0.7';
         hint.textContent  = 'Full remaining balance will be recorded as paid.';
       } else if (type === 'downpayment') {
-        const dp = Math.min(downpay, remaining);
-        amtInput.value    = dp.toFixed(2);
+        amtInput.value    = Math.max(0, Math.min(f.dp, f.remaining)).toFixed(2);
         amtInput.readOnly = false;
         amtInput.style.opacity = '1';
         hint.textContent  = 'Pre-filled with the 25% downpayment — adjust if needed.';
@@ -679,6 +731,8 @@
         amtInput.style.opacity = '1';
         hint.textContent  = 'Enter the exact amount received from the customer.';
       }
+
+      refreshPaymentBreakdown(false);
     }
 
     function openReasonModal(action, id, customerName, formAction) {
