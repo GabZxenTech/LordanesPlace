@@ -51,7 +51,7 @@
 
 <div class="flex-[1.2] min-w-[280px] lg:min-w-[350px] relative">
     <img
-        src="{{ asset('images/aboutus.png') }}"
+        src="{{ asset('images/aboutus.jpg') }}"
         alt="About LorDane's Place"
         class="w-full h-[300px] md:h-[450px] object-cover rounded-lg shadow-sm"
     />
@@ -118,7 +118,7 @@
       </button>
     </div>
     <div class="flex-[1.2] min-w-[280px] lg:min-w-[350px] relative">
-      <img src="{{ asset('images/360_BG.png') }}" alt="Virtual Tour Preview" loading="lazy" class="w-full h-[280px] md:h-[380px] object-cover rounded-lg shadow-sm">
+      <img src="{{ asset('images/360_BG.jpg') }}" alt="Virtual Tour Preview" loading="lazy" class="w-full h-[280px] md:h-[380px] object-cover rounded-lg shadow-sm">
       <div class="play-btn w-14 h-14 md:w-16 md:h-16 bg-gold-deep text-white rounded-full flex items-center justify-center text-lg md:text-xl cursor-pointer hover:bg-gold-mid"
         onclick="window.location.href='{{ route('discover') }}#virtual-tour'">▶</div>
     </div>

@@ -104,8 +104,9 @@ class VisitScheduleController extends Controller
     public function adminIndex()
     {
         // Mark overdue visits "missed" (and apply the other automatic rules)
-        // before listing, so the page never shows a stale status.
-        \App\Services\BookingAutoCancelService::run();
+        // before listing. Throttled to once a minute site-wide, so a status
+        // is at most a minute behind.
+        \App\Services\BookingAutoCancelService::runThrottled();
 
         $visits = VisitSchedule::with(['user', 'booking'])->orderBy('visit_date', 'asc')->get();
         return view('admin.visits', compact('visits'));

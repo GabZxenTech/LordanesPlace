@@ -329,7 +329,8 @@ class BookingController extends Controller
     {
         // No cron runs in production yet, so sweep stale bookings here too —
         // see BookingAutoCancelService for why this needs to happen somewhere.
-        BookingAutoCancelService::run();
+        // Throttled to once a minute site-wide.
+        BookingAutoCancelService::runThrottled();
 
         $user = Auth::user();
         // Eager-load: the view calls $booking->visitSchedules->first() and

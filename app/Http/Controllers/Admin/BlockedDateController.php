@@ -19,8 +19,9 @@ class BlockedDateController extends Controller
     {
         // No cron runs in production yet — sweep stale bookings here too so
         // the admin schedule reflects auto-cancellations without waiting on
-        // the scheduled command. See BookingAutoCancelService.
-        BookingAutoCancelService::run();
+        // the scheduled command. Throttled to once a minute site-wide (the
+        // sweep is several DB round-trips). See BookingAutoCancelService.
+        BookingAutoCancelService::runThrottled();
 
         $month = (int) $request->query('month', now()->month);
         $year = (int) $request->query('year', now()->year);

@@ -34,12 +34,12 @@
     <p class="text-warm-black/90 text-[16px] md:text-[16px] font-normal">A glimpse of the celebrations held at LorDane's Place.</p>
   </div>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-    <img src="{{ asset('images/Wedding.png') }}" alt="Event at LorDane's Place" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
-    <img src="{{ asset('images/Birthday.png') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
-    <img src="{{ asset('images/Debut.png') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
-    <img src="{{ asset('images/Christening.png') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
-    <img src="{{ asset('images/Thanks Giving.png') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
-    <img src="{{ asset('images/School Event.png') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/Wedding.jpg') }}" alt="Event at LorDane's Place" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/Birthday.jpg') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/Debut.jpg') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/Christening.jpg') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/Thanks Giving.jpg') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
+    <img src="{{ asset('images/School Event.jpg') }}" alt="Event at LorDane's Place" loading="lazy" class="w-full h-[220px] md:h-[260px] object-cover rounded-lg border border-gold-deep/15 transition-transform duration-300 hover:scale-[1.02]">
   </div>
 </section>
 
