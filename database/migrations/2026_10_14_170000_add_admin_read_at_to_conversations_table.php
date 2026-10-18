@@ -7,12 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * When the admin last read each conversation, so customer/guest messages
-     * after that count as unread (the red badge on "Chat" in the admin
-     * sidebar). Existing conversations start as read, so the badge only
-     * counts messages that arrive from now on.
-     */
+    // When the admin last read each conversation (existing ones start as read).
     public function up(): void
     {
         Schema::table('conversations', function (Blueprint $table) {

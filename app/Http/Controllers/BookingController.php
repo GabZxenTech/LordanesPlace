@@ -14,29 +14,21 @@ use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
-    /** Most bookings (packages x days) one submission may create. */
+    // Max bookings one submission can create.
     private const MAX_BOOKINGS_PER_SUBMISSION = 100;
 
-    // Show booking form with calendar
+    // Booking page with the calendar.
     public function index()
     {
-        // Visit Schedule is a mandatory follow-up step to a just-completed
-        // booking, so keep the "booking just succeeded" flash data alive for
-        // as many round-trips as it takes — otherwise a failed visit-schedule
-        // submission (invalid date, etc.) would redirect back here, the flash
-        // data would have already aged out, and the modal (plus the booking
-        // it needs to attach the visit to) would silently disappear.
+        // Keep the success data so the visit-schedule modal stays open after a failed submit.
         if (session('booking_success')) {
             session()->keep(['booking_success', 'new_booking_id', 'new_booking_ids', 'booking_number']);
         }
 
-        // Packages only change via admin CRUD (which busts this key), so it's
-        // safe to skip the DB round-trip on every booking-page visit.
+        // Packages are cached for 5 minutes (cleared when an admin edits them).
         $packages = Cache::remember('packages.all', 300, fn () => \App\Models\Package::all());
 
-        // Get all dates that have an APPROVED booking (one event per day rule).
-        // Room-type packages are excluded — they're governed by per-room
-        // availability instead, and shouldn't grey out the calendar venue-wide.
+        // Dates already taken by an approved event (rooms are checked per room).
         $approvedDates = Booking::where('status', 'approved')
             ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
             ->pluck('event_date')
@@ -45,7 +37,7 @@ class BookingController extends Controller
             ->values()
             ->toArray();
 
-        // Get all blocked dates (apply globally) with reasons
+        // Blocked dates and their reasons.
         $blockedDates = BlockedDate::all(['date', 'reason'])
             ->mapWithKeys(fn($item) => [
                 $item->date->timezone('Asia/Manila')->format('Y-m-d') => $item->reason ?? 'This date has been blocked by the venue admin (e.g. maintenance, private hold, or holiday).'
@@ -55,14 +47,10 @@ class BookingController extends Controller
         return view('booking', compact('packages', 'approvedDates', 'blockedDates'));
     }
 
-    // Store new booking — one or more packages, for one date or a range of
-    // days (Swimming/Staycation). Each package-day becomes its own booking
-    // (own booking number, status and payments); they are created together
-    // or not at all, linked by booking_group.
+    // Saves a booking: one or more packages, for one day or a date range.
     public function store(Request $request)
     {
-        // A plain single-package submission (no items[]) is treated as a
-        // one-item list, so both forms of the request go through one path.
+        // A single-package request is treated as a list with one item.
         if (!$request->has('items')) {
             $request->merge(['items' => [$request->only(['occasion', 'event_type', 'event_type_other', 'package', 'room_number', 'guest_count'])]]);
         }
@@ -70,18 +58,15 @@ class BookingController extends Controller
         $request->validate([
             'items'                    => 'required|array|min:1|max:10',
             'items.*.occasion'         => 'required|in:' . implode(',', array_keys(Booking::OCCASIONS)),
-            // Event Type only applies to the "Event" occasion; Swimming and
-            // Staycation bookings don't choose one (the field is disabled).
+            // Event type is only needed for the "Event" occasion.
             'items.*.event_type'       => 'required_if:items.*.occasion,event|nullable|string|in:Birthday,Wedding,Debut,Baptismal,Christening,Christmas Party,Corporate Event,Reunion,Others',
             'items.*.event_type_other' => 'required_if:items.*.event_type,Others|nullable|string|max:255',
             'items.*.package'          => 'required|string',
             'items.*.room_number'      => 'nullable|string',
             'items.*.guest_count'      => 'required|integer|min:1',
-            // after_or_equal (not after): a same-day booking is allowed to be
-            // created — it's then subject to the same-day-unpaid auto-cancel
-            // rule (BookingAutoCancelService) rather than being blocked here.
+            // Same-day bookings are allowed.
             'event_date'     => 'required|date|after_or_equal:today',
-            // Swimming/Staycation may book a range of days (inclusive).
+            // Swimming/Staycation can book a date range.
             'event_end_date' => 'nullable|date|after_or_equal:event_date',
             'notes'          => 'nullable|string|max:1000',
             'payment_option' => 'required|in:' . implode(',', Booking::PAYMENT_OPTIONS),
@@ -97,9 +82,7 @@ class BookingController extends Controller
             'items.*.guest_count.required'     => 'Please enter the number of guests.',
         ]);
 
-        // The days being booked: one day, or every day from event_date to
-        // event_end_date inclusive (a Swimming/Staycation date range — each
-        // day is paid separately). Each package is booked once per day.
+        // Every day being booked (one day or the whole range).
         $start = \Carbon\Carbon::parse($request->event_date)->startOfDay();
         $end = $request->filled('event_end_date')
             ? \Carbon\Carbon::parse($request->event_end_date)->startOfDay()
@@ -114,7 +97,7 @@ class BookingController extends Controller
             return back()->withErrors(['event_date' => 'Event packages are booked for a single date. Pick one day, or remove the Event package from your list.'])->withInput();
         }
 
-        // Safety cap on how many bookings one submission can create.
+        // Safety limit on how many bookings one request can create.
         if (count($dates) * count($request->items) > self::MAX_BOOKINGS_PER_SUBMISSION) {
             return back()->withErrors(['event_date' => 'That is too many days and packages for one booking. Please split it into smaller bookings.'])->withInput();
         }
@@ -136,8 +119,7 @@ class BookingController extends Controller
                 return back()->withErrors(['package' => 'The selected package does not exist.'])->withInput();
             }
 
-            // The form only lists packages for the chosen occasion; enforce
-            // the same pairing here so a crafted request can't mix them.
+            // The package must match the chosen occasion.
             if (Booking::occasionForPackage($package->name) !== $item['occasion']) {
                 return back()->withErrors(['package' => 'Please select a package that matches the chosen occasion.'])->withInput();
             }
@@ -149,8 +131,7 @@ class BookingController extends Controller
             $isRoomPackage = Booking::isRoomPackage($package->name);
             $roomNumber = $isRoomPackage ? ($item['room_number'] ?? null) : null;
 
-            // A specific physical room is required, and it must belong to
-            // this package's room group — never trust the submitted value.
+            // The room must belong to this package.
             if ($isRoomPackage && !in_array($roomNumber, Booking::roomsFor($package->name), true)) {
                 return back()->withErrors(['room_number' => 'Please select a valid room for ' . $package->name . '.'])->withInput();
             }
@@ -171,21 +152,17 @@ class BookingController extends Controller
 
             foreach ($dates as $date) {
                 if ($isRoomPackage) {
-                    // Backend re-check — the room may have been taken by
-                    // someone else since the page loaded.
+                    // Room may have been taken since the page loaded.
                     if (!Booking::isRoomAvailable($package->name, $date, $roomNumber)) {
                         return back()->withErrors(['room_number' => $package->name . ' ' . $roomNumber . ' is not available on ' . $label($date) . '. Please choose another room or other dates.'])->withInput();
                     }
                 } else {
-                    // The same package can't be booked twice for one date —
-                    // the first active booking (pending counts) holds it.
+                    // A package can only be booked once per date.
                     if (!Booking::isPackageAvailable($package->name, $date)) {
                         return back()->withErrors(['package' => $package->name . ' is already booked on ' . $label($date) . '. Please choose another date or package.'])->withInput();
                     }
 
-                    // One Event Per Day (venue-wide): another customer's
-                    // approved non-room booking holds the date. The same
-                    // customer's own packages on that day don't block each other.
+                    // One event per day: another customer's approved event blocks the date.
                     $takenByOthers = Booking::where('event_date', $date)
                         ->where('status', 'approved')
                         ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
@@ -197,8 +174,7 @@ class BookingController extends Controller
                     }
                 }
 
-                // The price always comes from the package record (weekend
-                // rate on Sat/Sun when the package has one), never the request.
+                // Price always comes from the package (weekend price on Sat/Sun).
                 $totalAmount = $package->priceForDate($date);
 
                 $prepared[] = [
@@ -209,23 +185,17 @@ class BookingController extends Controller
                     'guest_count' => (int) $item['guest_count'],
                     'total_amount' => $totalAmount,
                     'down_payment_amount' => Booking::calculateDownPayment($totalAmount),
-                    // Packages with a fixed time slot (e.g. the swimming
-                    // packages) get it right away; others stay unset until
-                    // the admin assigns a time.
+                    // Packages with a fixed time slot get it right away.
                     'start_time'  => $package->start_time && $package->end_time ? $package->start_time : null,
                     'end_time'    => $package->start_time && $package->end_time ? $package->end_time : null,
                 ];
             }
         }
 
-        // Bookings made together share a group id so they can be shown and
-        // handled as one reservation.
+        // Bookings made together share a group id.
         $group = count($prepared) > 1 ? (string) \Illuminate\Support\Str::uuid() : null;
 
-        // All bookings are created in one transaction. A booking-number clash
-        // (two customers booking at the same moment) retries the whole set
-        // with fresh numbers; a room clash (partial unique index on
-        // room/date) is reported to the customer.
+        // Create all bookings in one transaction; retry if a booking number clashes.
         $bookings = null;
 
         for ($attempt = 1; $attempt <= 3 && !$bookings; $attempt++) {
@@ -268,7 +238,7 @@ class BookingController extends Controller
             ->with('booking_number', implode(', ', array_map(fn ($b) => $b->booking_number, $bookings)));
     }
 
-    // AJAX: Check if a date is available (One Event Per Day)
+    // AJAX: is a date available?
     public function checkDate(Request $request)
     {
         $date = $request->query('date');
@@ -285,8 +255,7 @@ class BookingController extends Controller
             ]);
         }
 
-        // Room-only (Staycation) bookings aren't affected by the one-event-
-        // per-day rule — rooms have their own per-room availability.
+        // Rooms are not affected by the one-event-per-day rule.
         if ($request->boolean('rooms_only')) {
             return response()->json(['available' => true]);
         }
@@ -306,7 +275,7 @@ class BookingController extends Controller
         return response()->json(['available' => true]);
     }
 
-    // AJAX: per-room availability for every room-type package, for one date
+    // AJAX: room and package availability for a date.
     public function checkRoomAvailability(Request $request)
     {
         $request->validate(['date' => 'required|date']);
@@ -314,7 +283,7 @@ class BookingController extends Controller
         return response()->json(Booking::roomAvailabilityForDate($request->query('date')));
     }
 
-    // Booking success page
+    // Booking success page.
     public function success()
     {
         $booking = null;
@@ -324,26 +293,21 @@ class BookingController extends Controller
         return view('booking-success', compact('booking'));
     }
 
-    // Profile and Bookings page
+    // Customer profile and reservations.
     public function profile()
     {
-        // No cron runs in production yet, so sweep stale bookings here too —
-        // see BookingAutoCancelService for why this needs to happen somewhere.
-        // Throttled to once a minute site-wide.
+        // Run the automatic booking rules (at most once a minute).
         BookingAutoCancelService::runThrottled();
 
         $user = Auth::user();
-        // Eager-load: the view calls $booking->visitSchedules->first() and
-        // hasConfirmedPayment() per row, which would otherwise fire one extra
-        // query per booking (N+1).
+        // Load visits and payments together to avoid extra queries.
         $bookings = Booking::with(['visitSchedules', 'payments'])
             ->where('user_id', $user->id)
             ->whereNull('hidden_by_customer_at') // deleted from "My Reservations"
             ->orderBy('event_date', 'desc')
             ->get();
 
-        // Account tier counts every completed booking, including ones the
-        // customer has since deleted from their list.
+        // Completed bookings count for the account tier, even hidden ones.
         $completedCount = Booking::where('user_id', $user->id)
             ->where('status', Booking::STATUS_COMPLETED)
             ->count();
@@ -351,9 +315,7 @@ class BookingController extends Controller
         return view('profile', compact('user', 'bookings', 'completedCount'));
     }
 
-    // Delete a finished booking from "My Reservations" (Client action). It is
-    // only hidden from the customer — the booking, payments and visits stay
-    // for the admin, reports and history. Can't be undone by the customer.
+    // Customer hides a finished booking from "My Reservations" (admin still sees it).
     public function deleteForCustomer($id)
     {
         $booking = Booking::where('id', $id)
@@ -370,16 +332,14 @@ class BookingController extends Controller
         return back()->with('success', 'Booking #' . $booking->booking_number . ' was deleted from your reservations.');
     }
 
-    // Cancel own booking (Client action)
+    // Customer cancels their own booking.
     public function cancel($id)
     {
         $booking = Booking::where('id', $id)
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        // Once a Down Payment or Full Payment has been confirmed, the
-        // reservation is locked in — the customer can no longer cancel it
-        // themselves, only submit a reschedule request for the admin to review.
+        // Paid bookings can't be cancelled by the customer, only rescheduled.
         if ($booking->hasConfirmedPayment()) {
             return back()->withErrors(['cancel' => 'This booking has a confirmed payment and can no longer be cancelled. Please submit a reschedule request instead.']);
         }
@@ -388,28 +348,24 @@ class BookingController extends Controller
             return back()->withErrors(['cancel' => BookingStatusService::failureReason($booking, Booking::STATUS_CANCELLED)]);
         }
 
-        // Customer's own "Booking Cancelled" notification comes from the
-        // transition above; this is the extra heads-up for the admins.
+        // Let the admins know the customer cancelled.
         NotificationService::bookingCancelledByCustomer($booking);
 
         return back()->with('success', 'Your booking has been cancelled.');
     }
 
-    // Submit reschedule request (Client action)
+    // Customer requests a reschedule.
     public function submitReschedule(Request $request, $id)
     {
         $booking = Booking::where('id', $id)
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        // Mirrors the view's own gate (the Reschedule button only ever shows
-        // for an approved booking) so a direct/manual request can't request a
-        // reschedule the UI would never have offered in the first place.
+        // Only approved bookings can be rescheduled.
         if ($booking->status !== Booking::STATUS_APPROVED) {
             return back()->withErrors(['reschedule' => 'Only an approved booking can be rescheduled.']);
         }
 
-        // Prevent submitting if a reschedule is already pending
         if ($booking->reschedule_status === 'pending') {
             return back()->withErrors(['reschedule' => 'A reschedule request is already pending for this booking.']);
         }
@@ -424,9 +380,7 @@ class BookingController extends Controller
             'requested_event_date.after_or_equal' => 'The event date cannot be in the past.',
         ]);
 
-        // One Event Per Day: check if the requested date already has an approved
-        // booking (excluding this one). Doesn't apply to room-type packages —
-        // those are governed by per-room availability, not the venue-wide rule.
+        // One event per day check for the new date (not for rooms).
         $hasConflict = !Booking::isRoomPackage($booking->package) && Booking::where('event_date', $request->requested_event_date)
             ->where('status', 'approved')
             ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
@@ -437,12 +391,12 @@ class BookingController extends Controller
             return back()->withErrors(['requested_event_date' => 'This date is already reserved for another event. Please choose another available date.'])->withInput();
         }
 
-        // The same package (or room) can't already be booked on the new date.
+        // The package or room must be free on the new date.
         if (!$booking->slotAvailableOn($request->requested_event_date)) {
             return back()->withErrors(['requested_event_date' => $booking->package . ($booking->room_number ? ' ' . $booking->room_number : '') . ' is already booked on that date. Please choose another date.'])->withInput();
         }
 
-        // Fee: FREE for first reschedule, ₱5,000 for subsequent
+        // First reschedule is free, then ₱5,000 each.
         $fee = $booking->reschedule_count == 0 ? 0 : 5000;
 
         $booking->update([

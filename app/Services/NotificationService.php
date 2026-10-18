@@ -37,10 +37,7 @@ class NotificationService
         }
     }
 
-    /**
-     * Customer-facing copy for each booking status. Driven by status alone so
-     * every path that changes status produces the same wording.
-     */
+    // Customer message for each booking status.
     protected const STATUS_MESSAGES = [
         Booking::STATUS_PENDING => [
             'Booking Pending Review',
@@ -68,11 +65,7 @@ class NotificationService
         ],
     ];
 
-    /**
-     * Notify the customer that their booking status changed. Always called via
-     * BookingStatusService, which guarantees the status really did change, so
-     * this never produces a duplicate.
-     */
+    // Tells the customer their booking status changed.
     public static function bookingStatusChanged(Booking $booking): void
     {
         if (!isset(self::STATUS_MESSAGES[$booking->status])) {
@@ -81,7 +74,7 @@ class NotificationService
 
         [$title, $message] = self::STATUS_MESSAGES[$booking->status];
 
-        // Append the admin-provided reason for rejected or cancelled statuses
+        // Add the admin's reason for rejected or cancelled bookings.
         if (
             in_array($booking->status, [Booking::STATUS_REJECTED, Booking::STATUS_CANCELLED], true)
             && $booking->cancellation_reason
@@ -92,10 +85,7 @@ class NotificationService
         self::toCustomer($booking, 'booking_' . $booking->status, $title, $message);
     }
 
-    /**
-     * A brand new booking: the customer gets the standard "pending" status
-     * notification, the admins get an actionable heads-up.
-     */
+    // New booking: notify the customer and the admins.
     public static function bookingSubmitted(Booking $booking): void
     {
         self::bookingStatusChanged($booking);
@@ -108,10 +98,7 @@ class NotificationService
         );
     }
 
-    /**
-     * Extra admin-side alert when the CUSTOMER is the one cancelling. The
-     * customer's own notification comes from bookingStatusChanged().
-     */
+    // Tells the admins that a customer cancelled.
     public static function bookingCancelledByCustomer(Booking $booking): void
     {
         self::toAdmins(
@@ -155,11 +142,7 @@ class NotificationService
         );
     }
 
-    /**
-     * Venue-visit updates from the admin (Confirm / Reschedule / Complete).
-     * Bookings made together share one visit time, so callers send this once
-     * per visit group, linked to its first booking.
-     */
+    // Visit updates from the admin (sent once per group of bookings made together).
     public static function visitConfirmed(VisitSchedule $visit): void
     {
         self::toCustomer(

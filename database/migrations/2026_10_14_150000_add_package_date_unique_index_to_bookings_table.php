@@ -6,14 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Partial unique index: only one active (not cancelled/rejected) booking
-     * may hold a non-room package (Swimming / Event) on a given date — the
-     * counterpart of bookings_room_date_active_unique for rooms. A backstop
-     * against two customers submitting at the same moment, on top of the
-     * check in BookingController::store(). Existing duplicates must be
-     * resolved first or this fails (nothing is changed in that case).
-     */
+    // Only one active booking per non-room package per date.
     public function up(): void
     {
         if (in_array(Schema::getConnection()->getDriverName(), ['pgsql', 'sqlite'], true)) {

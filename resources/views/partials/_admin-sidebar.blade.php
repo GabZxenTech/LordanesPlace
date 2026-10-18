@@ -1,14 +1,13 @@
 {{-- ADMIN SIDEBAR --}}
 <style>
-  /* Collapsible sidebar: the state is a class on <html> so it applies before
-     first paint (set by the inline script just below) and survives reloads. */
+  /* Collapsible sidebar (state saved as a class on <html>) */
   .admin-sidebar, .admin-sidebar-spacer { transition: transform 0.25s ease, width 0.25s ease; }
   html.admin-sidebar-collapsed .admin-sidebar { transform: translateX(-100%); box-shadow: none !important; }
   html.admin-sidebar-collapsed .admin-sidebar-spacer { width: 0 !important; }
   .admin-sidebar-open-btn { display: none; }
   html.admin-sidebar-collapsed .admin-sidebar-open-btn { display: flex; }
 
-  /* Bell dropdown: unread notifications are bold (like unread chats); read ones stay listed. */
+  /* Bell dropdown: unread notifications are bold */
   .admin-notif-item { display: flex; align-items: flex-start; gap: 8px; padding: 12px 18px; border-bottom: 1px solid #e8dcc8; }
   .admin-notif-item.is-unread { background: rgba(201,168,76,0.12); }
   .admin-notif-title { font-size: 13px; font-weight: 500; color: #2c1a0e; margin: 0; }
@@ -119,7 +118,7 @@
       <a href="{{ route('admin.chat.index') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; position: relative; {{ request()->routeIs('admin.chat.*') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Chat
-        {{-- People with chat messages the admin hasn't read yet; updated live by the notification polling. --}}
+        {{-- Unread chat count --}}
         <span id="adminChatBadge" title="Unread chats" style="position: absolute; right: 20px; {{ ($adminUnreadChats ?? 0) > 0 ? 'display: inline-flex;' : 'display: none;' }} align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 10px; background: #e74c3c; color: white; font-size: 10px; font-weight: 700;">{{ ($adminUnreadChats ?? 0) > 9 ? '9+' : ($adminUnreadChats ?? 0) }}</span>
       </a>
 
@@ -143,9 +142,7 @@
 <div class="admin-sidebar-spacer" style="width: 260px; flex-shrink: 0;"></div>
 
 <script>
-  // Backup for PreventBackHistory: a page restored from the back/forward
-  // cache (e.g. after logout + Back) is reloaded so the server re-checks the
-  // session and redirects a logged-out visitor to login.
+  // Reload pages restored by the Back button so a logged-out user goes to login.
   window.addEventListener('pageshow', function (e) {
     if (e.persisted) window.location.reload();
   });
@@ -160,8 +157,7 @@
       return;
     }
 
-    // position:fixed (so the panel escapes the scrollable nav's overflow
-    // clipping) means we place it manually next to the button it belongs to.
+    // Place the dropdown next to its button.
     const btnRect = e.currentTarget.getBoundingClientRect();
     panel.style.left = (btnRect.right + 6) + 'px';
     panel.style.top = btnRect.top + 'px';
@@ -260,9 +256,7 @@
     }, 'DELETE');
   }
 
-  // ---- Pick up new notifications without a reload ----
-  // Polls every 10s while the tab is visible; list HTML comes from the same
-  // Blade partial as the initial render (escaped, identical look).
+  // Check for new notifications every 10 seconds.
   (function () {
     const panel = document.getElementById('adminNotifPanel');
     if (!panel || !panel.dataset.pollUrl) return;
@@ -292,3 +286,5 @@
     document.addEventListener('visibilitychange', function () { if (!document.hidden) poll(); });
   })();
 </script>
+
+@include('partials._ui-feedback')

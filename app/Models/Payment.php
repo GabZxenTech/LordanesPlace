@@ -4,11 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * One confirmed payment against a booking. Bookings can have several rows
- * (an initial downpayment plus later additional payments) — the sum of a
- * booking's payments is always the authoritative "amount paid".
- */
+// One payment recorded by the admin for a booking.
 class Payment extends Model
 {
     protected $fillable = [

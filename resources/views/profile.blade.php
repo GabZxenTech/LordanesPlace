@@ -9,8 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <style>
-    /* My Reservations: slim profile header + stat strip, status tabs, and
-       ticket-style cards (date stub | details | money & actions). */
+    /* My Reservations page styles */
     .rv-page { --rv-surface: #fffcf5; --rv-tint: #f2ebdc; --rv-ink: #1a1208; --rv-soft: #5c4a33; --rv-faint: #8f7c62; --rv-line: #e8dcc4; --rv-gold: #b8860b; --rv-brown: #2c1a0e;
       padding: 40px 0 72px; min-height: 100vh; font-family: 'Jost', sans-serif; color: var(--rv-ink); }
     .rv-wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
@@ -156,8 +155,7 @@
       .rv-sub .rv-money { border-left: 0; border-top: 1px dashed var(--rv-line); }
       .rv-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
-    /* Phones: avatar + details on one row, the button full-width below, and
-       the name/email/tier/member-since lines stacked instead of squeezed. */
+    /* Phone layout */
     @media (max-width: 640px) {
       .rv-page { padding-top: 24px; }
       .rv-profile { padding: 18px; gap: 16px; }
@@ -199,9 +197,7 @@
           return $b->status === \App\Models\Booking::STATUS_PENDING ? 'pending' : 'upcoming';
       };
 
-      // Bookings made together (a date range or several packages — same
-      // booking_group) are one card; older ones without a group are grouped
-      // by date. Upcoming first (soonest first), then past (most recent first).
+      // Bookings made together are one card; upcoming first, then past.
       $groups = $bookings->groupBy(fn ($b) => $b->booking_group ?: 'd' . $b->event_date->toDateString())
           ->map(fn ($g) => $g->sortBy(fn ($b) => $b->event_date->toDateString() . '|' . $b->package . '|' . $b->room_number)->values())
           ->sortBy(function ($g) use ($today) {
@@ -319,8 +315,7 @@
   </div>
 </section>
 
-{{-- MODALS & SCRIPTS --}}
-{{-- MODALS & SCRIPTS --}}
+{{-- Modals and scripts --}}
 <div id="rescheduleModal" class="fixed inset-0 z-[1000] flex items-center justify-center p-4" style="display:none; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
     <div style="max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; background: #FAF8F3; border: 1px solid #B8860B30; border-radius: 8px; padding: 45px; position: relative; box-shadow: 0 30px 60px rgba(0,0,0,0.25); font-family: 'Jost', sans-serif; margin: auto;">
         
@@ -507,8 +502,7 @@
     if (e.target === modal) closeRescheduleModal();
   });
 
-  // Cancel confirmation: every cancel form opens the styled modal first;
-  // "Yes, Cancel Booking" submits that form.
+  // Cancel/delete buttons open the confirm modal first.
   (function () {
     const modal = document.getElementById('cancelModal');
     const confirmBtn = document.getElementById('cancelModalConfirm');
@@ -569,8 +563,7 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) close(); });
   })();
 
-  // Reservation tabs: Upcoming / Pending / Past / Cancelled / All. A card
-  // shows in a tab when any booking on that date belongs to it.
+  // Reservation tabs: Upcoming / Pending / Past / Cancelled / All.
   (function () {
     const tabs = document.querySelectorAll('.rv-tab');
     const cards = document.querySelectorAll('#rvList [data-buckets]');
@@ -590,8 +583,7 @@
 
     tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.dataset.tab); }); });
 
-    // Open on Upcoming when there is something coming up, otherwise All. A
-    // notification link (#booking-42) opens All so that booking is visible.
+    // Start on Upcoming if there is any, otherwise All.
     const hasUpcoming = Array.from(cards).some(function (c) { return c.dataset.buckets.split(' ').includes('upcoming'); });
     show(window.location.hash.startsWith('#booking-') || !hasUpcoming ? 'all' : 'upcoming');
   })();

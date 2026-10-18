@@ -16,8 +16,7 @@
             font-size: 12px;
             line-height: 1.45;
         }
-        /* The PDF page itself is receipt-sized (see ReceiptController), so the
-           slip fills the sheet edge to edge instead of floating on blank paper. */
+        /* The receipt fills the page */
         .receipt {
             width: 100%;
             margin: 0;
@@ -85,7 +84,7 @@
             display: table-cell;
             text-align: right;
             font-weight: 700;
-            /* DejaVu Sans kept here so the peso sign (₱) renders in the PDF; Arial/Helvetica lack that glyph. */
+            /* DejaVu Sans so the peso sign shows in the PDF */
             font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
         }
         .total-row {

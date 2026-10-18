@@ -9,37 +9,27 @@ use Illuminate\Support\Facades\Auth;
 
 class ReceiptController extends Controller
 {
-    /**
-     * Download the booking receipt as PDF.
-     */
+    // Downloads the booking receipt as a PDF.
     public function download(Booking $booking)
     {
-        // Authorization: Only the owner of the booking or an admin can download
+        // Only the booking owner or an admin.
         if (Auth::id() !== $booking->user_id && Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized access to this receipt.');
         }
 
         $booking->loadMissing('user', 'visitSchedules');
 
-        // A cancelled/rejected booking has no active reservation to receipt,
-        // regardless of any payment recorded before it was cancelled/rejected.
+        // No receipt for cancelled or rejected bookings.
         if ($booking->isCancelledOrRejected()) {
             abort(404, 'Receipt not available — this booking was cancelled or rejected.');
         }
 
-        // The official receipt only exists once an admin has confirmed an
-        // actual payment — selecting a payment option at booking time is not
-        // proof of payment and never satisfies this.
+        // A receipt needs at least one payment recorded by the admin.
         if (!$booking->hasConfirmedPayment()) {
             abort(404, 'Receipt not yet available. Payment confirmation is required.');
         }
 
-        // Receipt-sized page (points, 1pt = 1/72in) so the slip fills the sheet
-        // instead of sitting on a mostly-blank A4. ~300x494pt ≈ 106x174mm.
-        // The optional "Visit Schedule" row needs one extra line of height.
-        // Measured empirically against the actual template — if rows are ever
-        // added to receipt.blade.php, re-check these with DomPDF's page count
-        // rather than guessing, since a miss silently spills to a 2nd page.
+        // Receipt page size; one extra line when a visit schedule is shown.
         $hasVisitRow = $booking->visitSchedules->where('status', 'confirmed')->isNotEmpty();
         $pageHeight = $hasVisitRow ? 510 : 494;
 

@@ -6,11 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Postgres implements Laravel's enum() as a CHECK constraint, so adding
-     * 'cancelled', 'ongoing', 'completed' to the booking lifecycle means
-     * replacing that constraint rather than altering an enum type.
-     */
+    // Adds the cancelled, ongoing and completed booking statuses.
     public function up(): void
     {
         if (Schema::getConnection()->getDriverName() === 'pgsql') {

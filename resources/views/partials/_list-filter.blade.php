@@ -1,19 +1,4 @@
-{{--
-  Client-side filter/sort/search for an admin table. Include once per page,
-  after the table. Markup contract:
-    <div data-list-filter="storageKey" data-default-tab="all">
-      <button data-filter-tab="key">Label <span data-count></span></button> ...
-      <select data-filter-field="occasion"> <option value="">All</option> ... </select>
-      <select data-filter-sort> <option value="date:asc">…</option> </select>
-      <input data-filter-search>
-    </div>
-    <tbody data-list-rows="storageKey">
-      <tr data-tabs="pending upcoming" data-occasion="event" data-date="20261024"
-          data-search="lowercase text">…</tr>
-      <tr data-list-empty hidden>…</tr>
-    </tbody>
-  Rows are only shown/hidden and reordered — their buttons and forms are untouched.
---}}
+{{-- Tabs, filters, sort and search for admin tables (shows/hides and reorders rows). --}}
 <style>
   .lf-bar { display: flex; flex-direction: column; gap: 12px; padding: 14px 24px; border-bottom: 1px solid #d4c4a0; background: #fffcf5; }
   .lf-tabs { display: flex; gap: 6px; flex-wrap: wrap; }

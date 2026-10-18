@@ -89,7 +89,7 @@
                 <td style="padding: 16px 24px;">
                   <div style="display: flex; gap: 8px;">
                     <a href="{{ route('admin.edit', $user->id) }}" style="background: transparent; border: 1px solid #c9a84c; color: #c9a84c; padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: 700; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#c9a84c'; this.style.color='#fff9ef';" onmouseout="this.style.background='transparent'; this.style.color='#c9a84c';">Edit</a>
-                    <form method="POST" action="{{ route('admin.destroy', $user->id) }}" onsubmit="return confirm('Delete this user?')">
+                    <form method="POST" action="{{ route('admin.destroy', $user->id) }}" data-confirm="Delete this user?">
                       @csrf @method('DELETE')
                       <button type="submit" style="background: transparent; border: 1px solid #e74c3c; color: #e74c3c; padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Jost', sans-serif;" onmouseover="this.style.background='#e74c3c'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#e74c3c';">Delete</button>
                     </form>

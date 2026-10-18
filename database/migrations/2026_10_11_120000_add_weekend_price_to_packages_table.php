@@ -7,12 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Optional Saturday/Sunday rate. NULL means the package costs the same
-     * every day. The three swim packages get the weekend rates already
-     * advertised on the Discover page; only rows still NULL are filled, so
-     * an admin-entered value is never overwritten.
-     */
+    // Optional weekend price; fills the swimming packages only if still empty.
     public function up(): void
     {
         Schema::table('packages', function (Blueprint $table) {

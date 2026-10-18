@@ -6,13 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Links the bookings created by one submission (a date range of
-     * Staycation/Swimming days, or several packages added with "+ Add to
-     * list") so they can be shown and handled as one reservation. Each day /
-     * package is still its own booking. NULL for single bookings and for all
-     * existing rows.
-     */
+    // Links bookings made together (date range or "+ Add to list").
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {

@@ -14,35 +14,29 @@ use Illuminate\Validation\Rule;
 
 class BlockedDateController extends Controller
 {
-    // Show all bookings + blocked dates in admin
+    // Admin schedule: bookings and blocked dates.
     public function index(Request $request)
     {
-        // No cron runs in production yet — sweep stale bookings here too so
-        // the admin schedule reflects auto-cancellations without waiting on
-        // the scheduled command. Throttled to once a minute site-wide (the
-        // sweep is several DB round-trips). See BookingAutoCancelService.
+        // Run the automatic booking rules (at most once a minute).
         BookingAutoCancelService::runThrottled();
 
         $month = (int) $request->query('month', now()->month);
         $year = (int) $request->query('year', now()->year);
 
-        // Guard against garbage query params so the month selector never breaks.
+        // Ignore invalid month values.
         if ($month < 1 || $month > 12) {
             $month = now()->month;
         }
 
         $selectedMonth = \Carbon\Carbon::createFromDate($year, $month, 1);
 
-        // 'payments' is eager-loaded because the view calls amountPaid()/
-        // remainingBalance()/hasConfirmedPayment() several times per row —
-        // without this each of those calls re-queries the DB per booking.
+        // Load users and payments together to avoid extra queries.
         $bookings = Booking::with(['user', 'payments'])
             ->whereYear('event_date', $selectedMonth->year)
             ->whereMonth('event_date', $selectedMonth->month)
             ->orderBy('event_date', 'asc')
             ->get();
-        // Only today and upcoming blocks — a block whose date has passed no
-        // longer affects anything. Past rows are kept in the DB, just hidden.
+        // Only show today's and upcoming blocked dates.
         $blockedDates = BlockedDate::whereDate('date', '>=', now()->toDateString())
             ->orderBy('date', 'asc')
             ->get();
@@ -50,7 +44,7 @@ class BlockedDateController extends Controller
         return view('admin.schedule', compact('bookings', 'blockedDates', 'selectedMonth'));
     }
 
-    // Block a date
+    // Block a date.
     public function store(Request $request)
     {
         $request->validate([
@@ -66,22 +60,19 @@ class BlockedDateController extends Controller
         return back()->with('success', 'Date blocked successfully.');
     }
 
-    // Unblock a date
+    // Unblock a date.
     public function destroy($id)
     {
         BlockedDate::findOrFail($id)->delete();
         return back()->with('success', 'Date unblocked successfully.');
     }
 
-    // Approve booking
+    // Approve a booking.
     public function approveBooking($id)
     {
         $booking = Booking::findOrFail($id);
 
-        // One Event Per Day: check if another customer's approved booking
-        // exists on this date (one customer may book several packages for
-        // the same day). Doesn't apply to room-type packages — a room's
-        // uniqueness for its date was already guaranteed at creation.
+        // One event per day: another customer's approved event blocks the date (not for rooms).
         if (!Booking::isRoomPackage($booking->package)) {
             $hasConflict = Booking::where('event_date', $booking->event_date)
                 ->where('status', 'approved')
@@ -98,7 +89,7 @@ class BlockedDateController extends Controller
         return $this->applyStatus($booking, Booking::STATUS_APPROVED, 'Booking approved.');
     }
 
-    // Reject booking
+    // Reject a booking.
     public function rejectBooking(Request $request, $id)
     {
         $request->validate([
@@ -112,7 +103,7 @@ class BlockedDateController extends Controller
         return $this->applyStatus($booking, Booking::STATUS_REJECTED, 'Booking rejected.');
     }
 
-    // Cancel booking (Admin action)
+    // Admin cancels a booking.
     public function cancelBooking(Request $request, $id)
     {
         $request->validate([
@@ -126,22 +117,19 @@ class BlockedDateController extends Controller
         return $this->applyStatus($booking, Booking::STATUS_CANCELLED, 'Booking cancelled.');
     }
 
-    // Mark booking as ongoing (Admin action)
+    // Mark a booking as ongoing.
     public function markOngoing($id)
     {
         return $this->applyStatus(Booking::findOrFail($id), Booking::STATUS_ONGOING, 'Booking marked as ongoing.');
     }
 
-    // Mark booking as completed (Admin action)
+    // Mark a booking as completed.
     public function markCompleted($id)
     {
         return $this->applyStatus(Booking::findOrFail($id), Booking::STATUS_COMPLETED, 'Booking marked as completed.');
     }
 
-    /**
-     * Generic status update, e.g. from a status <select> on the booking
-     * management page. Validated against the workflow like every other path.
-     */
+    // Change a booking's status from a dropdown.
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -153,9 +141,7 @@ class BlockedDateController extends Controller
         return $this->applyStatus($booking, $request->status, 'Booking status updated to ' . $request->status . '.');
     }
 
-    /**
-     * Shared guard + notification path for every admin-driven status change.
-     */
+    // Checks a status change is allowed, saves it and notifies the customer.
     private function applyStatus(Booking $booking, string $status, string $successMessage)
     {
         if (!BookingStatusService::transition($booking, $status)) {
@@ -165,12 +151,7 @@ class BlockedDateController extends Controller
         return back()->with('success', $successMessage);
     }
 
-    /**
-     * Record an admin-confirmed payment (the initial downpayment, a full
-     * payment, or a later additional payment toward a remaining balance).
-     * This is the ONLY way payment_status ever changes — selecting a
-     * payment_option at booking time never marks anything as paid.
-     */
+    // Records a payment received by the admin (optionally with a price adjustment).
     public function recordPayment(Request $request, $id)
     {
         $booking = Booking::findOrFail($id);
@@ -182,8 +163,7 @@ class BlockedDateController extends Controller
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'note'   => 'nullable|string|max:255',
-            // Optional change to the booking price made while recording the
-            // payment (+ extra charges, − discount).
+            // Optional price change: positive adds, negative is a discount.
             'price_adjustment'  => 'nullable|numeric|between:-10000000,10000000',
             'adjustment_reason' => 'nullable|string|max:120',
         ]);
@@ -205,7 +185,7 @@ class BlockedDateController extends Controller
             return back()->withErrors(['amount' => 'That amount exceeds the remaining balance of ₱' . number_format($remaining, 2) . '.']);
         }
 
-        // The adjustment is written on the payment note so the ledger shows why the price changed.
+        // The price adjustment is written on the payment note.
         $note = $request->note;
         if ($adjustment != 0) {
             $label = 'Price adjustment ' . ($adjustment > 0 ? '+' : '−') . '₱' . number_format(abs($adjustment), 2)
@@ -213,8 +193,7 @@ class BlockedDateController extends Controller
             $note = mb_substr(trim($label . ($note ? ' · ' . $note : '')), 0, 255);
         }
 
-        // New price and payment are saved together: if the payment can't be
-        // recorded, the price change is rolled back too.
+        // Save the new price and the payment together.
         try {
             $payment = \Illuminate\Support\Facades\DB::transaction(function () use ($booking, $adjustment, $newTotal, $request, $note) {
                 if ($adjustment != 0) {
@@ -245,7 +224,7 @@ class BlockedDateController extends Controller
         return back()->with('success', $message);
     }
 
-    // Update booking details
+    // Admin edits a booking.
     public function updateBooking(Request $request, $id)
     {
         $booking = Booking::findOrFail($id);
@@ -254,9 +233,7 @@ class BlockedDateController extends Controller
             'event_date'  => 'required|date',
             'start_time'  => 'nullable|date_format:H:i',
             'end_time'    => ['nullable', 'date_format:H:i', function ($attribute, $value, $fail) use ($request) {
-                // An end time earlier than the start means the next day
-                // (overnight packages, e.g. 7:00 PM – 7:00 AM); only an end
-                // equal to the start is invalid.
+                // End time before start time means the next day; equal times are invalid.
                 if ($value && $request->filled('start_time') && $value === $request->start_time) {
                     $fail('The end time must be different from the start time.');
                 }
@@ -267,7 +244,7 @@ class BlockedDateController extends Controller
             'total_amount' => 'required|numeric|min:0',
         ]);
 
-        // One Event Per Day: if event_date changed, check for conflict
+        // One event per day check when the date changes.
         if ($booking->event_date->format('Y-m-d') !== $request->event_date) {
             $hasConflict = Booking::where('event_date', $request->event_date)
                 ->where('status', 'approved')
@@ -279,8 +256,7 @@ class BlockedDateController extends Controller
             }
         }
 
-        // No double booking: the (new) package/room must be free on the (new)
-        // date, ignoring this booking itself.
+        // The package or room must be free on the new date.
         if ($booking->event_date->format('Y-m-d') !== $request->event_date || $booking->package !== $request->package) {
             $free = $booking->room_number && Booking::isRoomPackage($request->package)
                 ? Booking::isRoomAvailable($request->package, $request->event_date, $booking->room_number, $booking->id)
@@ -291,8 +267,7 @@ class BlockedDateController extends Controller
             }
         }
 
-        // Detect whether the assigned Event Start/End Time or Notes are actually changing,
-        // so the customer is only notified when something meaningful changes.
+        // Only notify the customer if the time or notes actually changed.
         $oldStart = $booking->start_time ? \Carbon\Carbon::parse($booking->start_time)->format('H:i') : null;
         $oldEnd = $booking->end_time ? \Carbon\Carbon::parse($booking->end_time)->format('H:i') : null;
         $scheduleChanged = $request->start_time !== $oldStart || $request->end_time !== $oldEnd;
@@ -321,14 +296,14 @@ class BlockedDateController extends Controller
         return back()->with('success', 'Booking updated successfully.');
     }
 
-    // Delete booking
+    // Delete a booking.
     public function destroyBooking($id)
     {
         Booking::findOrFail($id)->delete();
         return back()->with('success', 'Booking deleted successfully.');
     }
 
-    // Show all pending reschedule requests
+    // Pending reschedule requests.
     public function rescheduleRequests()
     {
         $reschedules = Booking::with('user', 'visitSchedules')
@@ -339,7 +314,7 @@ class BlockedDateController extends Controller
         return view('admin.reschedules', compact('reschedules'));
     }
 
-    // Approve a reschedule request
+    // Approve a reschedule request.
     public function approveReschedule($id)
     {
         $booking = Booking::with('visitSchedules')->findOrFail($id);
@@ -349,18 +324,17 @@ class BlockedDateController extends Controller
         }
 
         if (Booking::isRoomPackage($booking->package)) {
-            // Re-check the SAME room against the NEW requested date — another
-            // booking may have since taken it, independent of the venue-wide rule.
+            // The same room must be free on the new date.
             if (!Booking::isRoomAvailable($booking->package, $booking->requested_event_date, $booking->room_number, $booking->id)) {
                 return back()->withErrors(['error' => 'Cannot approve reschedule: ' . $booking->package . ' ' . $booking->room_number . ' is no longer available on ' . $booking->requested_event_date->format('F d, Y') . '.']);
             }
         } else {
-            // The same package can't already be booked (even pending) on the new date.
+            // The package must be free on the new date.
             if (!Booking::isPackageAvailable($booking->package, $booking->requested_event_date->toDateString(), $booking->id)) {
                 return back()->withErrors(['error' => 'Cannot approve reschedule: ' . $booking->package . ' is already booked on ' . $booking->requested_event_date->format('F d, Y') . '.']);
             }
 
-            // One Event Per Day: check if the requested date has an existing approved booking
+            // One event per day check for the new date.
             $hasConflict = Booking::where('event_date', $booking->requested_event_date)
                 ->where('status', 'approved')
                 ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
@@ -373,14 +347,13 @@ class BlockedDateController extends Controller
             }
         }
 
-        // Update the event date
         $booking->event_date = $booking->requested_event_date;
 
-        // Update or create visit schedule if requested
+        // Move the visit to the requested date.
         if ($booking->requested_visit_date) {
             $visit = $booking->visitSchedules->first();
             if ($visit) {
-                // A visit the admin removed from the list is active again.
+                // Bring back a visit that was removed from the list.
                 if ($visit->trashed()) {
                     $visit->restore();
                 }
@@ -391,7 +364,6 @@ class BlockedDateController extends Controller
             }
         }
 
-        // Finalize reschedule
         $booking->reschedule_count += 1;
         $booking->reschedule_status = 'approved';
         $booking->requested_event_date = null;
@@ -402,7 +374,7 @@ class BlockedDateController extends Controller
         return back()->with('success', 'Reschedule approved. Booking dates updated.');
     }
 
-    // Reject a reschedule request
+    // Reject a reschedule request.
     public function rejectReschedule($id)
     {
         $booking = Booking::findOrFail($id);

@@ -7,12 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Replaces the generic Laravel database-notifications table with an
-     * app-specific schema (recipient_type/recipient_id/booking_id/title/type)
-     * needed for the admin + customer notification center. Any existing rows
-     * are converted rather than discarded.
-     */
+    // Our own notifications table for admins and customers (keeps existing rows).
     public function up(): void
     {
         $legacy = Schema::hasTable('notifications') ? DB::table('notifications')->get() : collect();

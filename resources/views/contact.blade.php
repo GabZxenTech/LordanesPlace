@@ -77,8 +77,7 @@
     <div class="border border-gold-deep/25 rounded-lg p-6 md:p-7 text-center bg-cream transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-sm">
       <div class="mb-3 flex justify-center text-gold-deep"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
       <h4 class="text-[16px] font-bold text-gold-deep tracking-[0.5px] mb-2 uppercase">Opening Hours</h4>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Day Tour: 8:00 AM - 3:00 PM</p>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Night Swimming: 5:00 PM - 9:00 AM</p>
+      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">8:00 AM – 5:00 PM</p>
       <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Open 7 days a week</p>
     </div>
     <div class="border border-gold-deep/25 rounded-lg p-6 md:p-7 text-center bg-cream transition-all duration-300 hover:border-gold-deep hover:-translate-y-1 hover:shadow-sm">
@@ -141,10 +140,10 @@
 {{-- Leaflet JS --}}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // ── Exact coordinates ng LorDane's Place ─────────────────────────
+    // LorDane's Place location
     const LORDANES = { lat: 14.8617228, lng: 120.9910017 };
 
-    // ── Initialize map ────────────────────────────────────────────────
+    // Map
     const map = L.map('lordanes-map', {
         center: [LORDANES.lat, LORDANES.lng],
         zoom: 17,
@@ -152,7 +151,7 @@
         scrollWheelZoom: false
     });
 
-    // ── Tile layers (Satellite + Street) ──────────────────────────────
+    // Map layers (satellite and street)
     const satellite = L.tileLayer(
         'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
         { attribution: '© Google Satellite', maxZoom: 21 }
@@ -170,12 +169,12 @@
         { position: 'topright', collapsed: false }
     ).addTo(map);
 
-    // ── Keep map layout and tiles stable on resize ────────────────────
+    // Keep the map sized correctly on resize
     window.addEventListener('resize', function() {
         map.invalidateSize();
     });
 
-    // ── Bubble icon helper ────────────────────────────────────────────
+    // Marker icon
     function bubbleIcon(iconSvg, size = 36) {
         return L.divIcon({
             html: `<div style="
@@ -197,7 +196,7 @@
         });
     }
 
-    // ── Markers ───────────────────────────────────────────────────────
+    // Markers
     const ICONS = {
         home: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
         door: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="1"/><circle cx="14" cy="12" r="1"/></svg>',
@@ -211,7 +210,7 @@
             lat: 14.8617228, lng: 120.9910017,
             label: "LorDane's Place",
             desc: "Pulong Buhangin, Santa Maria, Bulacan",
-            extra: "<div class=\"hours\"><p>Day Tour: 8:00 AM – 3:00 PM</p><p>Overnight: 5:00 PM – 9:00 AM</p></div>",
+            extra: "<div class=\"hours\"><p>Opening Hours: 8:00 AM – 5:00 PM</p><p>Open 7 days a week</p></div>",
             icon: ICONS.home, open: true, main: true
         },
         {

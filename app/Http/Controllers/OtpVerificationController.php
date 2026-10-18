@@ -12,14 +12,11 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class OtpVerificationController extends Controller
 {
-    /**
-     * Show the OTP verification form.
-     */
+    // Email verification code page.
     public function show()
     {
         $user = Auth::user();
 
-        // Already verified — go home
         if ($user->email_verified_at) {
             return redirect()->route('home');
         }
@@ -29,9 +26,7 @@ class OtpVerificationController extends Controller
         ]);
     }
 
-    /**
-     * Verify the submitted OTP.
-     */
+    // Checks the code the user entered.
     public function verify(Request $request)
     {
         $request->validate([
@@ -43,13 +38,11 @@ class OtpVerificationController extends Controller
 
         $user = Auth::user();
 
-        // Already verified
         if ($user->email_verified_at) {
             return redirect()->route('home');
         }
 
-        // Rate limit verification attempts so the 6-digit code can't be
-        // brute-forced (mirrors the forgot-password OTP flow).
+        // Limit wrong attempts so the code can't be guessed.
         $attemptKey = 'otp-verify:' . $user->id;
 
         if (RateLimiter::tooManyAttempts($attemptKey, 5)) {
@@ -60,7 +53,7 @@ class OtpVerificationController extends Controller
             ]);
         }
 
-        // Get the latest unused OTP for this user
+        // Latest unused code for this user.
         $otpRecord = EmailOtp::where('user_id', $user->id)
             ->whereNull('used_at')
             ->latest()
@@ -72,19 +65,16 @@ class OtpVerificationController extends Controller
             ]);
         }
 
-        // Check if expired
         if ($otpRecord->isExpired()) {
             return back()->withErrors([
                 'otp' => 'This verification code has expired. Please request a new one.',
             ]);
         }
 
-        // Verify OTP via hash comparison
         if (!Hash::check($request->otp, $otpRecord->otp)) {
             RateLimiter::hit($attemptKey, 900); // 15-minute window
 
-            // A code that has absorbed the maximum wrong guesses is burned,
-            // so the user must request a fresh one once the lockout ends.
+            // Too many wrong tries: the code is no longer usable.
             if (RateLimiter::tooManyAttempts($attemptKey, 5)) {
                 $otpRecord->markUsed();
             }
@@ -94,30 +84,25 @@ class OtpVerificationController extends Controller
             ]);
         }
 
-        // Mark OTP as used (single use)
         $otpRecord->markUsed();
         RateLimiter::clear($attemptKey);
 
-        // Mark email as verified
         $user->update(['email_verified_at' => now()]);
 
         return redirect()->route('home')
             ->with('success', 'Your email has been verified successfully!');
     }
 
-    /**
-     * Resend a new OTP (rate-limited).
-     */
+    // Sends a new code (rate-limited).
     public function resend(Request $request)
     {
         $user = Auth::user();
 
-        // Already verified
         if ($user->email_verified_at) {
             return redirect()->route('home');
         }
 
-        // Rate limit: max 3 OTP requests per 5 minutes per user
+        // Max 3 requests per 5 minutes.
         $rateLimitKey = 'otp-resend:' . $user->id;
 
         if (RateLimiter::tooManyAttempts($rateLimitKey, 3)) {
@@ -129,7 +114,7 @@ class OtpVerificationController extends Controller
             ]);
         }
 
-        // Cooldown: 60 seconds between consecutive requests
+        // Wait 60 seconds between requests.
         $cooldownKey = 'otp-cooldown:' . $user->id;
 
         if (RateLimiter::tooManyAttempts($cooldownKey, 1)) {
@@ -140,38 +125,32 @@ class OtpVerificationController extends Controller
             ]);
         }
 
-        // Invalidate all previous unused OTPs for this user
+        // Old unused codes stop working.
         EmailOtp::where('user_id', $user->id)
             ->whereNull('used_at')
             ->update(['used_at' => now()]);
 
-        // Generate and send new OTP
         self::generateAndSendOtp($user);
 
-        // Record rate-limit hits
         RateLimiter::hit($rateLimitKey, 300);  // 5-minute window
         RateLimiter::hit($cooldownKey, 60);    // 60-second cooldown
 
         return back()->with('message', 'A new verification code has been sent to your email.');
     }
 
-    /**
-     * Generate a 6-digit OTP, store its hash, and send the plaintext via email.
-     */
+    // Creates a 6-digit code, saves its hash and emails it.
     public static function generateAndSendOtp($user): bool
     {
-        // Generate cryptographically secure 6-digit code
         $plainOtp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        // Store hashed — never store plaintext in DB
+        // Only the hash is saved.
         EmailOtp::create([
             'user_id'    => $user->id,
             'otp'        => Hash::make($plainOtp),
             'expires_at' => now()->addMinutes(5),
         ]);
 
-        // Send via configured SMTP — wrapped in try-catch so registration
-        // still completes even if the email fails to deliver.
+        // Registration still works even if the email fails.
         try {
             Mail::to($user->email)->send(new EmailOtpMail($plainOtp, $user->name));
             return true;
@@ -181,9 +160,7 @@ class OtpVerificationController extends Controller
         }
     }
 
-    /**
-     * Mask an email address for display (e.g., p*************s@gmail.com).
-     */
+    // Hides most of an email address, e.g. p*****s@gmail.com.
     public static function maskEmail(string $email): string
     {
         $parts  = explode('@', $email);

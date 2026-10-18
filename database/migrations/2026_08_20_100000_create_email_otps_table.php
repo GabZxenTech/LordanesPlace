@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('email_otps', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('otp'); // Stored as bcrypt hash
+            $table->string('otp'); // Hashed code.
             $table->timestamp('expires_at');
             $table->timestamp('used_at')->nullable();
             $table->timestamps();

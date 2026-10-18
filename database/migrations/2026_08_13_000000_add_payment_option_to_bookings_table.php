@@ -6,12 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * A plain string (validated at the app layer via Booking::PAYMENT_OPTIONS)
-     * rather than a DB-level enum/CHECK constraint — adding a third payment
-     * option later is then a one-line change here instead of another
-     * constraint-rewrite migration.
-     */
+    // Payment option chosen by the customer (checked in the app).
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {

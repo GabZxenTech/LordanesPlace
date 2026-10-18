@@ -36,10 +36,7 @@ class Conversation extends Model
         return $this->hasMany(Message::class);
     }
 
-    /**
-     * Conversations with a customer/guest message the admin hasn't read yet
-     * (sent after admin_read_at, or never opened at all).
-     */
+    // Conversations with customer messages the admin has not read yet.
     public function scopeUnreadForAdmin(Builder $query): Builder
     {
         return $query->whereHas('messages', function ($q) {
@@ -51,7 +48,7 @@ class Conversation extends Model
         });
     }
 
-    /** Number of people (conversations) waiting for the admin to read them. */
+    // How many conversations are waiting for the admin.
     public static function unreadCountForAdmin(): int
     {
         return static::unreadForAdmin()->count();
@@ -62,7 +59,7 @@ class Conversation extends Model
         $this->forceFill(['admin_read_at' => now()])->save();
     }
 
-    /** An admin reply the customer/guest hasn't seen yet (red dot on the chat bubble). */
+    // True when the admin replied and the customer has not opened the chat yet.
     public function hasUnreadForCustomer(): bool
     {
         return $this->messages()

@@ -13,10 +13,7 @@ return new class extends Migration
             $table->string('room_number')->nullable()->after('package');
         });
 
-        // Postgres partial unique index: only one non-cancelled/rejected
-        // booking may hold a given room on a given date at a time. A backstop
-        // against a true concurrent double-submit, on top of the application
-        // check in BookingController::store().
+        // Only one active booking per room per date.
         if (Schema::getConnection()->getDriverName() === 'pgsql') {
             DB::statement(
                 "CREATE UNIQUE INDEX bookings_room_date_active_unique

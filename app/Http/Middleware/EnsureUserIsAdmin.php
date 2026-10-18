@@ -8,11 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserIsAdmin
 {
-    /**
-     * Admin pages are hidden from customers in the UI, but that alone doesn't
-     * stop a logged-in customer from sending the request directly — every
-     * /admin route must be gated by role on the server.
-     */
+    // Only admins can open /admin pages.
     public function handle(Request $request, Closure $next): Response
     {
         if (!$request->user() || $request->user()->role !== 'admin') {

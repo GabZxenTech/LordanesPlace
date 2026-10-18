@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
 {
-    /** How many of the latest notifications (read and unread) the bell dropdown shows. */
+    // How many notifications the bell dropdown shows.
     public const DROPDOWN_LIMIT = 8;
 
     protected $fillable = [

@@ -7,11 +7,7 @@ use Illuminate\Http\Request;
 
 class EmailChangeController extends Controller
 {
-    /**
-     * Handle a signed confirmation link sent to a user's NEW email address
-     * after an admin requested an email change for their account. The
-     * account only ever adopts the new address here — never at request time.
-     */
+    // Confirms an email change from the link sent to the new address.
     public function confirm(Request $request, User $user)
     {
         if (!$request->hasValidSignature()) {
@@ -32,8 +28,7 @@ class EmailChangeController extends Controller
             ]);
         }
 
-        // Guard against a race where the address was claimed by another
-        // account between the request being sent and this link being clicked.
+        // Stop if another account took this email in the meantime.
         if (User::where('id', '!=', $user->id)->where('email', $pendingEmail)->exists()) {
             $user->pending_email = null;
             $user->save();

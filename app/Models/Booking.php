@@ -6,31 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
-    /**
-     * Required down payment as a fraction of the total. Single source of truth —
-     * change it here and every calculation and label follows.
-     */
+    // Down payment rate (25%). Change it here and all calculations follow.
     public const DOWN_PAYMENT_RATE = 0.25;
 
-    /** The rate as a whole number, for labels like "Down Payment (25%)". */
+    // The rate as a whole number, e.g. 25.
     public static function downPaymentRatePercent(): int
     {
         return (int) round(self::DOWN_PAYMENT_RATE * 100);
     }
 
-    /** Down payment owed on a given total. */
+    // Down payment for a given total.
     public static function calculateDownPayment(float $total): float
     {
         return round($total * self::DOWN_PAYMENT_RATE, 2);
     }
 
-    /**
-     * The percentage THIS booking's down payment actually represents.
-     *
-     * Derived from the stored amounts rather than the current rate, so receipts
-     * for bookings made under an older rate keep showing the figure the customer
-     * was originally quoted.
-     */
+    // Down payment percent of this booking, based on its saved amounts.
     public function downPaymentPercent(): int
     {
         if (!$this->total_amount || $this->total_amount <= 0) {
@@ -43,7 +34,7 @@ class Booking extends Model
     public const PAYMENT_OPTION_FULL        = 'full_payment';
     public const PAYMENT_OPTION_DOWNPAYMENT = 'downpayment';
 
-    /** Every payment arrangement a customer may choose at booking time. */
+    // Payment choices a customer can pick when booking.
     public const PAYMENT_OPTIONS = [
         self::PAYMENT_OPTION_FULL,
         self::PAYMENT_OPTION_DOWNPAYMENT,
@@ -58,12 +49,7 @@ class Booking extends Model
         };
     }
 
-    /**
-     * Amount the customer is expected to pay upfront, purely a display/summary
-     * figure derived from the chosen payment option — this is an intent the
-     * customer selected, NOT a record of money actually received. Whether it
-     * was paid is still tracked separately by `payment_status`.
-     */
+    // Amount the customer chose to pay upfront (not money actually received).
     public function amountToPay(): float
     {
         return $this->payment_option === self::PAYMENT_OPTION_FULL
@@ -81,11 +67,7 @@ class Booking extends Model
         return $this->hasMany(Payment::class);
     }
 
-    /**
-     * Actual amount an admin has confirmed as received (sum of the payments
-     * ledger) — this is real money collected, never the customer's stated
-     * payment_option intent.
-     */
+    // Total money the admin has confirmed as received.
     public function amountPaid(): float
     {
         return (float) ($this->relationLoaded('payments')
@@ -93,33 +75,24 @@ class Booking extends Model
             : $this->payments()->sum('amount'));
     }
 
-    /** Actual outstanding balance based on confirmed payments. */
+    // What is still unpaid.
     public function remainingBalance(): float
     {
         return round((float) $this->total_amount - $this->amountPaid(), 2);
     }
 
-    /**
-     * True once at least one payment has been admin-confirmed. This is the
-     * single gate that decides whether the official receipt is available —
-     * selecting a payment option at booking time never satisfies it.
-     */
+    // True once the admin has recorded at least one payment.
     public function hasConfirmedPayment(): bool
     {
         return $this->amountPaid() > 0;
     }
 
-    /** A dead booking — nothing further (payment, receipt) should act on it. */
     public function isCancelledOrRejected(): bool
     {
         return in_array($this->status, [self::STATUS_CANCELLED, self::STATUS_REJECTED], true);
     }
 
-    /**
-     * "08:00 AM – 04:00 PM", with "(next day)" when the end time is not after
-     * the start (overnight packages, e.g. Night Swim 7:00 PM – 7:00 AM).
-     * Null while no schedule is set.
-     */
+    // Time range text, e.g. "07:00 PM – 07:00 AM (next day)". Null if not set.
     public function scheduleLabel(string $separator = ' – '): ?string
     {
         if (!$this->start_time || !$this->end_time) {
@@ -133,12 +106,7 @@ class Booking extends Model
             . ($end->format('H:i') <= $start->format('H:i') ? ' (next day)' : '');
     }
 
-    /**
-     * A customer may delete (hide) a booking from "My Reservations" when it
-     * didn't go ahead: cancelled or rejected, or its date passed without
-     * being completed. Completed bookings stay as the customer's history,
-     * and upcoming ones must be cancelled first.
-     */
+    // Customer can delete (hide) a booking that was cancelled, rejected or already past.
     public function customerCanDelete(): bool
     {
         if ($this->status === self::STATUS_COMPLETED) {
@@ -148,35 +116,24 @@ class Booking extends Model
         return $this->isCancelledOrRejected() || $this->event_date->lt(now()->startOfDay());
     }
 
-    /**
-     * Fixed physical room numbers behind each room-type package. Lives here
-     * as code (not a `rooms` table/model) since the list is static and not
-     * admin-editable — avoids a second, parallel room-booking system.
-     */
+    // Room numbers for each room package.
     public const ROOM_GROUPS = [
         'Standard Room'  => ['104', '304'],
         'Family Room'    => ['101', '102', '301', '302'],
         'Dormitory Room' => ['103', '303'],
     ];
 
-    /**
-     * Packages listed under "Swimming" in the booking form's package list.
-     * Every other non-room package (including new ones an admin adds) is
-     * listed under "Event".
-     */
+    // Packages shown under "Swimming". Other non-room packages are "Event".
     public const SWIM_PACKAGES = ['Day Swim', 'Night Swim', '22 Hours Overnight'];
 
-    /** Booking form "Occasion" choices (value => label). */
+    // Occasion choices in the booking form.
     public const OCCASIONS = [
         'swimming'   => 'Swimming',
         'staycation' => 'Staycation',
         'event'      => 'Event',
     ];
 
-    /**
-     * Which occasion a package belongs to: rooms are Staycation, the
-     * SWIM_PACKAGES are Swimming, everything else is an Event package.
-     */
+    // Which occasion a package belongs to.
     public static function occasionForPackage(string $package): string
     {
         if (static::isRoomPackage($package)) {
@@ -186,7 +143,7 @@ class Booking extends Model
         return in_array($package, self::SWIM_PACKAGES, true) ? 'swimming' : 'event';
     }
 
-    /** Photo for a package (same images as the Discover page; pool shot for swimming). */
+    // Photo used for a package.
     public static function packageImage(string $package): string
     {
         return asset('images/' . match ($package) {
@@ -208,18 +165,7 @@ class Booking extends Model
         return self::ROOM_GROUPS[$package] ?? [];
     }
 
-    /**
-     * A room is unavailable once ANY booking for it on that date is anything
-     * other than cancelled/rejected — including a still-pending request, not
-     * only an admin-approved one. Distinct from the venue-wide "one event per
-     * day" rule, which only blocks on 'approved' (see BookingController).
-     */
-    /**
-     * Next booking number for today: LDP-YYYYMMDD-XXXX. Continues from the
-     * highest number already issued today rather than counting today's
-     * rows — a count goes back down when a booking is deleted and would then
-     * hand out a number that's still in use.
-     */
+    // Next booking number for today: LDP-YYYYMMDD-XXXX.
     public static function nextBookingNumber(): string
     {
         $prefix = 'LDP-' . now()->format('Ymd') . '-';
@@ -243,11 +189,7 @@ class Booking extends Model
             ->exists();
     }
 
-    /**
-     * A non-room package (Swimming / Event) can be held by only one active
-     * booking per date — pending counts, so the first booking gets it — the
-     * same rule rooms follow per room. Other packages that day are unaffected.
-     */
+    // A non-room package can only have one active booking per date.
     public static function isPackageAvailable(string $package, string $date, ?int $excludeId = null): bool
     {
         return !static::where('package', $package)
@@ -258,7 +200,7 @@ class Booking extends Model
             ->exists();
     }
 
-    /** Whether this exact package (and room) is free on a date, ignoring this booking. */
+    // Whether this booking's package (and room) is free on another date.
     public function slotAvailableOn(string $date): bool
     {
         return $this->room_number
@@ -266,10 +208,7 @@ class Booking extends Model
             : static::isPackageAvailable($this->package, $date, $this->id);
     }
 
-    /**
-     * Availability of every room in every room-type package for one date,
-     * plus every non-room package under "_packages" (name => bool).
-     */
+    // Availability of every room and package on a date.
     public static function roomAvailabilityForDate(string $date): array
     {
         $result = [];
@@ -302,7 +241,6 @@ class Booking extends Model
     public const STATUS_CANCELLED = 'cancelled';
     public const STATUS_REJECTED  = 'rejected';
 
-    /** Every status the booking workflow recognises. */
     public const STATUSES = [
         self::STATUS_PENDING,
         self::STATUS_APPROVED,
@@ -312,12 +250,7 @@ class Booking extends Model
         self::STATUS_REJECTED,
     ];
 
-    /**
-     * Which statuses each status may move to. Anything not listed is an invalid
-     * transition; the three terminal states cannot move at all. A status is
-     * never allowed to transition to itself, which is what stops a repeated
-     * update from creating a duplicate notification.
-     */
+    // Allowed status changes. Final statuses cannot change.
     protected const TRANSITIONS = [
         self::STATUS_PENDING   => [self::STATUS_APPROVED, self::STATUS_REJECTED, self::STATUS_CANCELLED],
         self::STATUS_APPROVED  => [self::STATUS_ONGOING, self::STATUS_COMPLETED, self::STATUS_CANCELLED],
@@ -327,7 +260,7 @@ class Booking extends Model
         self::STATUS_REJECTED  => [],
     ];
 
-    /** Statuses this booking may legally move to right now. */
+    // Statuses this booking can move to now.
     public function allowedTransitions(): array
     {
         return self::TRANSITIONS[$this->status] ?? [];
@@ -338,13 +271,13 @@ class Booking extends Model
         return in_array($status, $this->allowedTransitions(), true);
     }
 
-    /** True once the booking has reached a state it can never leave. */
+    // True when the booking can no longer change status.
     public function hasFinalStatus(): bool
     {
         return $this->allowedTransitions() === [];
     }
 
-    /** Single source of truth for status badge colour across the whole system. */
+    // Badge colour for a status.
     public static function statusColor(?string $status): string
     {
         return match ($status) {
@@ -398,11 +331,7 @@ class Booking extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Includes visits the admin removed from the Visits list: removing only
-     * hides them there, so the customer still sees "Visit completed" and the
-     * auto-cancel check still counts a completed visit as done.
-     */
+    // Includes visits removed from the admin list (they are only hidden).
     public function visitSchedules()
     {
         return $this->hasMany(VisitSchedule::class)->withTrashed();

@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Lets an admin remove old visits from the Visit Schedules list without
-     * deleting the row (booking history keeps it). Existing rows are untouched.
-     */
+    // Lets the admin hide visits without deleting them.
     public function up(): void
     {
         Schema::table('visit_schedules', function (Blueprint $table) {

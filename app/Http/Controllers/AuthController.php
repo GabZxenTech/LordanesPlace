@@ -20,11 +20,7 @@ class AuthController extends Controller
         return view('signup');
     }
 
-    /**
-     * Blacklist of commonly used / easily guessable passwords, shared by
-     * every password-creation path (registration, OTP-based reset, and the
-     * existing admin-link reset) so the list never drifts out of sync.
-     */
+    // Common passwords that are not allowed.
     public static function commonPasswords(): array
     {
         return [
@@ -50,8 +46,7 @@ class AuthController extends Controller
 
         $request->validate([
             'name'     => 'required|string|max:255',
-            // Only a VERIFIED account counts as "taken" — an unverified signup
-            // (e.g. one whose OTP email never arrived) is replaced below.
+            // Only a verified account counts as taken.
             'email'    => [
                 'required',
                 'email:dns',
@@ -76,7 +71,6 @@ class AuthController extends Controller
             'password.not_in'    => 'This password is too common. Please choose a stronger password.',
         ]);
 
-        // reCAPTCHA verification
         $recaptcha = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret'   => config('services.recaptcha.secret_key'),
             'response' => $request->input('g-recaptcha-response'),
@@ -86,10 +80,7 @@ class AuthController extends Controller
             return back()->withErrors(['recaptcha' => 'Please complete the reCAPTCHA.'])->withInput();
         }
 
-        // Only after validation and reCAPTCHA pass: an unverified signup must
-        // never permanently squat on an email, so a fresh registration
-        // replaces it. Doing this earlier would let anyone wipe someone
-        // else's in-progress signup with a junk request.
+        // Replace an old unverified signup that used the same email.
         User::where('email', $request->input('email'))
             ->whereNull('email_verified_at')
             ->delete();
@@ -102,14 +93,14 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        // Generate and send OTP for email verification
+        // Send the email verification code.
         $sent = OtpVerificationController::generateAndSendOtp($user);
 
         return redirect()->route('otp.show')
             ->with($sent ? [] : ['email_warning' => 'We could not deliver the verification code to your email. Please make sure your email address is correct or try resending.']);
     }
 
-    // ==================== LOGIN ====================
+    // ---------- Login ----------
     public function showLogin()
     {
         return view('login');
@@ -126,7 +117,7 @@ class AuthController extends Controller
             'password.required' => 'Password is required.',
         ]);
 
-        // Rate limiting: max 5 failed attempts per minute (keyed by email + IP)
+        // Max 5 failed attempts per minute (per email + IP).
         $throttleKey = Str::lower($request->input('email')) . '|' . $request->ip();
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
@@ -137,7 +128,6 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
-        // reCAPTCHA verification
         $recaptcha = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret'   => config('services.recaptcha.secret_key'),
             'response' => $request->input('g-recaptcha-response'),
@@ -151,20 +141,19 @@ class AuthController extends Controller
         $remember    = $request->boolean('remember');
 
         if (Auth::attempt($credentials, $remember)) {
-            // Clear rate limiter on successful login
             RateLimiter::clear($throttleKey);
 
             $request->session()->regenerate();
 
-            // I-update ang last_active
+            // Update last active time.
             User::where('id', Auth::id())->update(['last_active' => now()]);
 
-            // Kung admin, redirect sa admin dashboard
+            // Admins go to the admin dashboard.
             if (Auth::user()->role === 'admin') {
                 return redirect()->route('admin.dashboard');
             }
 
-            // If email not verified, send OTP and redirect to verification
+            // Unverified email: send a code and go to verification.
             if (!Auth::user()->email_verified_at) {
                 $sent = OtpVerificationController::generateAndSendOtp(Auth::user());
                 return redirect()->route('otp.show')
@@ -174,7 +163,6 @@ class AuthController extends Controller
             return redirect()->route('home');
         }
 
-        // Record failed attempt for rate limiting
         RateLimiter::hit($throttleKey, 60);
 
         return back()->withErrors([
@@ -182,7 +170,7 @@ class AuthController extends Controller
         ])->onlyInput('email');
     }
 
-    // ==================== PASSWORD RESET ====================
+    // ---------- Password reset ----------
     public function showResetPasswordForm(Request $request, string $token)
     {
         return view('auth.reset-password', [
@@ -226,7 +214,7 @@ class AuthController extends Controller
         return back()->withErrors(['email' => __($status)])->onlyInput('email');
     }
 
-    // ==================== LOGOUT ====================
+    // ---------- Logout ----------
     public function logout(Request $request)
     {
         Auth::logout();
@@ -237,7 +225,7 @@ class AuthController extends Controller
         return redirect()->route('login');
     }
 
-    // ==================== GOOGLE AUTH ====================
+    // ---------- Google login ----------
     public function redirectToGoogle()
     {
         return Socialite::driver('google')->redirect();
@@ -251,7 +239,7 @@ class AuthController extends Controller
             $user = User::where('email', $googleUser->getEmail())->first();
 
             if ($user) {
-                // User exists, update google_id and avatar if empty
+                // Existing user: save the Google id and avatar if missing.
                 if (!$user->google_id) {
                     $user->update([
                         'google_id' => $googleUser->getId(),
@@ -259,7 +247,7 @@ class AuthController extends Controller
                     ]);
                 }
             } else {
-                // Create new user (not yet verified — OTP required)
+                // New user (still needs email verification).
                 $user = User::create([
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
@@ -276,7 +264,7 @@ class AuthController extends Controller
                 return redirect()->route('admin.dashboard');
             }
 
-            // If email not verified, send OTP and redirect to verification
+            // Unverified email: send a code and go to verification.
             if (!Auth::user()->email_verified_at) {
                 $sent = OtpVerificationController::generateAndSendOtp(Auth::user());
                 return redirect()->route('otp.show')

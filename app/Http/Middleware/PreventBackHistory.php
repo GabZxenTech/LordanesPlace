@@ -8,14 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PreventBackHistory
 {
-    /**
-     * Pages rendered for a logged-in user must not be stored by the browser.
-     * Otherwise, after logout, the Back button shows the cached page (name,
-     * bookings, admin panel) as if still signed in — the session is already
-     * gone server-side, but the page looks live to whoever uses the device
-     * next. no-store makes the browser re-request the page instead, which
-     * then redirects to login.
-     */
+    // Stops the browser from caching logged-in pages, so Back after logout doesn't show them.
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);

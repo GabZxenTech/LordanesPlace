@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <style>
-    /* Calendar-specific styles that are hard to replicate in pure Tailwind */
+    /* Calendar styles */
     .cal-day:hover:not(.unavailable):not(.past):not(.empty) { background: rgba(184,134,11,0.15); color: #B8860B; }
     .cal-day.selected { background: #B8860B; color: #fff; font-weight: 700; }
     .cal-day.in-range { background: #f1e3bf; color: #6b4d06; font-weight: 600; border-radius: 0; }
@@ -23,9 +23,7 @@
     .modal-overlay.open { display: flex; }
     .modal-box { animation: popIn 0.3s ease; }
 
-    /* Hide the number-input spin buttons (up/down arrows) — inline
-       -webkit-appearance:none on the input itself doesn't remove them;
-       Chrome/Safari/Edge only respect it on these pseudo-elements. */
+    /* Hide the arrows on number inputs */
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button {
       -webkit-appearance: none;
@@ -34,13 +32,10 @@
     input[type="number"] {
       -moz-appearance: textfield;
     }
-    /* A dropdown still showing its "Select …" prompt reads as a placeholder
-       (gray, like the text inputs' placeholders); real choices stay dark. */
+    /* Gray text while a dropdown still shows its "Select ..." prompt */
     select.is-placeholder { color: #9a8b74; }
     select option { color: #1a1208; }
-    /* A dropdown that doesn't apply right now (Event Type for Swimming/
-       Staycation, Package before an occasion is chosen) must look unusable,
-       not just ignore clicks. */
+    /* Disabled dropdowns look unusable */
     select:disabled {
       background-color: #e4dccb;
       border-color: #d6cab2;
@@ -64,7 +59,7 @@
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
       <div class="mb-3 flex justify-center text-gold-deep"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
       <h4 class="text-[12px] md:text-[15px] font-bold text-gold-deep tracking-[1px] mb-2">OPERATING HOURS</h4>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Open daily from 8:00 AM to 10:00 PM. Events must end by 10:00 PM.</p>
+      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Open daily from 8:00 AM to 5:00 PM</p>
     </div>
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
       <div class="mb-3 flex justify-center text-gold-deep"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
@@ -74,12 +69,12 @@
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
       <div class="mb-3 flex justify-center text-gold-deep"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
       <h4 class="text-[12px] md:text-[15px] font-bold text-gold-deep tracking-[1px] mb-2">CANCELLATION POLICY</h4>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Cancel at least 48 hours before your event for a refund. No-shows are non-refundable.</p>
+      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Reservation fees are non-refundable. Unpaid bookings and missed visit schedules are automatically cancelled, and no-shows on the event date forfeit the reservation fee.</p>
     </div>
     <div class="border border-gold-deep/25 rounded-lg p-5 md:p-6 text-center bg-off-white transition-all duration-300 hover:border-gold-deep hover:-translate-y-1">
       <div class="mb-3 flex justify-center text-gold-deep"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
       <h4 class="text-[12px] md:text-[15px] font-bold text-gold-deep tracking-[1px] mb-2">MAXIMUM CAPACITY</h4>
-      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Up to 200–250 guests. Packages available for small to large events.</p>
+      <p class="text-[15px] text-warm-black/90 font-normal leading-[1.7]">Up to 200–220 guests. Packages available for small to large events.</p>
     </div>
   </div>
 </section>
@@ -157,7 +152,7 @@
         <strong class="text-gold-deep">Swimming &amp; Staycation:</strong> click a start date, then a later end date to book several days in a row. Each day is charged separately.
       </p>
 
-      {{-- Blocked Date Alert Box --}}
+      {{-- Blocked date message --}}
       <div id="blockedDateAlert" class="hidden mt-6 bg-[#fde8e8] border border-[#e74c3c] rounded-xl p-5 flex gap-4 items-center animate-[popIn_0.3s_ease]">
           <div class="w-7 h-7 flex-shrink-0 bg-[#fa5252] rounded-full flex items-center justify-center">
             <div class="w-3.5 h-1 bg-white rounded-full"></div>
@@ -197,7 +192,7 @@
         <input type="hidden" name="event_date" id="eventDateInput" value="{{ old('event_date') }}" required />
         <input type="hidden" name="event_end_date" id="eventEndDateInput" value="{{ old('event_end_date') }}" />
         
-        {{-- Hidden data container for JS --}}
+        {{-- Data for the JavaScript --}}
         <div id="booking-data" class="hidden" 
              data-blocked-dates="{{ json_encode($blockedDates ?? []) }}"
              data-approved-dates="{{ json_encode($approvedDates ?? []) }}"
@@ -250,10 +245,7 @@
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
             <option value="" disabled {{ old('package') ? '' : 'selected' }} hidden id="packagePlaceholder">Select a package</option>
 
-            {{-- Non-room packages split into "Swimming" and "Event" groups;
-                 room-type packages are rendered separately below so they
-                 always stay grouped together at the bottom. A "+" after the
-                 price means a higher Saturday/Sunday rate applies. --}}
+            {{-- Package list grouped by Swimming, Event and Rooms ("+" = higher weekend price) --}}
             @php
               $nonRoomPackages = $packages->reject(fn ($p) => \App\Models\Booking::isRoomPackage($p->name));
               $packageGroups = [
@@ -318,7 +310,7 @@
           @error('guest_count') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
         </div>
 
-        {{-- Packages added with "+ Add to list" (same date). Filled by JS. --}}
+        {{-- Packages added with "+ Add to list" --}}
         <div id="bookingItemsBox" class="mb-4" style="display: none;">
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Your Packages <span class="font-normal text-warm-black/60">— same date</span></label>
           <div id="bookingItemsList" class="flex flex-col gap-2"></div>
@@ -374,12 +366,12 @@
             </div>
         </div>
 
-        {{-- Hidden terms checkbox (submitted with form; checked programmatically after modal agreement) --}}
+        {{-- Hidden terms checkbox that is submitted (checked after agreeing in the modal) --}}
         <input type="checkbox" name="terms" id="termsCheckbox" class="hidden" />
 
-        {{-- Visible Checkbox + Terms Label --}}
+        {{-- Terms checkbox and label --}}
         <div class="mb-6 flex items-start gap-3" id="termsAgreementArea">
-          {{-- Visible checkbox — clicking it opens the modal instead of checking directly --}}
+          {{-- Clicking it opens the terms modal --}}
           <input type="checkbox" id="termsVisibleCheckbox"
             class="mt-1 w-4 h-4 accent-gold-deep cursor-pointer flex-shrink-0" />
           <label for="termsVisibleCheckbox" class="text-[13.5px] text-warm-black/80 leading-relaxed cursor-pointer select-none">
@@ -410,7 +402,7 @@
   </div>
 </section>
 
-{{-- BOOKING SUMMARY — shown on "Confirm Booking"; its own Confirm button submits. Filled by JS. --}}
+{{-- Booking summary shown before the booking is sent --}}
 <div id="bookingSummaryModal" class="fixed inset-0 bg-black/70 z-[9999] items-center justify-center p-4" style="display: none;">
   <div class="bg-off-white border border-gold-deep/25 rounded-2xl max-w-[640px] w-full max-h-[90vh] flex flex-col overflow-hidden">
     <div class="px-6 md:px-8 pt-6 pb-4 border-b border-gold-deep/15">
@@ -438,9 +430,7 @@
   </div>
 </div>
 
-{{-- ============================================================ --}}
-{{-- TERMS & CONDITIONS MODAL --}}
-{{-- ============================================================ --}}
+{{-- Terms & Conditions modal --}}
 <div id="termsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:10000; align-items:center; justify-content:center; padding:16px;">
   <div style="background:#fff; border-radius:12px; width:100%; max-width:520px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
 
@@ -596,9 +586,7 @@
   </div>
 </div>
 
-{{-- ============================================================ --}}
-{{-- TERMS MODAL JAVASCRIPT --}}
-{{-- ============================================================ --}}
+{{-- Terms modal script --}}
 
 <script>
 (function() {
@@ -617,7 +605,6 @@
 
   // ── Open / close helpers ──────────────────────────────────────
   function openTermsModal() {
-    // Always reset scroll state when opening fresh
     termsScrolledToBottom = false;
     termsScrollHint.style.display = 'flex';
     termsScrollDone.style.display = 'none';
@@ -630,7 +617,6 @@
     termsConfirmBtn.style.opacity = '0.45';
     termsConfirmBtn.style.cursor = 'not-allowed';
 
-    // Reset scroll to top so user must scroll fresh
     termsScrollBody.scrollTop = 0;
 
     termsModal.style.removeProperty('display');
@@ -638,7 +624,7 @@
     termsModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 
-    // After a tick, check if no scroll needed (short content)
+    // Content may be short enough that no scrolling is needed.
     setTimeout(checkScrollPosition, 150);
   }
 
@@ -647,7 +633,7 @@
     termsModal.style.display = 'none';
     document.body.style.overflow = '';
 
-    // If user closed without agreeing, uncheck the visible checkbox
+    // Closed without agreeing: uncheck the checkbox.
     if (!termsAgreed) {
       termsVisibleChk.checked = false;
     }
@@ -656,7 +642,7 @@
   // ── Intercept visible checkbox click → open modal ─────────────
   termsVisibleChk.addEventListener('click', function(e) {
     if (termsAgreed) {
-      // Already agreed — allow unchecking which resets agreement
+      // Unchecking resets the agreement.
       if (!this.checked) {
         termsAgreed = false;
         termsCheckbox.checked = false;
@@ -664,7 +650,7 @@
       }
       return;
     }
-    // Prevent the checkbox from checking itself — modal must be completed first
+    // The modal must be completed first.
     e.preventDefault();
     openTermsModal();
   });
@@ -673,7 +659,7 @@
   function checkScrollPosition() {
     if (termsScrolledToBottom) return;
     const el = termsScrollBody;
-    // Within 10px of bottom counts as "reached end"
+    // Near the bottom counts as read.
     if (el.scrollHeight - el.scrollTop - el.clientHeight <= 10) {
       termsScrolledToBottom = true;
       termsScrollHint.style.display = 'none';
@@ -706,11 +692,10 @@
 
     termsAgreed = true;
 
-    // Auto-check the visible checkbox and the hidden submitted input
+    // Check both the visible and the submitted checkbox.
     termsVisibleChk.checked = true;
     termsCheckbox.checked   = true;
 
-    // Show "view again" link
     termsViewAgainWrap.classList.remove('hidden');
 
     closeTermsModal();
@@ -727,7 +712,6 @@
     openTermsModal();
   });
 
-  // Close on backdrop click
   termsModal.addEventListener('click', function(e) {
     if (e.target === termsModal) closeTermsModal();
   });
@@ -736,7 +720,7 @@
   document.getElementById('bookingForm').addEventListener('submit', function(e) {
     if (!termsCheckbox.checked) {
       e.preventDefault();
-      // Shake the checkbox area to draw attention
+      // Shake the checkbox area.
       const area = document.getElementById('termsAgreementArea');
       area.style.transition = 'transform 0.08s ease';
       let count = 0;
@@ -752,18 +736,14 @@
       return;
     }
 
-    // Show the Booking Summary first; its own Confirm button re-submits
-    // the form with bookingSummaryConfirmed set.
+    // Show the booking summary first; its Confirm button submits the form.
     if (!window.bookingSummaryConfirmed) {
       e.preventDefault();
       if (window.openBookingSummary) window.openBookingSummary();
       return;
     }
 
-    // Lock the button once the booking is actually being sent, so a
-    // double-click (or a second click on a slow connection) can't create a
-    // duplicate booking. A validation error reloads the page, which
-    // restores the button.
+    // Disable the button while sending to prevent duplicate bookings.
     const btn = document.getElementById('confirmBookingBtn');
     if (btn.disabled) {
       e.preventDefault();
@@ -872,19 +852,19 @@
 
                 if (!visitVal || !visitTimeVal) {
                     e.preventDefault();
-                    alert('Please select a visit schedule.');
+                    uiFieldError(!visitVal ? '#modal_visit_date_input' : '#visitModalForm select[name="visit_time"]', 'Please select a visit date and time.');
                     return;
                 }
 
                 if (visitVal < today) {
                     e.preventDefault();
-                    alert('The Site Visit date cannot be in the past.');
+                    uiFieldError('#modal_visit_date_input', 'The Site Visit date cannot be in the past.');
                     return;
                 }
 
                 if (eventVal && visitVal >= eventVal) {
                     e.preventDefault();
-                    alert('The Site Visit must be scheduled before your event date.');
+                    uiFieldError('#modal_visit_date_input', 'The Site Visit must be scheduled before your event date.');
                     return;
                 }
             });
@@ -923,7 +903,7 @@
   const bookingSuccess = dataEl.getAttribute('data-booking-success') === 'true';
   const visitSuccess = dataEl.getAttribute('data-visit-success') === 'true';
 
-  // Modal Initial Visibility
+  // Open the success modal after a booking.
   if (bookingSuccess) {
     const m = document.getElementById('successModal');
     m.style.display = 'flex';
@@ -938,7 +918,7 @@
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Event Type: show/hide "Others" text input
+  // Show the "Others" input when the event type is Others.
   const eventTypeSelect = document.getElementById('eventTypeSelect');
   const otherContainer = document.getElementById('otherEventTypeContainer');
   const otherInput = document.getElementById('eventTypeOther');
@@ -955,7 +935,6 @@
   }
 
   eventTypeSelect.addEventListener('change', toggleOtherEventType);
-  // Initialize on load (handles old() after validation failure)
   toggleOtherEventType();
 
   let currentDate = new Date();
@@ -966,11 +945,10 @@
   const roomUnavailableNotice = document.getElementById('roomUnavailableNotice');
   let selectedPackage = packageHiddenInput.value;
 
-  // Last day of a Swimming/Staycation date range (inclusive); null = one day.
+  // Last day of a date range (null = one day).
   let selectedEndDate = null;
 
-  // Packages added with "+ Add to list" for the selected date(s). Each entry
-  // keeps a reference to its <option> for label/price/description.
+  // Packages added with "+ Add to list".
   const bookingItems = [];
 
   function addDays(dateStr, n) {
@@ -979,7 +957,7 @@
     return formatDate(d);
   }
 
-  // Every booked day: selectedDate .. selectedEndDate (inclusive).
+  // Every selected day.
   function selectedDates() {
     if (!selectedDate) return [];
     const dates = [selectedDate];
@@ -998,13 +976,13 @@
     return selectedDates().some(isWeekend);
   }
 
-  // One day's price: the weekend rate on Saturday/Sunday when the package has one.
+  // Price for one day (weekend price on Sat/Sun if set).
   function dayPrice(option, dateStr) {
     const useWeekend = dateStr && isWeekend(dateStr) && option.dataset.weekendPrice;
     return parseFloat(useWeekend ? option.dataset.weekendPrice : option.dataset.price) || 0;
   }
 
-  // A package's price for the whole selection (each day paid separately).
+  // Price for all selected days.
   function optionPrice(option) {
     if (!option || !option.dataset.price) return 0;
     const dates = selectedDates();
@@ -1012,7 +990,7 @@
     return dates.reduce(function (sum, d) { return sum + dayPrice(option, d); }, 0);
   }
 
-  // Ranges are for Swimming/Staycation only — Events are a single day.
+  // Date ranges are only for Swimming/Staycation.
   function rangeAllowed() {
     const occasion = document.getElementById('occasionSelect');
     return !!occasion && (occasion.value === 'swimming' || occasion.value === 'staycation')
@@ -1043,9 +1021,7 @@
     syncDateInputs();
   }
 
-  // Total preview = every listed package + the package currently selected
-  // (which Confirm Booking also includes). Display only — the server
-  // computes the real totals from the package records.
+  // Total preview of the listed packages plus the current selection (the server calculates the real total).
   function applyPackagePrice() {
     const option = packageSelectEl.options[packageSelectEl.selectedIndex];
     const pending = option && option.dataset.price ? option : null;
@@ -1112,8 +1088,7 @@
 
     box.style.display = bookingItems.length ? '' : 'none';
 
-    // With packages already in the list, the selection fields may be left
-    // empty — they're only required when nothing has been added yet.
+    // Fields are optional once something is in the list.
     const hasList = bookingItems.length > 0;
     document.getElementById('occasionSelect').required = !hasList;
     packageSelectEl.required = !hasList;
@@ -1137,7 +1112,6 @@
       document.getElementById('guestCountInput').max = selectedOption.dataset.max;
       document.getElementById('guestCountInput').placeholder = "Max: " + selectedOption.dataset.max;
 
-      // Auto-fill total amount (weekend rate if the chosen date is Sat/Sun)
       applyPackagePrice();
     } else {
       document.getElementById('guestCountInput').removeAttribute('max');
@@ -1151,7 +1125,7 @@
     if (selectedDate) refreshRoomAvailability();
   });
 
-  // Dynamic Payment Option Summary (Full Payment vs. Downpayment)
+  // Payment summary (full payment or down payment).
   const DOWN_PAYMENT_RATE = {{ \App\Models\Booking::DOWN_PAYMENT_RATE }};
   const DOWN_PAYMENT_PERCENT = {{ \App\Models\Booking::downPaymentRatePercent() }};
   const totalAmountInput = document.getElementById('totalAmountInput');
@@ -1179,8 +1153,7 @@
       summaryAmountLabel.textContent = 'Amount to Pay:';
       summaryRemainingRow.style.display = 'none';
     } else {
-      // Default preview (downpayment) shown even before a choice is made, so
-      // the summary is never blank while the customer is still deciding.
+      // Show the down payment preview by default.
       amountToPay = Math.round(total * DOWN_PAYMENT_RATE * 100) / 100;
       remaining = Math.round((total - amountToPay) * 100) / 100;
       summaryAmountLabel.textContent = DOWN_PAYMENT_PERCENT + '% Downpayment Amount:';
@@ -1196,18 +1169,13 @@
   paymentOptionSelect.addEventListener('change', updateDownPayment);
   updateDownPayment();
 
-  // Dropdowns still on their "Select …" prompt are styled as placeholders.
-  // User changes are caught by the document listener (it runs after each
-  // field's own handler); programmatic resets call this directly.
+  // Gray style for dropdowns still on their prompt.
   function syncSelectPlaceholders() {
     document.querySelectorAll('select').forEach(function (s) { s.classList.toggle('is-placeholder', s.value === ''); });
   }
   document.addEventListener('change', syncSelectPlaceholders);
 
-  // ── Occasion: Swimming / Staycation / Event ─────────────────
-  // Only the chosen occasion's packages are offered, and Event Type is only
-  // used for Events (disabled for Swimming/Staycation). The server enforces
-  // the same package/occasion pairing.
+  // Occasion: only show that occasion's packages; Event Type is only for Events.
   const occasionSelect = document.getElementById('occasionSelect');
   const eventTypeHint = document.getElementById('eventTypeHint');
   const occasionLabels = { swimming: 'Swimming', staycation: 'Staycation', event: 'Event' };
@@ -1239,7 +1207,7 @@
       group.disabled = !show;
     });
 
-    // A package from another occasion can't stay selected.
+    // Clear a package that doesn't belong to the occasion.
     if (packageOccasion(packageSelectEl.options[packageSelectEl.selectedIndex]) !== occasion) {
       packageSelectEl.selectedIndex = 0;
       roomUnavailableNotice.style.display = 'none';
@@ -1253,11 +1221,10 @@
     checkSelectedDateForOccasion();
   });
 
-  // ── "+ Add to list": several packages for the same date ─────
+  // "+ Add to list": several packages for the same date.
   const guestCountInput = document.getElementById('guestCountInput');
 
-  // The package currently picked in the form, as a list item. Returns null
-  // when no package is picked, or { error } when it is incomplete.
+  // The package picked in the form (null if none, { error } if incomplete).
   function pendingSelection() {
     const option = packageSelectEl.options[packageSelectEl.selectedIndex];
     if (!option || !option.dataset.package) return null;
@@ -1269,17 +1236,17 @@
 
     if (occasion === 'event') {
       eventType = eventTypeSelect.value;
-      if (!eventType) return { error: 'Please select an event type for ' + name + '.' };
+      if (!eventType) return { error: 'Please select an event type for ' + name + '.', field: eventTypeSelect };
       if (eventType === 'Others') {
         eventTypeOther = otherInput.value.trim();
-        if (!eventTypeOther) return { error: 'Please specify the event type for ' + name + '.' };
+        if (!eventTypeOther) return { error: 'Please specify the event type for ' + name + '.', field: otherInput };
       }
     }
 
     const guests = parseInt(guestCountInput.value, 10);
     const max = parseInt(option.dataset.max, 10);
-    if (!guests || guests < 1) return { error: 'Please enter the number of guests for ' + name + '.' };
-    if (max && guests > max) return { error: 'Guest count exceeds the maximum allowed for ' + name + ' (Max: ' + max + ').' };
+    if (!guests || guests < 1) return { error: 'Please enter the number of guests for ' + name + '.', field: guestCountInput };
+    if (max && guests > max) return { error: 'Guest count exceeds the maximum allowed for ' + name + ' (Max: ' + max + ').', field: guestCountInput };
 
     return { item: {
       occasion: occasion,
@@ -1292,7 +1259,7 @@
     } };
   }
 
-  // Same rules the server enforces: no duplicates, one Event per day.
+  // Same rules as the server: no duplicates, one Event per day.
   function cannotAdd(item, list) {
     if (item.occasion !== 'staycation' && selectedDates().some(function (d) { return approvedDates.includes(d); })) {
       return EVENT_DAY_ROOMS_ONLY;
@@ -1322,21 +1289,21 @@
   }
 
   document.getElementById('addToListBtn').addEventListener('click', function () {
-    if (!selectedDate) { alert('Please select an event date first.'); return; }
+    if (!selectedDate) { uiFieldError('#calGrid', 'Please select an event date first.'); return; }
 
     const picked = pendingSelection();
-    if (!picked) { alert('Please select a package to add.'); return; }
-    if (picked.error) { alert(picked.error); return; }
+    if (!picked) { uiFieldError(packageSelectEl, 'Please select a package to add.'); return; }
+    if (picked.error) { uiFieldError(picked.field, picked.error); return; }
 
     const problem = cannotAdd(picked.item, bookingItems);
-    if (problem) { alert(problem); return; }
+    if (problem) { uiFieldError(packageSelectEl, problem); return; }
 
     bookingItems.push(picked.item);
     resetSelection();
     applyPackagePrice();
   });
 
-  // ── Booking Summary (opened by the form's submit guard) ─────
+  // Booking summary.
   const summaryModal = document.getElementById('bookingSummaryModal');
 
   function addHiddenInput(container, name, value) {
@@ -1348,20 +1315,20 @@
   }
 
   window.openBookingSummary = function () {
-    if (!selectedDate) { alert('Please select an event date.'); return; }
+    if (!selectedDate) { uiFieldError('#calGrid', 'Please select an event date.'); return; }
 
-    // Confirm Booking also books the package currently selected in the form.
+    // Also include the package currently selected in the form.
     const items = bookingItems.slice();
     const picked = pendingSelection();
-    if (picked && picked.error) { alert(picked.error); return; }
+    if (picked && picked.error) { uiFieldError(picked.field, picked.error); return; }
     if (picked) {
       const problem = cannotAdd(picked.item, items);
-      if (problem) { alert(problem); return; }
+      if (problem) { uiFieldError(packageSelectEl, problem); return; }
       items.push(picked.item);
     }
-    if (!items.length) { alert('Please select at least one package.'); return; }
+    if (!items.length) { uiFieldError(packageSelectEl, 'Please select at least one package.'); return; }
 
-    // What actually gets submitted: one items[] entry per package.
+    // One items[] entry per package.
     const inputs = document.getElementById('itemsInputs');
     inputs.innerHTML = '';
     items.forEach(function (item, i) {
@@ -1373,7 +1340,7 @@
       addHiddenInput(inputs, 'items[' + i + '][guest_count]', item.guests);
     });
 
-    // Summary content (textContent only — package text is admin-entered).
+    // Fill the summary (textContent keeps admin-entered text safe).
     document.getElementById('summaryDate').textContent = selectionLabel().replace('Selected: ', '');
     const list = document.getElementById('summaryItems');
     list.innerHTML = '';
@@ -1435,8 +1402,7 @@
     document.getElementById('bookingForm').requestSubmit(document.getElementById('confirmBookingBtn'));
   });
 
-  // If the browser blocks the submit (a required field is empty), go back to
-  // the form so the customer can see the message, and reset the summary.
+  // If a required field is empty, go back to the form.
   document.getElementById('bookingForm').addEventListener('invalid', function () {
     if (!window.bookingSummaryConfirmed) return;
     window.bookingSummaryConfirmed = false;
@@ -1449,31 +1415,24 @@
   const packageFromUrl = urlParams.get('package');
   let oldPackage = selectedPackage;
   if (packageFromUrl) {
-    // Room-type packages no longer have a plain option matching the package
-    // name alone (e.g. "Family Room") — fall back to the first room option
-    // under that package's optgroup so links like Discover's "BOOK NOW"
-    // (?package=Family Room) still land on a selectable option.
+    // Pre-select a package from the URL (e.g. Discover's "Book Now").
     const directMatch = Array.from(packageSelectEl.options).find(opt => opt.value === packageFromUrl);
     const roomMatch = Array.from(packageSelectEl.options).find(opt => opt.dataset.package === packageFromUrl);
     const match = directMatch || roomMatch;
     if (match) {
       packageSelectEl.value = match.value;
       oldPackage = packageFromUrl;
-      // Pick the occasion that package belongs to (e.g. Discover's "Book Now").
       if (packageOccasion(match)) occasionSelect.value = packageOccasion(match);
     }
   }
   if (oldPackage) {
     packageSelectEl.dispatchEvent(new Event('change'));
   }
-  // Set up Event Type / package filtering for the current occasion (also
-  // restores the state after a validation-failure reload).
+  // Set up the form for the current occasion.
   applyOccasion();
   syncSelectPlaceholders();
 
-  // After a validation-failure reload, rebuild the submitted package list.
-  // The last entry there was the in-form selection, so clear the form's
-  // own fields to avoid showing it twice.
+  // After a failed submit, rebuild the package list.
   const oldItems = JSON.parse(dataEl.getAttribute('data-old-items') || '[]');
   if (Array.isArray(oldItems) && oldItems.length) {
     oldItems.forEach(function (old) {
@@ -1504,17 +1463,14 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
-  // A day that already has an approved event is still open for rooms: true
-  // while the customer is booking Staycation only (current occasion and
-  // everything in their list). Swimming/Event keep the one-event-per-day rule.
+  // True when only rooms are being booked (rooms are allowed on event days).
   function roomsOnly() {
     const occasion = document.getElementById('occasionSelect');
     return !!occasion && occasion.value === 'staycation'
       && bookingItems.every(function (item) { return item.occasion === 'staycation'; });
   }
 
-  // Unavailable = admin-blocked dates (always) + days with an approved event
-  // (not when booking rooms only).
+  // Unavailable days: blocked dates and approved event days (unless booking rooms only).
   function getUnavailableDates() {
     const blockedDateStrings = Object.keys(blockedDates);
     return roomsOnly() ? blockedDateStrings : [...blockedDateStrings, ...approvedDates];
@@ -1536,9 +1492,7 @@
     renderCalendar();
   }
 
-  // Called when the occasion or the package list changes: a range only
-  // stays for Swimming/Staycation, and an event day picked for Staycation
-  // can't stay selected once Swimming/Event is involved.
+  // Keep the date selection valid when the occasion or packages change.
   function checkSelectedDateForOccasion() {
     if (selectedEndDate && !rangeAllowed()) {
       selectedEndDate = null;
@@ -1585,7 +1539,7 @@
         div.classList.add('past');
       } else if (unavailables.includes(dateStr)) {
         div.classList.add('unavailable');
-        // Click listener to show reason for unavailability
+        // Show why a day is unavailable.
         div.addEventListener('click', () => {
           showBlockedReason(dateStr);
         });
@@ -1604,7 +1558,6 @@
   }
 
   function showBlockedReason(dateStr) {
-    // Determine the reason: blocked by admin or reserved by approved booking
     let reason;
     if (blockedDates[dateStr]) {
       reason = blockedDates[dateStr];
@@ -1616,9 +1569,7 @@
     clearSelection(reason);
   }
 
-  // Re-check every room's availability for ALL selected days and annotate/
-  // disable the matching <option>s — a room must be free on every day of a
-  // range. Called on date change AND package change.
+  // Check room and package availability for all selected days and update the options.
   function refreshRoomAvailability() {
     const dates = selectedDates();
     if (!dates.length) return;
@@ -1632,8 +1583,7 @@
         Array.from(packageSelectEl.options).forEach(opt => {
           if (!opt.dataset.package) return;
 
-          // Rooms: free per room. Other packages: one booking per package per
-          // day (the endpoint's "_packages" map) — the first booking holds it.
+          // Free for every selected day.
           const available = results.every(function (data) {
             if (!opt.dataset.roomType) {
               return !data._packages || data._packages[opt.dataset.package] !== false;
@@ -1643,7 +1593,6 @@
           });
 
           if (!opt.dataset.roomType) {
-            // Non-room options keep their price label; only mark them when taken.
             if (!opt.dataset.label) opt.dataset.label = opt.textContent.trim();
             opt.disabled = !available;
             opt.textContent = opt.dataset.label + (available ? '' : (dates.length > 1 ? ' — BOOKED ON SOME DAYS' : ' — BOOKED'));
@@ -1667,21 +1616,16 @@
         }
       })
       .catch(() => {
-        // Silently fail — backend validation at submit time still catches it
+        // Ignore errors; the server checks again on submit.
       });
   }
 
-  // Annotate rooms immediately if a date/package survived a validation-failure reload
   if (selectedDate) refreshRoomAvailability();
 
   function selectDate(dateStr, el) {
-    // Hide blocked alert if it was showing
     document.getElementById('blockedDateAlert').classList.add('hidden');
 
-    // A second click on a later day ends a range (Swimming/Staycation only).
-    // Every day in between must be available.
-    // A range that would cross an unavailable day isn't allowed — the click
-    // then starts a new selection at that day instead (with a message).
+    // A second click on a later day makes a range (Swimming/Staycation only, all days must be free).
     let rangeProblem = null;
     if (rangeAllowed() && selectedDate && !selectedEndDate && dateStr > selectedDate) {
       const unavailables = getUnavailableDates();
@@ -1701,7 +1645,7 @@
       }
     }
 
-    // Otherwise this click starts a new selection (a single day so far).
+    // Otherwise start a new selection.
     selectedDate = dateStr;
     selectedEndDate = null;
     syncDateInputs();
@@ -1710,13 +1654,12 @@
     renderCalendar();
     if (rangeProblem) showDateMessage(rangeProblem);
 
-    // Real-time AJAX validation: double-check with the server
+    // Double-check the date with the server.
     fetch(checkDateUrl + '?date=' + dateStr + (roomsOnly() ? '&rooms_only=1' : ''))
       .then(res => res.json())
       .then(data => {
         if (!data.available && selectedDate === dateStr) {
-          // Date became unavailable (e.g., just approved by admin).
-          // Add to local approved dates so the calendar re-renders correctly.
+          // The date was just taken; update the calendar.
           if (!approvedDates.includes(dateStr)) {
             approvedDates.push(dateStr);
           }
@@ -1724,13 +1667,13 @@
         }
       })
       .catch(() => {
-        // Silently fail — backend validation will still catch it
+        // Ignore errors; the server checks again on submit.
       });
   }
 
   function changeMonth(dir) {
     const nextDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + dir, 1);
-    // Prevent navigating before the current month
+    // Can't go before the current month.
     if (dir < 0 && (nextDate.getFullYear() < today.getFullYear() || (nextDate.getFullYear() === today.getFullYear() && nextDate.getMonth() < today.getMonth()))) return;
     currentDate = nextDate;
     renderCalendar();

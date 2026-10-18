@@ -16,10 +16,7 @@
     .pkg-desc-toggle:hover { text-decoration: underline; }
     .pkg-desc-wrap.is-long .pkg-desc-toggle { display: inline-block; }
 
-    /* The 7-column table needs ~1000px. Below ~1600px wide there isn't room
-       for it beside the Add form, so stack the form above and give the
-       table the full width; the form's fields then sit side by side so it
-       stays short. */
+    /* On narrower screens the form goes above the table */
     @media (max-width: 1599px) {
       .pkg-layout { grid-template-columns: 1fr !important; }
       .pkg-add-form { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-flow: dense; column-gap: 16px; }
@@ -231,7 +228,7 @@
                       </button>
 
                       {{-- Delete form --}}
-                      <form method="POST" action="{{ route('admin.packages.destroy', $pkg->id) }}" onsubmit="return confirm('Delete this package?');" style="margin: 0;">
+                      <form method="POST" action="{{ route('admin.packages.destroy', $pkg->id) }}" data-confirm="Delete this package?" style="margin: 0;">
                         @csrf @method('DELETE')
                         <button type="submit"
                           id="delete-btn-{{ $pkg->id }}"
@@ -278,8 +275,7 @@
       btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     }
 
-    // Only offer the toggle when the text is actually cut off. Re-checked
-    // whenever the table changes width (window resize, sidebar hide/show).
+    // Show "See more" only when the text is cut off (re-checked on resize).
     function markLongPkgDescriptions() {
       document.querySelectorAll('.pkg-desc-wrap').forEach(function (wrap) {
         const desc = wrap.querySelector('.pkg-desc');

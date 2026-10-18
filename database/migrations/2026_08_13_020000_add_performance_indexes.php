@@ -6,13 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Indexes for columns actually filtered/sorted on by the app (confirmed
-     * via grep, not guessed). Postgres does not auto-index foreign key
-     * columns the way some other databases do, so payments.booking_id and
-     * visit_schedules.booking_id were genuinely missing an index despite
-     * being queried on every booking row.
-     */
+    // Indexes for columns the app filters and sorts on.
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {

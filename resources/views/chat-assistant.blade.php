@@ -285,8 +285,7 @@
     return div.innerHTML;
   }
 
-  // `trusted` is only for the hard-coded bot replies above (which contain a
-  // link); anything typed by a user or admin is escaped before formatting.
+  // Only the built-in bot replies are trusted HTML; user and admin text is escaped.
   function addMessage(type, text, trusted = false) {
     const messages = document.getElementById('chatMessages');
     const div = document.createElement('div');
@@ -307,9 +306,7 @@
     }, 500);
   }
 
-  // Ids of messages already on screen. The history load, the 3-second poll
-  // and re-opening the chat can fetch the same new message at the same time;
-  // each one is shown only once.
+  // Messages already shown, so the same message is never added twice.
   const shownMessageIds = new Set();
 
   function rememberMessage(msg) {
@@ -346,16 +343,15 @@
         rememberMessage(res.message);
       } else {
         console.error("Chat send failed:", res.error);
-        alert("Chat Send Error: " + res.error);
+        uiToast(res.error || "Message could not be sent. Please try again.");
       }
     }).fail(function(xhr) {
       console.error("Chat POST failed:", xhr.responseText);
-      alert("Network/Server Error: " + xhr.status + " " + xhr.statusText);
+      uiToast(xhr.status === 429 ? "You are sending messages too fast. Please wait a moment." : "Message could not be sent. Please check your connection and try again.");
     });
   }
 
-  // Red dot on the bubble when the admin replied and the chat is closed.
-  // Opening the chat loads the messages, which marks them read on the server.
+  // Red dot on the chat bubble when the admin replied and the chat is closed.
   function setChatUnread(on) {
     document.getElementById('chatToggleBtn').classList.toggle('has-unread', !!on);
   }
@@ -386,3 +382,4 @@
 
   setInterval(pollMessages, 3000);
 </script>
+@include('partials._ui-feedback')

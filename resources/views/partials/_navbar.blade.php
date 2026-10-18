@@ -1,6 +1,6 @@
 <!-- HEADER / NAVBAR -->
 <style>
-  /* Bell dropdown: unread notifications are bold (like unread chats); read ones stay listed. */
+  /* Bell dropdown: unread notifications are bold */
   .nav-notif-item.is-unread { background: rgba(184,134,11,0.10); }
   .nav-notif-title { font-weight: 500; }
   .nav-notif-item.is-unread .nav-notif-title { font-weight: 700; }
@@ -165,9 +165,7 @@
 
 <script>
   @auth
-  // Backup for PreventBackHistory: if the browser still restores this page
-  // from its back/forward cache (e.g. after logout + Back), reload it so the
-  // server decides — a logged-out user then gets the guest/login view.
+  // Reload pages restored by the Back button so a logged-out user goes to login.
   window.addEventListener('pageshow', function (e) {
     if (e.persisted) window.location.reload();
   });
@@ -274,10 +272,7 @@
     }, 'DELETE');
   }
 
-  // ---- Notification bell: pick up new notifications without a reload ----
-  // Polls every 10s while the tab is visible. The list HTML is rendered
-  // server-side by the same Blade partial as the initial page, so it's
-  // escaped and looks identical.
+  // Check for new notifications every 10 seconds.
   (function () {
     const menu = document.getElementById('navNotifMenu');
     if (!menu || !menu.dataset.pollUrl) return;
@@ -323,3 +318,5 @@
     }
   }
 </script>
+
+@include('partials._ui-feedback')

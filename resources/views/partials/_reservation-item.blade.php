@@ -1,5 +1,4 @@
-{{-- One reservation's details + money/actions columns. Used for single
-     tickets and inside a same-date group on the profile page. --}}
+{{-- One reservation: details, payment and actions --}}
 @php
   $isDead = $booking->isCancelledOrRejected();
   $paid = $booking->amountPaid();

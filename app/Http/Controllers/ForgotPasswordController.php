@@ -14,13 +14,10 @@ use Illuminate\Support\Str;
 
 class ForgotPasswordController extends Controller
 {
-    /**
-     * Generic response shown regardless of whether the email belongs to an
-     * account — never reveal account existence.
-     */
+    // Same message whether or not the email has an account.
     private const GENERIC_SENT_MESSAGE = 'If an account exists for this email address, a verification code has been sent.';
 
-    // ==================== STEP 1: REQUEST CODE ====================
+    // ---------- Step 1: request a code ----------
 
     public function showEmailForm()
     {
@@ -38,17 +35,14 @@ class ForgotPasswordController extends Controller
 
         $email = Str::lower($request->input('email'));
 
-        // Rate limit by email + IP so this endpoint can't be used to spam a
-        // victim's inbox or enumerate accounts by timing.
+        // Rate limit by email + IP to stop spam.
         $throttleKey = 'pwreset-send:' . $email . '|' . $request->ip();
         $cooldownKey = 'pwreset-cooldown:' . $email;
 
         $tooManyRequests = RateLimiter::tooManyAttempts($throttleKey, 3);
         $inCooldown = RateLimiter::tooManyAttempts($cooldownKey, 1);
 
-        // Always remember which email we're verifying, and always land on
-        // the same verify-code screen with the same generic message —
-        // whether the account exists, was just rate-limited, or not.
+        // Always show the same next screen and message.
         session(['password_reset_email' => $email]);
 
         if (!$tooManyRequests && !$inCooldown) {
@@ -67,7 +61,7 @@ class ForgotPasswordController extends Controller
             ->with('message', self::GENERIC_SENT_MESSAGE);
     }
 
-    // ==================== STEP 2: VERIFY CODE ====================
+    // ---------- Step 2: verify the code ----------
 
     public function showVerifyForm()
     {
@@ -97,7 +91,7 @@ class ForgotPasswordController extends Controller
             'otp.size'     => 'The verification code must be exactly 6 digits.',
         ]);
 
-        // Rate limit verification attempts so the 6-digit code can't be brute-forced.
+        // Limit wrong attempts so the code can't be guessed.
         $attemptKey = 'pwreset-attempt:' . $email;
 
         if (RateLimiter::tooManyAttempts($attemptKey, 5)) {
@@ -128,7 +122,7 @@ class ForgotPasswordController extends Controller
             ]);
         }
 
-        // Correct code — single use, and grant access to the reset form.
+        // Correct code: use it up and allow the password reset.
         $otpRecord->markUsed();
         RateLimiter::clear($attemptKey);
 
@@ -179,7 +173,7 @@ class ForgotPasswordController extends Controller
         return back()->with('message', self::GENERIC_SENT_MESSAGE);
     }
 
-    // ==================== STEP 3: RESET PASSWORD ====================
+    // ---------- Step 3: set the new password ----------
 
     public function showResetForm()
     {
@@ -204,8 +198,7 @@ class ForgotPasswordController extends Controller
 
         $user = User::where('email', $email)->first();
 
-        // The verified session should always map to a real account, but if
-        // it doesn't (e.g. the account was deleted mid-flow), don't proceed.
+        // Stop if the account no longer exists.
         if (!$user) {
             session()->forget('password_reset_verified_email');
             return redirect()->route('password.request');
@@ -231,8 +224,7 @@ class ForgotPasswordController extends Controller
             'password' => Hash::make($request->input('password')),
         ])->save();
 
-        // Invalidate every OTP for this email and the whole reset session —
-        // the code and this reset session can never be reused.
+        // Make all codes and this reset session unusable.
         PasswordResetOtp::where('email', $email)->whereNull('used_at')->update(['used_at' => now()]);
         session()->forget(['password_reset_email', 'password_reset_verified_email']);
 
@@ -240,7 +232,7 @@ class ForgotPasswordController extends Controller
             ->with('success', 'Your password has been reset successfully. You can now log in using your new password.');
     }
 
-    // ==================== HELPERS ====================
+    // ---------- Helpers ----------
 
     private static function invalidatePreviousCodes(string $email): void
     {

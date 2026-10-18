@@ -7,11 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * When the customer/guest last read their conversation, so admin replies
-     * after that count as unread (the red dot on the chat bubble). Existing
-     * conversations start as read, so only replies from now on show the dot.
-     */
+    // When the customer last read their conversation (existing ones start as read).
     public function up(): void
     {
         Schema::table('conversations', function (Blueprint $table) {

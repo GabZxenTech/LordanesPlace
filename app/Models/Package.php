@@ -18,10 +18,7 @@ class Package extends Model
         'end_time',
     ];
 
-    /**
-     * Price for an event on the given date: the weekend rate on Saturday and
-     * Sunday when the package has one, otherwise the regular price.
-     */
+    // Price for a date: weekend price on Saturday/Sunday if set, otherwise the regular price.
     public function priceForDate($date): float
     {
         if ($this->weekend_price !== null && Carbon::parse($date)->isWeekend()) {

@@ -20,7 +20,6 @@ Route::get('/tour', function () {
     return view('tour');
 })->name('tour');
 
-
 Route::get('/discover', function () {
     return view('discover');
 })->name('discover');
@@ -29,7 +28,7 @@ Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
 
-// Forgot Password — email-verification-code flow (self-service).
+// Forgot password (email code).
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showEmailForm'])->name('password.request');
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendCode'])->name('password.otp.send');
 Route::get('/forgot-password/verify', [ForgotPasswordController::class, 'showVerifyForm'])->name('password.otp.verify.show');
@@ -38,15 +37,11 @@ Route::post('/forgot-password/resend', [ForgotPasswordController::class, 'resend
 Route::get('/forgot-password/reset', [ForgotPasswordController::class, 'showResetForm'])->name('password.otp.reset.show');
 Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'submitReset'])->name('password.otp.reset');
 
-// Password reset (links are only ever sent by an admin from the user
-// management panel — a separate, token-based flow that is unrelated to the
-// self-service email flow above and must not be affected by it).
+// Password reset link sent by an admin.
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
-// Confirmation link for an admin-initiated email change, sent to the NEW
-// address. Must stay outside 'auth' — the person clicking it is the target
-// user, not necessarily logged in. Integrity is enforced by the signature.
+// Email change confirmation link (works without login, protected by signature).
 Route::get('/confirm-email-change/{user}', [EmailChangeController::class, 'confirm'])->name('email-change.confirm');
 
 // Login
@@ -64,14 +59,12 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
-// OTP Email Verification (authenticated but possibly unverified)
+// Email verification code (logged in, not yet verified).
 Route::middleware(['auth'])->group(function () {
     Route::get('/verify-otp', [OtpVerificationController::class, 'show'])->name('otp.show');
     Route::post('/verify-otp', [OtpVerificationController::class, 'verify'])->name('otp.verify');
     Route::post('/resend-otp', [OtpVerificationController::class, 'resend'])->name('otp.resend');
 });
-
-
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
@@ -81,7 +74,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/users/{id}/send-password-reset', [AdminController::class, 'sendPasswordReset'])->name('users.send-password-reset');
 });
 
-// Booking routes (require verified email)
+// Customer pages (verified email required).
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/booking', [BookingController::class, 'index'])->name('booking');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
@@ -105,7 +98,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Cancel own booking (client)
     Route::post('/booking/{id}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
 
-    // Delete a finished booking from "My Reservations" (hidden for the customer only)
+    // Customer hides a finished booking.
     Route::post('/booking/{id}/delete', [BookingController::class, 'deleteForCustomer'])->name('booking.delete');
 
     // Notifications (client)
@@ -120,7 +113,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ReportController;
 
-// Admin schedule routes
+// Admin pages.
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/schedule', [BlockedDateController::class, 'index'])->name('schedule');
     Route::post('/block-date', [BlockedDateController::class, 'store'])->name('block.date');
@@ -161,7 +154,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/reschedule/{id}/approve', [BlockedDateController::class, 'approveReschedule'])->name('reschedule.approve');
     Route::post('/reschedule/{id}/reject', [BlockedDateController::class, 'rejectReschedule'])->name('reschedule.reject');
 
-    // Chat Admin routes
+    // Admin chat.
     Route::get('/chat', [App\Http\Controllers\ChatController::class, 'adminConversations'])->name('chat.index');
     Route::get('/chat/json', [App\Http\Controllers\ChatController::class, 'adminConversationsJson'])->name('chat.json');
     Route::get('/chat/{id}', [App\Http\Controllers\ChatController::class, 'adminOpenChat'])->name('chat.open');
@@ -175,8 +168,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/reports/export-excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
 });
 
-// Chat Client routes
-// Open to guests, so throttled per user/IP to stop message flooding.
+// Customer/guest chat (sending is rate-limited).
 Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'send'])->middleware('throttle:20,1')->name('chat.send');
 Route::get('/chat/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
 Route::get('/chat/unread', [App\Http\Controllers\ChatController::class, 'unread'])->name('chat.unread');

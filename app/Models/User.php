@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,38 +9,19 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected $fillable = [
         'name',
         'email',
         'pending_email',
         'password',
-        // 'role' is intentionally NOT mass-assignable, so no request payload
-        // can ever promote an account to admin. Set it with forceFill().
+        // 'role' is not mass-assignable so users can't make themselves admin.
         'last_active',
         'is_online',
         'google_id',
@@ -68,10 +48,7 @@ class User extends Authenticatable
         return $this->hasMany(EmailOtp::class);
     }
 
-    /**
-     * Send a branded password-reset email instead of Laravel's default
-     * notification mail, matching the rest of the app's transactional emails.
-     */
+    // Sends our own styled password-reset email.
     public function sendPasswordResetNotification($token): void
     {
         $url = url(route('password.reset', [

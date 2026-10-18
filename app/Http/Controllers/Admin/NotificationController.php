@@ -9,16 +9,13 @@ use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
-    /**
-     * Base query scoped to the logged-in admin, so one admin can never act on
-     * another admin's notification rows.
-     */
+    // The logged-in admin's notifications only.
     protected function scoped()
     {
         return Notification::forRecipient('admin', Auth::id());
     }
 
-    // Full notification history with All / Unread / Read filtering
+    // All notifications with All / Unread / Read filter.
     public function index(Request $request)
     {
         $filter = $request->query('filter', 'all');
@@ -41,13 +38,10 @@ class NotificationController extends Controller
         return view('admin.notifications', compact('notifications', 'filter', 'unreadCount'));
     }
 
-    // Bell polling: unread count + the latest notifications (read and unread), rendered with the same
-    // partial the sidebar uses on page load (so it's escaped and identical).
+    // Bell polling: unread count and the latest notifications.
     public function poll()
     {
-        // No cron on the host: keep automatic rules (overdue visits -> missed,
-        // unpaid past-due bookings) current while anyone is on the site.
-        // Throttled to once a minute site-wide.
+        // Run the automatic booking rules (at most once a minute).
         \App\Services\BookingAutoCancelService::runThrottled();
 
         $unreadCount = $this->scoped()->unread()->count();
@@ -55,7 +49,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'unread_count' => $unreadCount,
-            // People whose chat messages the admin hasn't read (Chat badge).
+            // Chat badge count.
             'unread_chats' => \App\Models\Conversation::unreadCountForAdmin(),
             'ids' => $notifications->map(fn ($n) => $n->id . ($n->is_read ? 'r' : 'u')),
             'html' => $notifications
@@ -64,7 +58,7 @@ class NotificationController extends Controller
         ]);
     }
 
-    // Mark a single notification as read (AJAX-aware so the bell can update live)
+    // Mark one notification as read.
     public function markRead(Request $request, $id)
     {
         $notification = $this->scoped()->findOrFail($id);
@@ -83,7 +77,7 @@ class NotificationController extends Controller
         return back();
     }
 
-    // Mark every unread notification as read
+    // Mark all as read.
     public function markAllRead(Request $request)
     {
         $this->scoped()->unread()->update(['is_read' => true]);
@@ -95,7 +89,7 @@ class NotificationController extends Controller
         return back();
     }
 
-    // Delete a single notification
+    // Delete one notification.
     public function destroy(Request $request, $id)
     {
         $notification = $this->scoped()->findOrFail($id);
@@ -111,7 +105,7 @@ class NotificationController extends Controller
         return back()->with('success', 'Notification deleted.');
     }
 
-    // Mark as read, then jump to the related booking on the schedule board
+    // Mark as read and open the related booking.
     public function open($id)
     {
         $notification = $this->scoped()->findOrFail($id);

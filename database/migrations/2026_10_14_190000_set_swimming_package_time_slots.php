@@ -5,13 +5,7 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    /**
-     * Fixed time slots for the swimming packages (admins can still change
-     * them on the Packages page). Only packages whose time is still unset are
-     * filled. Their active bookings (pending / approved / ongoing) that have
-     * no time yet get the same slot; a time an admin already assigned is
-     * left as it is. An end time earlier than the start means the next day.
-     */
+    // Fixed time slots for swimming packages and their active bookings (only where empty).
     private const SLOTS = [
         'Day Swim'           => ['08:00:00', '16:00:00'],
         'Night Swim'         => ['19:00:00', '07:00:00'],
@@ -38,7 +32,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Data fill only — nothing to undo safely (admins may have edited the
-        // times since).
+        // Data fill only; nothing to undo.
     }
 };

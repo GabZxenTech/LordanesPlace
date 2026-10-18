@@ -84,16 +84,17 @@
 
       if (visitDate < today) {
         e.preventDefault();
-        alert('The Site Visit date cannot be in the past.');
+        uiFieldError('#visit_date_input', 'The Site Visit date cannot be in the past.');
         return;
       }
 
       if (visitDate >= eventDate) {
         e.preventDefault();
-        alert('The Site Visit must be scheduled before your event date.');
+        uiFieldError('#visit_date_input', 'The Site Visit must be scheduled before your event date.');
         return;
       }
     });
   </script>
+@include('partials._ui-feedback')
 </body>
 </html>

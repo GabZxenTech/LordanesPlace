@@ -9,29 +9,16 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        // Pin every absolute URL (route(), url(), signed links used by password
-        // reset and the admin email-change confirmation) to APP_URL instead of
-        // the current request's Host header. Without this, a link generated
-        // while an admin is browsing the panel via http://localhost/... gets
-        // "localhost" baked into it — which is meaningless to the customer's
-        // device receiving that link in an email.
+        // All generated links use APP_URL (so emailed links never say "localhost").
         \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
 
-        // Laravel has no built-in Mailjet driver; wire Symfony's API transport
-        // so MAIL_MAILER=mailjet sends over HTTPS rather than blocked SMTP.
+        // Mailjet email driver (MAIL_MAILER=mailjet).
         \Illuminate\Support\Facades\Mail::extend('mailjet', function () {
             return (new \Symfony\Component\Mailer\Bridge\Mailjet\Transport\MailjetTransportFactory())->create(
                 new \Symfony\Component\Mailer\Transport\Dsn(
@@ -43,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
-        // Brevo over its HTTPS API, selected with MAIL_MAILER=brevo.
+        // Brevo email driver (MAIL_MAILER=brevo).
         \Illuminate\Support\Facades\Mail::extend('brevo', function () {
             return (new \Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory())->create(
                 new \Symfony\Component\Mailer\Transport\Dsn(
@@ -58,9 +45,7 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-        // Dropdowns show the latest notifications, read and unread (unread ones
-        // are bold); the badge counts unread only. Full history lives on the
-        // dedicated "View All Notifications" page.
+        // Latest notifications for the bell dropdown and the unread count.
         View::composer('partials._navbar', function ($view) {
             $notifications = collect();
             $unreadCount = 0;
@@ -87,7 +72,7 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('adminNotifications', $notifications);
             $view->with('adminUnreadCount', $unreadCount);
-            // People whose chat messages the admin hasn't read yet (Chat badge).
+            // Chat badge count.
             $view->with('adminUnreadChats', Auth::check() && Auth::user()->role === 'admin' ? \App\Models\Conversation::unreadCountForAdmin() : 0);
         });
     }

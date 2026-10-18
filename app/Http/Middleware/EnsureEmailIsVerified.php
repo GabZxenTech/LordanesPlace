@@ -12,17 +12,17 @@ class EnsureEmailIsVerified
     {
         $user = $request->user();
 
-        // Not authenticated — let the auth middleware handle it
+        // Not logged in: the auth middleware handles it.
         if (!$user) {
             return $next($request);
         }
 
-        // Admin users bypass email verification
+        // Admins skip email verification.
         if ($user->role === 'admin') {
             return $next($request);
         }
 
-        // Redirect unverified users to OTP page
+        // Unverified users go to the verification page.
         if (!$user->email_verified_at) {
             return redirect()->route('otp.show');
         }

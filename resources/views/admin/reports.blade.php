@@ -233,7 +233,7 @@
       <p style="font-size: 12px; letter-spacing: 3px; color: #8a6a40; text-transform: uppercase; font-weight: 600; margin: 0;">Generate booking and revenue reports</p>
     </div>
 
-    {{-- ═══════════ FILTER CARD ═══════════ --}}
+    {{-- Filter card --}}
     <div class="no-print" style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 28px; margin-bottom: 32px;">
       <h2 style="font-size: 13px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0 0 20px;">Generate Report</h2>
 
@@ -305,7 +305,7 @@
       </form>
     </div>
 
-    {{-- ═══════════ REPORT RESULTS ═══════════ --}}
+    {{-- Report results --}}
     @isset($bookings)
 
       {{-- Period Label --}}
@@ -428,7 +428,7 @@
 
   </main>
 
-  {{-- ═══════════ JAVASCRIPT ═══════════ --}}
+  {{-- Scripts --}}
   <script>
     // ── Toggle filter fields based on report type ──
     function toggleFilters() {

@@ -92,9 +92,7 @@
           </thead>
           <tbody data-list-rows="admin-visits">
             @php
-              // Bookings made together (a date range or several packages share a
-              // booking_group) each have a visit at the same time — show them as
-              // one row; the actions apply to the whole group.
+              // Bookings made together share one visit row.
               $visitRows = $visits->groupBy(fn ($v) => $v->booking && $v->booking->booking_group
                   ? $v->booking->booking_group . '|' . $v->visit_date->format('YmdHi') . '|' . $v->status
                   : 'v' . $v->id);
@@ -103,8 +101,7 @@
               @php
                 $visit = $rowVisits->first();
                 $rowBookings = $rowVisits->pluck('booking')->sortBy('event_date')->values();
-                // Every visit is in its own status tab; open visits that are
-                // still ahead are also under "Upcoming".
+                // Tabs this row belongs to (open future visits are also "Upcoming").
                 $visitTabs = [$visit->status];
                 if (in_array($visit->status, \App\Models\VisitSchedule::OPEN_STATUSES, true) && $visit->visit_date->gte(now())) $visitTabs[] = 'upcoming';
               @endphp
@@ -140,8 +137,7 @@
                     {{ $visit->status }}
                   </span>
                   @if($visit->status === 'missed' && $visit->booking && !$visit->booking->hasFinalStatus())
-                    {{-- Required-visit policy: the booking is cancelled if this
-                         is still missed one day after the visit time. --}}
+                    {{-- The booking is cancelled if still missed one day after the visit --}}
                     <div style="font-size: 10px; color: #c0392b; margin-top: 4px; max-width: 150px; line-height: 1.3;">Booking auto-cancels {{ $visit->visit_date->copy()->addDay()->format('M d, h:i A') }} unless completed or rescheduled</div>
                   @endif
                 </td>
@@ -305,13 +301,13 @@
 
       if (selectedDate < today) {
         e.preventDefault();
-        alert('The Site Visit date cannot be in the past.');
+        uiFieldError('#visit_date_input', 'The Site Visit date cannot be in the past.');
         return;
       }
 
       if (eventDate && selectedDate >= eventDate) {
         e.preventDefault();
-        alert('The Site Visit must be scheduled before your event date.');
+        uiFieldError('#visit_date_input', 'The Site Visit must be scheduled before the event date.');
         return;
       }
     });

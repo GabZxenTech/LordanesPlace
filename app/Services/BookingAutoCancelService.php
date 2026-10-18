@@ -7,25 +7,11 @@ use App\Models\VisitSchedule;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
-/**
- * The two automatic-cancellation rules that don't originate from a customer
- * or admin action: an unpaid booking whose event day has arrived, and a
- * required venue visit the customer never attended. Both route through
- * BookingStatusService::transition() so they get exactly the same
- * status-change notification a manual cancellation would.
- *
- * Called from a scheduled Artisan command (bookings:auto-cancel) AND
- * opportunistically from the pages admins/customers actually load (profile,
- * admin schedule) — this app has no cron running in production, so relying
- * on the schedule alone would mean these rules silently never fire.
- */
+// Automatic rules: cancel unpaid bookings on their event day and handle missed visits.
+// Runs from page loads (there is no cron in production) and the bookings:auto-cancel command.
 class BookingAutoCancelService
 {
-    /**
-     * How long a missed visit can stay missed before its booking is
-     * cancelled — the admin's window to mark it completed (the customer did
-     * come) or reschedule it.
-     */
+    // Days a missed visit waits before its booking is cancelled.
     protected const VISIT_MISSED_GRACE_DAYS = 1;
 
     public static function run(): void
@@ -34,10 +20,7 @@ class BookingAutoCancelService
         static::cancelMissedVisits();
     }
 
-    /**
-     * A booking whose event date has arrived (today or already passed) with
-     * zero confirmed payment has no reason to keep holding that date.
-     */
+    // Cancels bookings with no payment once their event date arrives.
     public static function cancelUnpaidPastDue(): int
     {
         $count = 0;
@@ -63,18 +46,7 @@ class BookingAutoCancelService
         return $count;
     }
 
-    /**
-     * Required venue visits that never happened:
-     *  1. An open visit (pending / confirmed / rescheduled) whose scheduled
-     *     date and time have passed is marked "missed" right away. Completed
-     *     visits are never touched, and a rescheduled visit only counts once
-     *     its new time has passed.
-     *  2. A visit still "missed" VISIT_MISSED_GRACE_DAYS after its time — the
-     *     admin had that window to mark it completed or reschedule it — cancels
-     *     its booking, per the required-visit policy.
-     * Only rows that actually need a change are queried, so repeated sweeps
-     * don't rewrite anything.
-     */
+    // Marks overdue visits as missed, then cancels the booking if still missed after the grace days.
     public static function cancelMissedVisits(): int
     {
         VisitSchedule::whereIn('status', VisitSchedule::OPEN_STATUSES)
@@ -94,8 +66,7 @@ class BookingAutoCancelService
         foreach ($visits as $visit) {
             $booking = $visit->booking;
 
-            // A later visit for the same booking (e.g. rebooked after the miss)
-            // that is still open or completed means the customer is on track.
+            // Skip if the booking has another open or completed visit.
             $hasActiveVisit = $booking->visitSchedules()
                 ->where('id', '!=', $visit->id)
                 ->whereIn('status', array_merge(VisitSchedule::OPEN_STATUSES, [VisitSchedule::STATUS_COMPLETED]))
@@ -116,12 +87,7 @@ class BookingAutoCancelService
         return $count;
     }
 
-    /**
-     * run(), at most once per minute site-wide — for callers that fire often
-     * (the 10-second notification bell polling) so overdue visits and unpaid
-     * bookings are swept while anyone is using the site, without re-running
-     * the queries on every poll. No cron is needed for this path.
-     */
+    // Runs run() at most once a minute (used by page loads and polling).
     public static function runThrottled(): void
     {
         if (!Cache::add('bookings:auto-sweep', true, 60)) {
@@ -131,7 +97,7 @@ class BookingAutoCancelService
         try {
             static::run();
         } catch (\Throwable $e) {
-            // Never let a sweep failure break the request that triggered it.
+            // A failure here must not break the page.
             Log::error('Booking auto-sweep failed: ' . $e->getMessage());
         }
     }

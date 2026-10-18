@@ -223,8 +223,7 @@
                       <div style="position: relative;">
                         <button type="button" class="action-menu-btn" style="background: #2c1a0e; color: #c9a84c; width: 28px; height: 28px; border-radius: 4px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" data-id="{{ $booking->id }}">⋮</button>
                         <div id="menu-{{ $booking->id }}" style="display: none; position: absolute; right: 0; top: 100%; background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 50; min-width: 140px; margin-top: 5px;">
-                          {{-- Actions are driven by the model's transition map, so the menu
-                               can never offer a status change the server would reject. --}}
+                          {{-- Only actions the booking's status allows --}}
                           @if($booking->canTransitionTo('approved'))
                             <button type="button"
                               style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #28a745; font-weight: 600; cursor: pointer;"
@@ -294,7 +293,7 @@
                           @if(!$booking->isCancelledOrRejected() && $booking->hasConfirmedPayment())
                             <a href="{{ route('booking.receipt', $booking->id) }}" target="_blank" style="display: block; width: 100%; text-align: left; padding: 10px 16px; font-size: 13px; color: #2c1a0e; font-weight: 600; text-decoration: none; box-sizing: border-box;" onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'">View / Print Receipt</a>
                           @endif
-                          <form method="POST" action="{{ route('admin.booking.destroy', $booking->id) }}" onsubmit="return confirm('Delete this booking?')">
+                          <form method="POST" action="{{ route('admin.booking.destroy', $booking->id) }}" data-confirm="Delete this booking?">
                             @csrf @method('DELETE')
                             <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e74c3c; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Delete</button>
                           </form>
@@ -673,8 +672,7 @@
       return { adj, total, paid, dp, remaining: pmRound(total - paid) };
     }
 
-    // Live update of the banner. When the price changes, the pre-filled
-    // amount follows it (unless the admin is typing a partial amount).
+    // Updates the numbers at the top while typing; the amount follows the new price.
     function refreshPaymentBreakdown(priceChanged) {
       const f = paymentFigures();
       const type = document.getElementById('pm_type').value;
@@ -797,7 +795,7 @@
       document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
     });
 
-    // Close any open dropdown when the table is scrolled (dropdown would float away otherwise)
+    // Close open dropdowns when the table scrolls.
     document.addEventListener('scroll', () => {
       document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
     }, true);

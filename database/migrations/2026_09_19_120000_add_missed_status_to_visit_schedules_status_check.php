@@ -6,12 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Postgres implements Laravel's enum() as a CHECK constraint (same pattern
-     * as 2026_08_06_140100_add_new_statuses_to_bookings_status_check.php).
-     * Adds 'missed' so a required venue visit that was never attended can be
-     * recorded distinctly from 'pending'/'confirmed'/'rescheduled'/'completed'.
-     */
+    // Adds the "missed" visit status.
     public function up(): void
     {
         if (Schema::getConnection()->getDriverName() === 'pgsql') {

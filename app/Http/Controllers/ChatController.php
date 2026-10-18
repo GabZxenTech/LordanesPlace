@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class ChatController extends Controller
 {
-    /**
-     * User sends a message
-     */
+    // Customer or guest sends a message.
     public function send(Request $request)
     {
         $request->validate([
@@ -47,16 +45,13 @@ class ChatController extends Controller
 
             return response()->json(['success' => true, 'message' => $message]);
         } catch (\Exception $e) {
-            // Details stay in the server log; the client only gets a generic
-            // message so internal errors (SQL, paths) are never exposed.
+            // Log the real error; show a generic message to the user.
             \Log::error("Chat send error: " . $e->getMessage());
             return response()->json(['success' => false, 'error' => 'Message could not be sent. Please try again.'], 500);
         }
     }
 
-    /**
-     * Admin sends a reply
-     */
+    // Admin sends a reply.
     public function adminReply(Request $request)
     {
         $request->validate([
@@ -73,15 +68,13 @@ class ChatController extends Controller
             'body' => $request->message,
         ]);
 
-        // Replying means the admin has read the conversation.
+        // Replying marks the conversation as read.
         Conversation::find($request->conversation_id)->forceFill(['last_message_at' => now(), 'admin_read_at' => now()])->save();
 
         return response()->json(['success' => true, 'message' => $message]);
     }
 
-    /**
-     * Get messages for a conversation (polling)
-     */
+    // Messages for the customer's chat window (polling).
     public function getMessages(Request $request)
     {
         $conversation = $this->currentConversation();
@@ -90,8 +83,7 @@ class ChatController extends Controller
             return response()->json(['messages' => []]);
         }
 
-        // Only the open chat window asks for messages, so the customer has
-        // now seen the admin's replies (clears the red dot on the bubble).
+        // The chat is open, so the admin's replies are now read.
         $conversation->markReadByCustomer();
 
         $lastId = $request->query('last_id', 0);
@@ -102,10 +94,7 @@ class ChatController extends Controller
         return response()->json(['messages' => $messages]);
     }
 
-    /**
-     * Whether the admin replied since the customer/guest last opened the
-     * chat; the closed chat bubble polls this to show its red dot.
-     */
+    // Whether the admin has a reply the customer hasn't seen (red dot on the chat bubble).
     public function unread()
     {
         $conversation = $this->currentConversation();
@@ -113,7 +102,7 @@ class ChatController extends Controller
         return response()->json(['unread' => $conversation ? $conversation->hasUnreadForCustomer() : false]);
     }
 
-    /** The conversation of the logged-in user, or of this guest's session. */
+    // The logged-in user's conversation, or the guest's (by session).
     private function currentConversation(): ?Conversation
     {
         return Auth::id()
@@ -121,16 +110,14 @@ class ChatController extends Controller
             : Conversation::where('session_id', session()->getId())->first();
     }
 
-    /**
-     * Admin: Get all conversations
-     */
+    // Admin: list of conversations.
     public function adminConversations()
     {
         $conversations = Conversation::with(['user', 'messages' => function($q) {
             $q->latest()->limit(1);
         }])->orderBy('last_message_at', 'desc')->get();
 
-        // Which conversations have messages the admin hasn't read yet.
+        // Conversations with unread messages.
         $unreadIds = Conversation::unreadForAdmin()->pluck('id')->all();
 
         return view('admin.chat', compact('conversations', 'unreadIds'));
@@ -145,26 +132,18 @@ class ChatController extends Controller
         return response()->json(['conversations' => $conversations]);
     }
 
-    /**
-     * Admin: Open a specific conversation
-     */
+    // Admin: open a conversation (marks it as read).
     public function adminOpenChat($id)
     {
         $conversation = Conversation::findOrFail($id);
 
-        // Opening (and the 5-second refresh while it stays open) counts as
-        // read, which clears it from the unread badge.
         $conversation->markReadByAdmin();
 
         $messages = Message::where('conversation_id', $conversation->id)->get();
         return response()->json(['messages' => $messages, 'unread_chats' => Conversation::unreadCountForAdmin()]);
     }
 
-    /**
-     * Admin: permanently delete the selected conversations and all their
-     * messages. The customer's chat history goes with it; if they message
-     * again, a new conversation is started.
-     */
+    // Admin: permanently delete the selected conversations and their messages.
     public function adminDeleteConversations(Request $request)
     {
         $data = $request->validate([
@@ -184,9 +163,7 @@ class ChatController extends Controller
         ]);
     }
 
-    /**
-     * Admin: Toggle online status
-     */
+    // Admin: toggle online status.
     public function toggleStatus()
     {
         $user = Auth::user();
@@ -200,12 +177,9 @@ class ChatController extends Controller
         return response()->json(['success' => true, 'is_online' => $user->is_online]);
     }
 
-    /**
-     * Client: Check admin status
-     */
+    // Whether an admin is online.
     public function getAdminStatus()
     {
-        // Assuming the first admin is the one we track, or any admin online
         $isOnline = User::where('role', 'admin')->where('is_online', true)->exists();
         return response()->json(['is_online' => $isOnline]);
     }

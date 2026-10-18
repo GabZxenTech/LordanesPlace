@@ -65,14 +65,17 @@
         Where Every Moment <br>Becomes a <span class="italic text-gold-deep">Masterpiece</span>
       </h2>
       <p class="text-[15px] md:text-[16px] font-normal leading-[1.85] text-warm-black/90 mb-4">
-        LorDane's Place is more than a venue — it is an experience crafted
-        for those who believe that life's greatest moments deserve the
-        finest settings. Located in Pulong Buhangin, Santa Maria, Bulacan,
-        we have been hosting unforgettable celebrations since 2024.
+        LorDane Events Place, located in Pulong Buhangin, Santa Maria, Bulacan,
+        started offering event services in 2021 under the name Golden Tag Events
+        Productions. In 2023, the owner, Ms. Loriedane Tabor, established
+        LorDane Events Place and began building it, and it has been hosting
+        celebrations since 2024.
       </p>
       <p class="text-[15px] md:text-[16px] font-normal leading-[1.85] text-warm-black/90 mb-4">
-        From intimate gatherings to grand celebrations, our team is dedicated
-        to making every event truly special — with in-house catering, elegant
+        Today, it is an event venue that also offers room and swimming services
+        and accommodates gatherings from intimate to grand celebrations. It aims
+        to provide an experience for clients who believe that life’s greatest
+        moments deserve the finest settings, with in-house catering, elegant
         décor, and professional event services all in one place.
       </p>
       <div class="mt-7 md:mt-9 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">

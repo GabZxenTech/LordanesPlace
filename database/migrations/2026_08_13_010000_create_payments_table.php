@@ -7,12 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * A ledger of admin-confirmed payments. This is the source of truth for
-     * "how much has actually been paid" — payment_status on bookings is a
-     * derived cache recomputed from this table by PaymentService, never
-     * written to directly.
-     */
+    // Payments recorded by the admin. The total paid is always calculated from this table.
     public function up(): void
     {
         Schema::create('payments', function (Blueprint $table) {
@@ -24,10 +19,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Bookings already marked partially/fully paid under the old system had
-        // no ledger of what was actually collected — only the payment_status
-        // string. Backfill one payment row per booking from what the admin had
-        // already confirmed, so those customers don't lose receipt access.
+        // Create payment rows for bookings already marked as paid before this table existed.
         $alreadyPaid = DB::table('bookings')
             ->where('payment_status', '!=', 'unpaid')
             ->whereNotNull('down_payment_amount')

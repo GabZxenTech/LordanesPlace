@@ -19,9 +19,7 @@ RUN apk add --no-cache \
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql pdo_pgsql pgsql zip intl gd opcache
 
-# OPcache: keep compiled PHP in memory instead of recompiling every file on
-# every request. The code never changes inside a running container (each
-# deploy builds a new image), so timestamp checks are switched off.
+# OPcache: keeps compiled PHP in memory (code never changes inside the container).
 RUN printf 'opcache.enable=1\n\
 opcache.memory_consumption=128\n\
 opcache.interned_strings_buffer=16\n\
@@ -85,11 +83,10 @@ stdout_logfile_maxbytes=0\n\
 stderr_logfile=/dev/stderr\n\
 stderr_logfile_maxbytes=0\n' > /etc/supervisord.conf
 
-# Build-time caches (these don't depend on env vars)
+# Build-time caches.
 RUN php artisan route:cache && php artisan view:cache && php artisan event:cache
 
-# Start script — config:cache MUST run here (at runtime) because Render
-# injects environment variables only when the container starts, not during build.
+# Start script. config:cache runs here because Render only sets env vars at startup.
 RUN printf '#!/bin/sh\n\
 php artisan config:cache\n\
 php artisan migrate --force\n\

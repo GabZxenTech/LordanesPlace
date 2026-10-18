@@ -18,20 +18,13 @@ use PhpOffice\PhpSpreadsheet\Style\Color;
 
 class ReportController extends Controller
 {
-    /**
-     * Show the reports page with filter form (empty state).
-     */
+    // Reports page with the filter form.
     public function index()
     {
         return view('admin.reports');
     }
 
-    /**
-     * Generate a report based on filter parameters.
-     */
-    /**
-     * Generate a report based on filter parameters.
-     */
+    // Builds a report for the selected period.
     public function generate(Request $request)
     {
         $request->validate([
@@ -43,17 +36,15 @@ class ReportController extends Controller
             'end_date'    => 'required_if:report_type,custom|nullable|date|after_or_equal:start_date',
         ]);
 
-        // Determine date range
         [$startDate, $endDate] = $this->resolveDateRange($request);
 
-        // Query bookings in the period (by event_date) from real database.
-        // 'payments' is eager-loaded for revenueOf(), which sums the ledger.
+        // Bookings in the period, with their payments.
         $bookings = Booking::with(['user', 'payments'])
             ->whereBetween('event_date', [$startDate, $endDate])
             ->orderBy('event_date', 'asc')
             ->get();
 
-        // Summary calculations
+        // Summary numbers.
         $totalBookings = $bookings->count();
 
         $totalRevenue = $this->totalRevenue($bookings);
@@ -62,7 +53,7 @@ class ReportController extends Controller
             ->whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
             ->count();
 
-        // Counts both rejected and customer/admin cancelled bookings.
+        // Rejected and cancelled bookings.
         $cancellations = $bookings->filter(function ($b) {
             return in_array($b->status, [Booking::STATUS_CANCELLED, Booking::STATUS_REJECTED], true)
                 || !is_null($b->reschedule_status);
@@ -75,19 +66,16 @@ class ReportController extends Controller
             'cancellations'   => $cancellations,
         ];
 
-        // Chart data
         $chartData = $this->buildChartData($bookings, $startDate->copy(), $endDate->copy(), $request->report_type);
 
-        // Preserve filter inputs for re-rendering
+        // Keep the filter values for the form.
         $filters = $request->only(['report_type', 'week_start', 'month', 'year', 'start_date', 'end_date']);
         $filters['period_label'] = $this->buildPeriodLabel($startDate, $endDate, $request->report_type);
 
         return view('admin.reports', compact('bookings', 'summary', 'chartData', 'filters'));
     }
 
-    /**
-     * Export bookings table as premium Excel (.xlsx) file.
-     */
+    // Exports the bookings table as an Excel file.
     public function exportExcel(Request $request)
     {
         [$startDate, $endDate] = $this->resolveDateRange($request);
@@ -103,10 +91,9 @@ class ReportController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Report');
 
-        // Style base defaults
         $spreadsheet->getDefaultStyle()->getFont()->setName('Segoe UI')->setSize(11);
 
-        // 1. Premium Title Rows
+        // Title rows.
         $sheet->setCellValue('A1', "LorDane's Place — Report");
         $sheet->mergeCells('A1:F1');
         $sheet->getStyle('A1')->getFont()->setSize(16)->setBold(true)->setColor(new Color('2C1A0E'));
@@ -119,10 +106,9 @@ class ReportController extends Controller
         $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
         $sheet->getRowDimension(2)->setRowHeight(22);
 
-        // Empty separator row
         $sheet->getRowDimension(3)->setRowHeight(15);
 
-        // 2. Table Headers (Row 4)
+        // Table headers.
         $headers = ['Date', 'Customer Name', 'Package', 'Amount', 'Payment Status', 'Booking Status'];
         $colIndex = 'A';
         foreach ($headers as $header) {
@@ -130,7 +116,6 @@ class ReportController extends Controller
             $colIndex++;
         }
 
-        // Header Style (Dark Brown #3D2817 background, Pale Cream/Gold #FFF9EF text)
         $headerStyle = [
             'font' => [
                 'bold' => true,
@@ -148,24 +133,22 @@ class ReportController extends Controller
         $sheet->getStyle('A4:F4')->applyFromArray($headerStyle);
         $sheet->getRowDimension(4)->setRowHeight(28);
 
-        // Header alignment overrides
         $sheet->getStyle('A4:C4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
         $sheet->getStyle('D4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         $sheet->getStyle('E4:F4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // 3. Data Rows
+        // Data rows.
         $row = 5;
         $borderStyle = [
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color' => ['rgb' => 'D4C4A0'], // Muted Gold border
+                    'color' => ['rgb' => 'D4C4A0'],
                 ],
             ],
         ];
 
         foreach ($bookings as $booking) {
-            // Values
             $sheet->setCellValue('A' . $row, $booking->event_date->format('M d, Y'));
             $sheet->setCellValue('B' . $row, $booking->user->name ?? 'N/A');
             $sheet->setCellValue('C' . $row, $booking->package);
@@ -173,18 +156,16 @@ class ReportController extends Controller
             $sheet->setCellValue('E' . $row, ucfirst(str_replace('_', ' ', $booking->payment_status ?? 'unpaid')));
             $sheet->setCellValue('F' . $row, ucfirst($booking->status));
 
-            // Formatting & Borders
             $sheet->getStyle('A' . $row . ':F' . $row)->applyFromArray($borderStyle);
 
-            // Alignment
             $sheet->getStyle('A' . $row . ':C' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
             $sheet->getStyle('D' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
             $sheet->getStyle('E' . $row . ':F' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-            // Number formatting for amount (₱ currency symbol)
+            // Amount in pesos.
             $sheet->getStyle('D' . $row)->getNumberFormat()->setFormatCode('"₱"#,##0.00');
 
-            // Zebra banding (alternating white and light cream)
+            // Alternate row colours.
             if ($row % 2 === 1) {
                 $sheet->getStyle('A' . $row . ':F' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFFDF9');
             } else {
@@ -195,23 +176,20 @@ class ReportController extends Controller
             $row++;
         }
 
-        // 4. Totals Row
+        // Totals row.
         $sheet->setCellValue('A' . $row, 'TOTAL REVENUE');
         $sheet->mergeCells('A' . $row . ':C' . $row);
         
-        // Not a SUM of the Amount column: that column lists every booking's
-        // price, including unpaid/cancelled ones. Revenue follows revenueOf()
-        // so the export matches the Total Revenue shown on the reports page.
+        // Same revenue as the reports page (not a sum of the Amount column).
         $sheet->setCellValue('D' . $row, $this->totalRevenue($bookings));
 
-        // Totals Row style
         $totalsStyle = [
             'font' => [
                 'bold' => true,
             ],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'F5EDD8'], // Light Cream/Gold web matching footer
+                'startColor' => ['rgb' => 'F5EDD8'],
             ],
             'borders' => [
                 'top' => [
@@ -230,15 +208,14 @@ class ReportController extends Controller
         $sheet->getStyle('D' . $row)->getNumberFormat()->setFormatCode('"₱"#,##0.00');
         $sheet->getRowDimension($row)->setRowHeight(24);
 
-        // 5. Freeze Pane below header row
+        // Keep the header visible when scrolling.
         $sheet->freezePane('A5');
 
-        // 6. Autofit columns
         foreach (range('A', 'F') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // Build Response download stream
+        // Send the file as a download.
         $writer = new Xlsx($spreadsheet);
         $filename = 'lordanes_report_' . $startDate->format('Ymd') . '_to_' . $endDate->format('Ymd') . '.xlsx';
 
@@ -250,15 +227,7 @@ class ReportController extends Controller
         ]);
     }
 
-    // ───────────────────────── Helpers ─────────────────────────
-
-    /**
-     * Money actually earned from one booking:
-     * - cancelled/rejected: whatever was already paid (reservation fees are
-     *   non-refundable, so that money was kept);
-     * - otherwise: counted only once the booking is fully paid — a booking
-     *   with just a down payment (or nothing) contributes ₱0 until then.
-     */
+    // Money earned from a booking: what was kept if cancelled/rejected, otherwise counted once fully paid.
     private function revenueOf(Booking $booking): float
     {
         if ($booking->isCancelledOrRejected()) {
@@ -273,9 +242,7 @@ class ReportController extends Controller
         return (float) $bookings->sum(fn (Booking $b) => $this->revenueOf($b));
     }
 
-    /**
-     * Resolve the start and end Carbon dates from request parameters.
-     */
+    // Start and end dates from the filter.
     private function resolveDateRange(Request $request): array
     {
         switch ($request->report_type) {
@@ -299,9 +266,7 @@ class ReportController extends Controller
         return [$start, $end];
     }
 
-    /**
-     * Build chart data arrays grouped by day or week.
-     */
+    // Chart data grouped by day or week.
     private function buildChartData($bookings, Carbon $start, Carbon $end, string $type): array
     {
         $daysDiff = $start->diffInDays($end);
@@ -312,7 +277,6 @@ class ReportController extends Controller
         $revenueTotals = [];
 
         if ($groupByWeek) {
-            // Group by week
             $weekStart = $start->copy()->startOfWeek(Carbon::MONDAY);
             $weekEnd = $end->copy()->endOfWeek(Carbon::SUNDAY);
 
@@ -334,7 +298,6 @@ class ReportController extends Controller
                 $current->addWeek();
             }
         } else {
-            // Group by day
             $period = CarbonPeriod::create($start, $end);
             foreach ($period as $date) {
                 $labels[] = $date->format('M d');
@@ -355,9 +318,7 @@ class ReportController extends Controller
         ];
     }
 
-    /**
-     * Human-readable label for the selected period.
-     */
+    // Readable label for the period.
     private function buildPeriodLabel(Carbon $start, Carbon $end, string $type): string
     {
         return match ($type) {

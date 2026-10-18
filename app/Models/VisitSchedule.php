@@ -10,8 +10,7 @@ class VisitSchedule extends Model
 {
     use HasFactory;
 
-    // "Remove" in the admin panel only hides a visit (deleted_at is set); the
-    // row stays in the database for booking history.
+    // "Remove" only hides a visit; the record stays in the database.
     use SoftDeletes;
 
     public const STATUS_PENDING     = 'pending';
@@ -20,13 +19,12 @@ class VisitSchedule extends Model
     public const STATUS_COMPLETED   = 'completed';
     public const STATUS_MISSED      = 'missed';
 
-    /** Every status a visit can have (matches the DB check constraint). */
     public const STATUSES = [
         self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_RESCHEDULED,
         self::STATUS_COMPLETED, self::STATUS_MISSED,
     ];
 
-    /** Visits that are still expected to happen. */
+    // Visits that are still expected to happen.
     public const OPEN_STATUSES = [self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_RESCHEDULED];
 
     protected $fillable = [
@@ -51,16 +49,12 @@ class VisitSchedule extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** Only a visit still waiting for the admin can be confirmed. */
     public function canConfirm(): bool
     {
         return $this->status === self::STATUS_PENDING;
     }
 
-    /**
-     * Completed is final. A missed visit can still be completed — the admin's
-     * correction when the customer did come — until its booking is closed.
-     */
+    // A missed visit can still be completed until its booking is closed.
     public function canComplete(): bool
     {
         return $this->status !== self::STATUS_COMPLETED && !$this->bookingIsClosed();
@@ -71,13 +65,7 @@ class VisitSchedule extends Model
         return $this->status !== self::STATUS_COMPLETED && !$this->bookingIsClosed();
     }
 
-    /**
-     * A visit can be removed from the list once it no longer matters for an
-     * active reservation: the visit itself is completed, its booking is
-     * completed/cancelled/rejected, or the event date has passed. Removing an
-     * open visit of an upcoming booking would silently drop its required
-     * visit, so that isn't allowed.
-     */
+    // A visit can be removed once it is completed or no longer needed by an active booking.
     public function canRemove(): bool
     {
         return $this->status === self::STATUS_COMPLETED

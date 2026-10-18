@@ -59,7 +59,7 @@
                 <button type="submit" style="width: 100%; background: transparent; border: 1px solid #B8860B40; color: #B8860B; padding: 0.4rem 0.9rem; border-radius: 3px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; white-space: nowrap;">Mark Read</button>
               </form>
             @endif
-            <form method="POST" action="{{ route('notifications.destroy', $notif->id) }}" onsubmit="return confirm('Delete this notification?');">
+            <form method="POST" action="{{ route('notifications.destroy', $notif->id) }}" data-confirm="Delete this notification?">
               @csrf @method('DELETE')
               <button type="submit" style="width: 100%; background: transparent; border: 1px solid #ef444440; color: #ef4444; padding: 0.4rem 0.9rem; border-radius: 3px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; white-space: nowrap;">Delete</button>
             </form>
