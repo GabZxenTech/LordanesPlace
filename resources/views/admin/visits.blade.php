@@ -62,23 +62,25 @@
         <h2 style="font-size: 12px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0;">All Scheduled Visits</h2>
       </div>
 
-      {{-- Filters (client-side; see partials._list-filter) --}}
-      <div class="lf-bar" data-list-filter="admin-visits" data-default-tab="upcoming">
+      {{-- Tabs, sort and search (handled by the server, 20 rows per page) --}}
+      <form method="GET" action="{{ route('admin.visits.index') }}" class="lf-bar">
+        <input type="hidden" name="tab" value="{{ $tab }}">
         <div class="lf-tabs" role="tablist" aria-label="Filter visits">
-          @foreach(['upcoming' => 'Upcoming', 'pending' => 'Pending', 'confirmed' => 'Confirmed', 'rescheduled' => 'Rescheduled', 'completed' => 'Completed', 'missed' => 'Missed', 'all' => 'All'] as $tabKey => $tabLabel)
-            <button type="button" class="lf-tab" role="tab" data-filter-tab="{{ $tabKey }}" aria-selected="false">{{ $tabLabel }}<span class="lf-n" data-count></span></button>
+          @foreach($tabs as $tabKey => $tabLabel)
+            <a href="{{ route('admin.visits.index', array_filter(['tab' => $tabKey, 'sort' => $sort !== 'asc' ? $sort : null, 'q' => $search ?: null])) }}"
+               class="lf-tab" role="tab" aria-selected="{{ $tab === $tabKey ? 'true' : 'false' }}" style="text-decoration: none;">{{ $tabLabel }}<span class="lf-n">{{ $counts[$tabKey] }}</span></a>
           @endforeach
         </div>
         <div class="lf-controls">
           <label class="lf-control">Sort
-            <select data-filter-sort>
-              <option value="visit:asc">Visit date (soonest)</option>
-              <option value="visit:desc">Visit date (latest)</option>
+            <select name="sort" onchange="this.form.submit()">
+              <option value="asc" @selected($sort === 'asc')>Visit date (soonest)</option>
+              <option value="desc" @selected($sort === 'desc')>Visit date (latest)</option>
             </select>
           </label>
-          <input type="search" class="lf-search" data-filter-search placeholder="Search client, email, booking # or package" aria-label="Search visits">
+          <input type="search" name="q" value="{{ $search }}" class="lf-search" placeholder="Search client, email, booking # or package (press Enter)" aria-label="Search visits">
         </div>
-      </div>
+      </form>
       <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
@@ -90,25 +92,13 @@
               <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">ACTION</th>
             </tr>
           </thead>
-          <tbody data-list-rows="admin-visits">
-            @php
-              // Bookings made together share one visit row.
-              $visitRows = $visits->groupBy(fn ($v) => $v->booking && $v->booking->booking_group
-                  ? $v->booking->booking_group . '|' . $v->visit_date->format('YmdHi') . '|' . $v->status
-                  : 'v' . $v->id);
-            @endphp
+          <tbody>
             @forelse($visitRows as $rowVisits)
               @php
                 $visit = $rowVisits->first();
                 $rowBookings = $rowVisits->pluck('booking')->sortBy('event_date')->values();
-                // Tabs this row belongs to (open future visits are also "Upcoming").
-                $visitTabs = [$visit->status];
-                if (in_array($visit->status, \App\Models\VisitSchedule::OPEN_STATUSES, true) && $visit->visit_date->gte(now())) $visitTabs[] = 'upcoming';
               @endphp
-              <tr data-tabs="{{ implode(' ', $visitTabs) ?: 'other' }}"
-                data-visit="{{ $visit->visit_date->timestamp }}"
-                data-search="{{ mb_strtolower($visit->user->name . ' ' . $visit->user->email . ' ' . $rowBookings->map(fn ($b) => $b->booking_number . ' ' . $b->package . ' ' . $b->event_type)->implode(' ')) }}"
-                style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
+              <tr style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
                 <td style="padding: 14px 20px;">
                   <div style="font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $visit->user->name }}</div>
                   <div style="font-size: 12px; color: #8a6a40;">{{ $visit->user->email }}</div>
@@ -182,12 +172,12 @@
                 </td>
               </tr>
             @empty
-              <tr><td colspan="5" style="text-align: center; padding: 60px; color: #8a6a40; font-size: 16px;">No visits scheduled.</td></tr>
+              <tr><td colspan="5" style="text-align: center; padding: 60px; color: #8a6a40; font-size: 16px;">{{ $search !== '' ? 'No visits match your search.' : 'No visits in this tab.' }}</td></tr>
             @endforelse
-            <tr data-list-empty hidden><td colspan="5" style="text-align: center; padding: 40px; color: #8a6a40; font-size: 15px;">No visits match these filters.</td></tr>
           </tbody>
         </table>
       </div>
+      @include('partials._pagination', ['paginator' => $page])
     </div>
   </main>
 

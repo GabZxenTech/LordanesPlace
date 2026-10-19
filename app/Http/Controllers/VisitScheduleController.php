@@ -94,13 +94,61 @@ class VisitScheduleController extends Controller
     }
 
     // Admin: all visits.
-    public function adminIndex()
+    public function adminIndex(Request $request)
     {
         // Run the automatic rules first (at most once a minute).
         \App\Services\BookingAutoCancelService::runThrottled();
 
-        $visits = VisitSchedule::with(['user', 'booking'])->orderBy('visit_date', 'asc')->get();
-        return view('admin.visits', compact('visits'));
+        $tabs = ['upcoming' => 'Upcoming', 'pending' => 'Pending', 'confirmed' => 'Confirmed', 'rescheduled' => 'Rescheduled', 'completed' => 'Completed', 'missed' => 'Missed', 'all' => 'All'];
+        $tab = array_key_exists($request->query('tab'), $tabs) ? $request->query('tab') : 'upcoming';
+        $sort = $request->query('sort') === 'desc' ? 'desc' : 'asc';
+        $search = trim((string) $request->query('q', ''));
+
+        // Bookings made together share one row: same group, visit time and status.
+        $groupKey = "CASE WHEN bookings.booking_group IS NULL THEN 'v' || visit_schedules.id "
+            . "ELSE bookings.booking_group || '|' || visit_schedules.visit_date || '|' || visit_schedules.status END";
+
+        $filtered = function (string $forTab) use ($search) {
+            return VisitSchedule::query()
+                ->join('bookings', 'bookings.id', '=', 'visit_schedules.booking_id')
+                ->join('users', 'users.id', '=', 'visit_schedules.user_id')
+                ->when($forTab === 'upcoming', fn ($q) => $q->whereIn('visit_schedules.status', VisitSchedule::OPEN_STATUSES)->where('visit_schedules.visit_date', '>=', now()))
+                ->when(!in_array($forTab, ['upcoming', 'all'], true), fn ($q) => $q->where('visit_schedules.status', $forTab))
+                ->when($search !== '', function ($q) use ($search) {
+                    $like = '%' . mb_strtolower($search) . '%';
+                    $q->where(fn ($w) => $w->whereRaw('LOWER(users.name) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(users.email) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(bookings.booking_number) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(bookings.package) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(bookings.event_type) LIKE ?', [$like]));
+                });
+        };
+
+        // Number of rows in each tab (with the search applied).
+        $counts = [];
+        foreach (array_keys($tabs) as $key) {
+            $counts[$key] = (int) $filtered($key)->selectRaw("COUNT(DISTINCT ($groupKey)) AS n")->value('n');
+        }
+
+        // One page of rows (20), then the visits that belong to them.
+        $page = $filtered($tab)
+            ->selectRaw("($groupKey) AS group_key, MIN(visit_schedules.visit_date) AS first_visit, MIN(visit_schedules.id) AS first_id")
+            ->groupByRaw($groupKey)
+            ->orderBy('first_visit', $sort)
+            ->orderBy('first_id', $sort)
+            ->paginate(20)
+            ->withQueryString();
+
+        $keys = $page->pluck('group_key')->all();
+        $visits = $keys ? VisitSchedule::with(['user', 'booking'])
+            ->join('bookings', 'bookings.id', '=', 'visit_schedules.booking_id')
+            ->select('visit_schedules.*', \Illuminate\Support\Facades\DB::raw("($groupKey) AS group_key"))
+            ->whereRaw("($groupKey) IN (" . implode(',', array_fill(0, count($keys), '?')) . ')', $keys)
+            ->get()
+            ->groupBy('group_key') : collect();
+        $visitRows = collect($keys)->map(fn ($k) => $visits->get($k))->filter()->values();
+
+        return view('admin.visits', compact('visitRows', 'page', 'tabs', 'tab', 'sort', 'search', 'counts'));
     }
 
     // The visit plus the matching visits of bookings made together (shown as one row).

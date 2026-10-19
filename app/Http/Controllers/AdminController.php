@@ -3,18 +3,36 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 
 class AdminController extends Controller
 {
     // Admin dashboard: list of users.
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         // Unverified signups are not shown.
-        $users = User::where('role', '!=', 'admin')
-            ->whereNotNull('email_verified_at')
-            ->orderBy('created_at', 'desc')->get();
-        return view('admin.dashboard', compact('users'));
+        $base = User::where('role', '!=', 'admin')->whereNotNull('email_verified_at');
+
+        $stats = [
+            'total'  => (clone $base)->count(),
+            'active' => (clone $base)->where('last_active', '>=', now()->subMinutes(30))->count(),
+            'today'  => (clone $base)->where('created_at', '>=', now()->startOfDay())->count(),
+        ];
+
+        // Search by name or email (case-insensitive), 20 users per page.
+        $search = trim((string) $request->query('q', ''));
+        $users = (clone $base)
+            ->when($search !== '', function ($q) use ($search) {
+                $like = '%' . mb_strtolower($search) . '%';
+                $q->where(fn ($w) => $w->whereRaw('LOWER(name) LIKE ?', [$like])->orWhereRaw('LOWER(email) LIKE ?', [$like]));
+            })
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.dashboard', compact('users', 'stats', 'search'));
     }
 
     // Edit user form.

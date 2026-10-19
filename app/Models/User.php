@@ -14,6 +14,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'avatar_image',
     ];
 
     protected $fillable = [
@@ -35,12 +36,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_online' => 'boolean',
+            'deactivated_at' => 'datetime',
         ];
     }
 
     public function conversations()
     {
         return $this->hasMany(Conversation::class);
+    }
+
+    // Profile picture URL: uploaded photo, then Google photo, otherwise null.
+    public function avatarUrl(): ?string
+    {
+        if ($this->avatar_image) {
+            return route('account.avatar', ['user' => $this->id, 'v' => substr(md5($this->avatar_image), 0, 8)]);
+        }
+
+        return $this->avatar ?: null;
+    }
+
+    // Up to two initials from the name, e.g. "Juan Dela Cruz" -> "JD".
+    public function initials(): string
+    {
+        return collect(preg_split('/\s+/', trim($this->name)))->filter()->take(2)
+            ->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') ?: '?';
     }
 
     public function emailOtps()

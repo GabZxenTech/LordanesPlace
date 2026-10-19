@@ -15,6 +15,12 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Rate limit for account settings actions, counted separately per action.
+        \Illuminate\Support\Facades\RateLimiter::for('account', function ($request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(10)
+                ->by($request->user()?->id . '|' . $request->route()?->getName());
+        });
+
         // All generated links use APP_URL (so emailed links never say "localhost").
         \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
 

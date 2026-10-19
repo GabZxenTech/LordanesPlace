@@ -34,15 +34,15 @@
     {{-- Stats Cards --}}
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 36px;">
       <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 28px 24px; text-align: center;">
-        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $users->count() }}</h3>
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $stats['total'] }}</h3>
         <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 10px 0 0; text-transform: uppercase; font-weight: 700;">Total Users</p>
       </div>
       <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 28px 24px; text-align: center;">
-        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $users->filter(fn($u) => $u->last_active && \Carbon\Carbon::parse($u->last_active)->diffInMinutes(now()) <= 30)->count() }}</h3>
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $stats['active'] }}</h3>
         <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 10px 0 0; text-transform: uppercase; font-weight: 700;">Active Now</p>
       </div>
       <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 28px 24px; text-align: center;">
-        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $users->filter(fn($u) => $u->created_at->isToday())->count() }}</h3>
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $stats['today'] }}</h3>
         <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 10px 0 0; text-transform: uppercase; font-weight: 700;">New Today</p>
       </div>
     </div>
@@ -51,8 +51,13 @@
     <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; overflow: hidden;">
       <div style="padding: 20px 28px; border-bottom: 1px solid #d4c4a0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <h2 style="font-size: 13px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0;">All Users</h2>
-        <input type="text" id="searchInput" placeholder="Search user..." onkeyup="searchTable()"
-          style="background: #2c1a0e; border: none; color: #f5f0e8; padding: 12px 20px; border-radius: 6px; font-size: 14px; outline: none; width: 260px; font-family: 'Jost', sans-serif;" />
+        <form method="GET" action="{{ route('admin.dashboard') }}" style="display: flex; gap: 8px; margin: 0;">
+          <input type="search" name="q" value="{{ $search }}" placeholder="Search name or email..."
+            style="background: #2c1a0e; border: none; color: #f5f0e8; padding: 12px 20px; border-radius: 6px; font-size: 14px; outline: none; width: 260px; font-family: 'Jost', sans-serif;" />
+          @if($search !== '')
+            <a href="{{ route('admin.dashboard') }}" style="align-self: center; font-size: 13px; color: #8a6a40; text-decoration: none;">Clear</a>
+          @endif
+        </form>
       </div>
 
       <div style="overflow-x: auto;">
@@ -70,7 +75,7 @@
           <tbody>
             @forelse($users as $index => $user)
               <tr style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
-                <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">{{ $index + 1 }}</td>
+                <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">{{ $users->firstItem() + $index }}</td>
                 <td style="padding: 16px 24px; font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $user->name }}</td>
                 <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">
                   {{ $user->email }}
@@ -97,23 +102,14 @@
                 </td>
               </tr>
             @empty
-              <tr><td colspan="6" style="text-align: center; padding: 60px; color: #8a6a40; font-size: 16px;">No users found.</td></tr>
+              <tr><td colspan="6" style="text-align: center; padding: 60px; color: #8a6a40; font-size: 16px;">{{ $search !== '' ? 'No users match "' . $search . '".' : 'No users found.' }}</td></tr>
             @endforelse
           </tbody>
         </table>
       </div>
+      @include('partials._pagination', ['paginator' => $users])
     </div>
   </main>
 
-  <script>
-    function searchTable() {
-      const input = document.getElementById('searchInput').value.toLowerCase();
-      const rows = document.querySelectorAll('#usersTable tbody tr');
-      rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(input) ? '' : 'none';
-      });
-    }
-  </script>
 </body>
 </html>

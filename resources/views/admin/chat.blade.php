@@ -80,24 +80,13 @@
         </div>
         <div id="conversationList" style="flex: 1; overflow-y: auto;">
           @foreach($conversations as $conv)
-            @php $isUnread = in_array($conv->id, $unreadIds ?? [], true); @endphp
-            <div class="chat-item {{ $isUnread ? 'is-unread' : '' }}" data-id="{{ $conv->id }}" data-name="{{ $conv->user->name ?? 'Guest' }}" onclick="onChatItemClick({{ $conv->id }}, this.dataset.name, this)"
-                 style="padding: 16px 24px; border-bottom: 1px solid #e8dcc8; cursor: pointer; transition: background 0.2s;">
-              <div class="chat-row">
-                <input type="checkbox" class="chat-check chat-item-check" value="{{ $conv->id }}" aria-label="Select conversation" onclick="event.stopPropagation(); updateSelection();">
-                <div class="chat-row-body">
-                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
-                    <span style="font-size: 15px; font-weight: 600; color: #2c1a0e; display: flex; align-items: center; gap: 8px;">
-                      <span class="chat-unread-dot" title="New message" aria-label="New message"></span>{{ $conv->user->name ?? 'Guest' }}
-                    </span>
-                    <span style="font-size: 10px; color: #8a6a40; text-transform: uppercase;">{{ $conv->last_message_at->diffForHumans() }}</span>
-                  </div>
-                  <p style="font-size: 13px; color: #8a6a40; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $conv->messages->first()->body ?? 'No messages' }}</p>
-                </div>
-              </div>
-            </div>
+            @include('admin._chat-item', ['conv' => $conv])
           @endforeach
           <p id="noConversations" style="padding: 24px; font-size: 13px; color: #8a6a40; text-align: center; margin: 0; {{ $conversations->isEmpty() ? '' : 'display:none;' }}">No conversations yet.</p>
+          @if($conversations->hasMorePages())
+            <button type="button" id="loadMoreChats" data-next="2" onclick="loadMoreConversations()"
+              style="display: block; width: calc(100% - 32px); margin: 14px 16px; padding: 10px; background: transparent; border: 1px solid #d4c4a0; border-radius: 6px; color: #8a6a40; font: 600 13px 'Jost', sans-serif; cursor: pointer;">Load more</button>
+          @endif
         </div>
       </div>
 
@@ -232,6 +221,28 @@
       container.scrollTop = container.scrollHeight;
     }
 
+    // Loads the next 20 conversations into the list.
+    function loadMoreConversations() {
+      const btn = document.getElementById('loadMoreChats');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      $.get('{{ route("admin.chat.json") }}', { page: btn.dataset.next }, function (res) {
+        btn.insertAdjacentHTML('beforebegin', res.html);
+        if (res.has_more) {
+          btn.dataset.next = parseInt(btn.dataset.next, 10) + 1;
+          btn.disabled = false;
+          btn.textContent = 'Load more';
+        } else {
+          btn.remove();
+        }
+        updateSelection();
+      }).fail(function () {
+        btn.disabled = false;
+        btn.textContent = 'Load more';
+        uiToast('Could not load more conversations.');
+      });
+    }
+
     // ---- Select mode: pick conversations and delete them permanently ----
     function onChatItemClick(id, name, element) {
       if ($('#conversationPane').hasClass('select-mode')) {
@@ -325,7 +336,7 @@
     });
 
     setInterval(() => {
-      if (currentConversationId) {
+      if (currentConversationId && !document.hidden) {
         loadMessages(currentConversationId);
       }
     }, 5000);

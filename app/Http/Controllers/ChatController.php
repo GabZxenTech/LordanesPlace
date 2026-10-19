@@ -113,23 +113,32 @@ class ChatController extends Controller
     // Admin: list of conversations.
     public function adminConversations()
     {
-        $conversations = Conversation::with(['user', 'messages' => function($q) {
-            $q->latest()->limit(1);
-        }])->orderBy('last_message_at', 'desc')->get();
-
-        // Conversations with unread messages.
-        $unreadIds = Conversation::unreadForAdmin()->pluck('id')->all();
+        [$conversations, $unreadIds] = $this->conversationPage(1);
 
         return view('admin.chat', compact('conversations', 'unreadIds'));
     }
 
-    public function adminConversationsJson()
+    // Admin: next page of conversations for "Load more".
+    public function adminConversationsJson(Request $request)
     {
-        $conversations = Conversation::with(['user', 'messages' => function($q) {
-            $q->latest()->limit(1);
-        }])->orderBy('last_message_at', 'desc')->get();
+        [$conversations, $unreadIds] = $this->conversationPage(max(1, (int) $request->query('page', 1)));
 
-        return response()->json(['conversations' => $conversations]);
+        $html = $conversations->map(fn ($conv) => view('admin._chat-item', compact('conv', 'unreadIds'))->render())->implode('');
+
+        return response()->json(['html' => $html, 'has_more' => $conversations->hasMorePages()]);
+    }
+
+    // 20 conversations (newest first) and which of them are unread.
+    private function conversationPage(int $page): array
+    {
+        $conversations = Conversation::with(['user', 'messages' => fn ($q) => $q->latest()->limit(1)])
+            ->orderBy('last_message_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->simplePaginate(20, ['*'], 'page', $page);
+
+        $unreadIds = Conversation::unreadForAdmin()->whereIn('id', $conversations->pluck('id'))->pluck('id')->all();
+
+        return [$conversations, $unreadIds];
     }
 
     // Admin: open a conversation (marks it as read).

@@ -29,12 +29,12 @@
                                 Hi <strong style="color: #ffffff;">{{ $userName }}</strong>,
                             </p>
                             <p style="margin: 0 0 20px; font-size: 15px; color: rgba(255,255,255,0.7); line-height: 1.6;">
-                                An administrator requested to change the email address on your account from
+                                A request was made to change the email address on your LorDane's Place account from
                                 <strong style="color: #ffffff;">{{ $oldEmail }}</strong> to
                                 <strong style="color: #BF9B30;">{{ $newEmail }}</strong>.
                             </p>
                             <p style="margin: 0 0 24px; font-size: 15px; color: rgba(255,255,255,0.7); line-height: 1.6;">
-                                Since you are the owner of this new address, please confirm the change below. The current email will keep working until this is confirmed. This link is valid for <strong style="color: #BF9B30;">24 hours</strong>.
+                                If you made this request, please confirm it below. If you did not, you can ignore this email. The current email will keep working until this is confirmed. This link is valid for <strong style="color: #BF9B30;">24 hours</strong>.
                             </p>
 
                             <!-- CTA -->

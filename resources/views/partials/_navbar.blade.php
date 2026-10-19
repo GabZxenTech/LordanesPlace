@@ -73,8 +73,12 @@
 
         <div class="dropdown relative" onclick="toggleDropdown(this)">
           <div class="flex items-center gap-2 px-2.5 py-1.5 rounded transition-all duration-300 cursor-pointer group">
-            <div class="w-8 h-8 rounded-full bg-gold-deep flex items-center justify-center shrink-0 shadow-sm border border-gold-deep/20 group-hover:scale-105 transition-transform">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <div class="w-8 h-8 rounded-full bg-gold-deep flex items-center justify-center shrink-0 shadow-sm border border-gold-deep/20 group-hover:scale-105 transition-transform overflow-hidden">
+              @if(Auth::user()->avatarUrl())
+                <img src="{{ Auth::user()->avatarUrl() }}" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;">
+              @else
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              @endif
             </div>
             <span class="text-gold-deep font-bold text-[15px] group-hover:text-gold-mid transition-colors">{{ Auth::user()->name }}</span>
             <span class="dropdown-chevron text-gold-deep text-[14px]">▾</span>
@@ -82,6 +86,9 @@
           <div class="dropdown-menu hidden absolute top-full right-0 mt-2 border border-gold-deep/20 rounded-lg shadow-xl min-w-[210px] py-2 z-[999] bg-cream">
             <a href="{{ route('profile') }}" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline border-b border-gold-deep/10">
               Profile & Bookings
+            </a>
+            <a href="{{ route('account.settings') }}" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline border-b border-gold-deep/10">
+              Account Settings
             </a>
             <a href="{{ route('terms') }}" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline border-b border-gold-deep/10">
               Terms & Conditions
@@ -143,6 +150,7 @@
             <span id="navNotifBadgeMobile" class="min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none" style="{{ $navUnreadCount > 0 ? '' : 'display: none;' }}">{{ $navUnreadCount > 9 ? '9+' : $navUnreadCount }}</span>
           </a>
           <a href="{{ route('profile') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Profile & Bookings</a>
+          <a href="{{ route('account.settings') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Account Settings</a>
           <a href="{{ route('terms') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Terms & Conditions</a>
           <form method="POST" action="{{ route('logout') }}">
             @csrf

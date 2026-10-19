@@ -207,6 +207,13 @@
 </style>
 
 <!-- CHAT BUBBLE -->
+@php
+  // Only visitors who already chatted need to check for replies.
+  $chatConversation = auth()->check()
+      ? \App\Models\Conversation::where('user_id', auth()->id())->first()
+      : \App\Models\Conversation::where('session_id', session()->getId())->first();
+  $chatHasUnread = $chatConversation ? $chatConversation->hasUnreadForCustomer() : false;
+@endphp
 <div class="chat-bubble">
   <button class="chat-toggle" onclick="toggleChat()" id="chatToggleBtn" aria-label="Open chat">
     <span class="chat-unread-dot" aria-hidden="true"></span>
@@ -248,6 +255,7 @@
   let greeted = false;
   let isAdminOnline = true;
   let lastMessageId = 0;
+  let chatActive = @json((bool) $chatConversation);
 
   const quickResponses = {
     pricing: "From memorable events and relaxing swimming getaways to comfortable room stays, we have the perfect package for your next special moment!\n\nEnjoy our packages starting at just **₱12,000**!\n\nBook now and <a href='{{ route('discover') }}' style='color: #D4A017;'>explore our packages</a>!",
@@ -261,6 +269,7 @@
     if (chatOpen) {
       setChatUnread(false);
       if (greeted) pollMessages(); // re-opened: fetch (and mark read) right away
+      restartMessagePolling();
     }
     document.getElementById('chatWindow').classList.toggle('open', chatOpen);
     document.getElementById('chatIconOpen').style.display = chatOpen ? 'none' : '';
@@ -270,7 +279,7 @@
       greeted = true;
       setTimeout(() => {
         addMessage('bot', "Hi! Welcome to **Lordane's Place**! I'm your assistant. How can I help you today?", true);
-        loadHistory();
+        if (chatActive) loadHistory();
       }, 400);
     }
 
@@ -341,6 +350,8 @@
     }, function(res) {
       if (res.success) {
         rememberMessage(res.message);
+        chatActive = true;
+        restartMessagePolling();
       } else {
         console.error("Chat send failed:", res.error);
         uiToast(res.error || "Message could not be sent. Please try again.");
@@ -356,30 +367,56 @@
     document.getElementById('chatToggleBtn').classList.toggle('has-unread', !!on);
   }
 
+  // Checks for an admin reply while the chat is closed (every 30s, only if this visitor has chatted).
   function checkChatUnread() {
-    if (chatOpen || document.hidden) return;
+    if (!chatActive || chatOpen || document.hidden) return;
     $.get('{{ route("chat.unread") }}', function(res) {
       if (!chatOpen) setChatUnread(res.unread);
     });
   }
 
-  checkChatUnread();
-  setInterval(checkChatUnread, 10000);
+  setChatUnread(@json($chatHasUnread));
+  setInterval(checkChatUnread, 30000);
 
-  // Polling for new messages (also marks them read while the chat is open)
+  // New messages while the chat is open: every 5s, slowing to 15s when nothing new arrives.
+  let messageDelay = 5000;
+  let messageTimer = null;
+
   function pollMessages() {
-    if (!chatOpen) return;
+    if (!chatOpen || !chatActive) return;
     $.get('{{ route("chat.messages") }}', { last_id: lastMessageId }, function(res) {
+      let gotNew = false;
       res.messages.forEach(msg => {
         if (shownMessageIds.has(msg.id)) return;
         if (msg.role === 'admin') {
           addMessage('bot', msg.body);
+          gotNew = true;
         }
         rememberMessage(msg);
       });
+      messageDelay = gotNew ? 5000 : Math.min(messageDelay * 1.5, 15000);
     });
   }
 
-  setInterval(pollMessages, 3000);
+  function scheduleMessagePoll() {
+    clearTimeout(messageTimer);
+    messageTimer = setTimeout(function () {
+      if (!document.hidden) pollMessages();
+      scheduleMessagePoll();
+    }, messageDelay);
+  }
+
+  function restartMessagePolling() {
+    messageDelay = 5000;
+    scheduleMessagePoll();
+  }
+
+  scheduleMessagePoll();
+
+  // Catch up right away when the visitor comes back to the tab.
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) return;
+    if (chatOpen) { restartMessagePolling(); pollMessages(); } else { checkChatUnread(); }
+  });
 </script>
 @include('partials._ui-feedback')

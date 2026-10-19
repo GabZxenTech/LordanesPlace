@@ -28,6 +28,11 @@
     .rv-tier { background: #fbf0d9; color: var(--rv-gold); font-weight: 700; font-size: 12px; padding: 2px 10px; border-radius: 999px; }
     .rv-btn { display: inline-block; background: var(--rv-gold); color: #fff; font-weight: 700; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; padding: 12px 20px; border-radius: 6px; text-decoration: none; transition: background .2s; }
     .rv-btn:hover { background: #c9a84c; }
+    .rv-btn-outline { background: transparent; color: var(--rv-gold); border: 1px solid var(--rv-gold); padding: 11px 18px; }
+    .rv-btn-outline:hover { background: #fbf0d9; }
+    .rv-head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .rv-avatar { overflow: hidden; }
+    .rv-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .rv-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .rv-stat { background: var(--rv-tint); border-radius: 10px; padding: 14px 16px; }
     .rv-stat b { display: block; font-family: 'Cormorant Garamond', serif; font-size: 32px; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
@@ -161,6 +166,8 @@
       .rv-profile { padding: 18px; gap: 16px; }
       .rv-profile-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; align-items: center; }
       .rv-profile-top .rv-btn { grid-column: 1 / -1; text-align: center; }
+      .rv-profile-top .rv-head-actions { grid-column: 1 / -1; }
+      .rv-head-actions .rv-btn { flex: 1; }
       .rv-avatar { width: 48px; height: 48px; font-size: 17px; }
       .rv-who p { flex-direction: column; align-items: flex-start; gap: 4px; font-size: 13px; }
       .rv-who p > span[aria-hidden] { display: none; }
@@ -225,7 +232,7 @@
     {{-- PROFILE HEADER --}}
     <section class="rv-profile" aria-label="Profile">
       <div class="rv-profile-top">
-        <div class="rv-avatar" aria-hidden="true">{{ $initials ?: '?' }}</div>
+        <div class="rv-avatar" aria-hidden="true">@if($user->avatarUrl())<img src="{{ $user->avatarUrl() }}" alt="" referrerpolicy="no-referrer">@else{{ $initials ?: '?' }}@endif</div>
         <div class="rv-who">
           <h1>{{ $user->name }}</h1>
           <p>
@@ -236,7 +243,10 @@
             <span>Member since {{ $user->created_at->format('M d, Y') }}</span>
           </p>
         </div>
-        <a href="{{ route('booking') }}" class="rv-btn">+ New Reservation</a>
+        <div class="rv-head-actions">
+          <a href="{{ route('account.settings') }}" class="rv-btn rv-btn-outline">Update Profile</a>
+          <a href="{{ route('booking') }}" class="rv-btn">+ New Reservation</a>
+        </div>
       </div>
       <div class="rv-stats">
         <div class="rv-stat"><b>{{ $counts['upcoming'] }}</b><span>Upcoming</span></div>

@@ -14,7 +14,7 @@ class EmailChangeController extends Controller
             return view('auth.email-change-result', [
                 'success' => false,
                 'title'   => 'Link Expired',
-                'message' => 'This confirmation link is invalid or has expired. Please ask an administrator to resend the email change request.',
+                'message' => 'This confirmation link is invalid or has expired. Please request the change again from Account Settings.',
             ]);
         }
 
@@ -24,7 +24,7 @@ class EmailChangeController extends Controller
             return view('auth.email-change-result', [
                 'success' => false,
                 'title'   => 'Link No Longer Valid',
-                'message' => 'This confirmation link is no longer valid. It may have already been used, or the pending email was changed by an administrator since this link was sent.',
+                'message' => 'This confirmation link is no longer valid. It may have already been used, or a newer change was requested since this link was sent.',
             ]);
         }
 
@@ -36,7 +36,7 @@ class EmailChangeController extends Controller
             return view('auth.email-change-result', [
                 'success' => false,
                 'title'   => 'Email No Longer Available',
-                'message' => 'That email address is now in use by another account. Please ask an administrator to try a different address.',
+                'message' => 'That email address is now in use by another account. Please request the change again with a different address.',
             ]);
         }
 

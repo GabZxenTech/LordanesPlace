@@ -84,6 +84,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [BookingController::class, 'profile'])->name('profile');
     Route::get('/terms-and-conditions', function() { return view('terms'); })->name('terms');
 
+    // Account settings.
+    Route::get('/account/settings', [App\Http\Controllers\AccountController::class, 'show'])->name('account.settings');
+    Route::post('/account/profile', [App\Http\Controllers\AccountController::class, 'updateProfile'])->middleware('throttle:account')->name('account.profile');
+    Route::post('/account/avatar', [App\Http\Controllers\AccountController::class, 'updateAvatar'])->name('account.avatar.update');
+    Route::post('/account/avatar/remove', [App\Http\Controllers\AccountController::class, 'removeAvatar'])->name('account.avatar.remove');
+    Route::get('/account/avatar/{user}', [App\Http\Controllers\AccountController::class, 'avatar'])->name('account.avatar');
+    Route::post('/account/password', [App\Http\Controllers\AccountController::class, 'updatePassword'])->middleware('throttle:account')->name('account.password');
+    Route::post('/account/delete', [App\Http\Controllers\AccountController::class, 'destroy'])->middleware('throttle:account')->name('account.delete');
+
     // Visit Schedule routes
     Route::get('/visit-schedule/create', [VisitScheduleController::class, 'create'])->name('visit-schedule.create');
     Route::post('/visit-schedule', [VisitScheduleController::class, 'store'])->name('visit-schedule.store');
