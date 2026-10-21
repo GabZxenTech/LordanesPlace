@@ -11,6 +11,10 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Migrations run in table order (see App\Database\OrderedMigrator).
+        $this->app->extend('migrator', function ($migrator, $app) {
+            return new \App\Database\OrderedMigrator($app['migration.repository'], $app['db'], $app['files'], $app['events']);
+        });
     }
 
     public function boot(): void

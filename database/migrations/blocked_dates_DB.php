@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Dates the admin closed for booking.
     public function up(): void
     {
         Schema::create('blocked_dates', function (Blueprint $table) {

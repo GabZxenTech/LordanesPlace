@@ -6,20 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Email verification codes (only the hash is stored).
     public function up(): void
     {
-        Schema::create('password_reset_otps', function (Blueprint $table) {
+        Schema::create('email_otps', function (Blueprint $table) {
             $table->id();
-            $table->string('email')->index();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('otp');
             $table->timestamp('expires_at');
             $table->timestamp('used_at')->nullable();
             $table->timestamps();
+
+            $table->index(['user_id', 'used_at']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('password_reset_otps');
+        Schema::dropIfExists('email_otps');
     }
 };
