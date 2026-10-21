@@ -22,6 +22,7 @@
         <a href="{{ route('discover') }}#packages" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Packages</a>
         <a href="{{ route('discover') }}#gallery" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Gallery</a>
         <a href="{{ url('/contact') }}" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Contact Us</a>
+        <a href="{{ route('faq') }}" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">FAQs</a>
       </div>
     </div>
 

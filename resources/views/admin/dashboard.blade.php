@@ -32,7 +32,7 @@
     @endif
 
     {{-- Stats Cards --}}
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 36px;">
+    <div class="adm-stats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 36px;">
       <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 28px 24px; text-align: center;">
         <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $stats['total'] }}</h3>
         <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 10px 0 0; text-transform: uppercase; font-weight: 700;">Total Users</p>
@@ -61,7 +61,7 @@
       </div>
 
       <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse;" id="usersTable">
+        <table class="m-cards" style="width: 100%; border-collapse: collapse;" id="usersTable">
           <thead>
             <tr style="border-bottom: 1px solid #d4c4a0;">
               <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">#</th>

@@ -102,6 +102,16 @@
       <div class="rv-pay-track" role="img" aria-label="{{ $pct }}% paid"><div class="rv-pay-fill" style="width: {{ $pct }}%;"></div></div>
       <div class="rv-pay-row"><span>Paid ₱{{ number_format($paid, 0) }}</span><span>{{ $pct }}%</span></div>
       <div class="rv-pay-row"><span>Balance</span><b>₱{{ number_format($booking->remainingBalance(), 0) }}</b></div>
+      {{-- Due dates: the first payment the day before the event, the rest on the event day. --}}
+      @if($isUpcomingDate && $booking->remainingBalance() > 0)
+        @php $firstDue = $booking->event_date->copy()->subDay()->max(now()->startOfDay()); @endphp
+        @if($paid <= 0)
+          <div class="rv-due">{{ $booking->payment_option === 'full_payment' ? 'Full payment' : 'Downpayment' }} of ₱{{ number_format($booking->amountToPay(), 0) }} due {{ $firstDue->format('M d, Y') }}</div>
+        @endif
+        @if($booking->payment_option !== 'full_payment' || $paid > 0)
+          <div class="rv-due">Remaining balance due {{ $booking->event_date->format('M d, Y') }}</div>
+        @endif
+      @endif
     </div>
   @endif
 

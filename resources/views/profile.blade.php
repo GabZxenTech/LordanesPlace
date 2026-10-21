@@ -101,6 +101,7 @@
     .rv-pay-track { height: 6px; border-radius: 999px; background: var(--rv-tint); overflow: hidden; }
     .rv-pay-fill { height: 100%; background: var(--rv-gold); border-radius: 999px; }
     .rv-pay-row { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+    .rv-due { font-size: 11px; color: var(--rv-gold); font-weight: 600; margin-top: 4px; line-height: 1.35; }
     .rv-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
     .rv-acts form { margin: 0; }
     .rv-act { font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; padding: 8px 12px; border-radius: 6px; cursor: pointer; background: transparent; border: 1px solid var(--rv-line); color: var(--rv-soft); transition: background .2s; }

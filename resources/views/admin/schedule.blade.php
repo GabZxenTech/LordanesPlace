@@ -39,7 +39,7 @@
       </div>
     @endif
 
-    <div style="display: grid; grid-template-columns: 1fr 2.5fr; gap: 28px;">
+    <div class="adm-stack" style="display: grid; grid-template-columns: 1fr 2.5fr; gap: 28px;">
 
       {{-- LEFT COLUMN: BLOCK DATE --}}
       <div style="display: flex; flex-direction: column; gap: 28px;">
@@ -150,7 +150,7 @@
           </div>
         </div>
         <div style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse;">
+          <table class="m-cards" style="width: 100%; border-collapse: collapse;">
             <thead>
               <tr style="border-bottom: 1px solid #d4c4a0;">
                 <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">#</th>
@@ -783,8 +783,11 @@
           menu.style.top = (rect.bottom + 5) + 'px';
         }
 
-        menu.style.right      = (window.innerWidth - rect.right) + 'px';
-        menu.style.left       = 'auto';
+        // Line up with the button's right edge, but stay inside the screen (phones).
+        const menuWidth = menu.offsetWidth;
+        const left = Math.min(Math.max(8, rect.right - menuWidth), window.innerWidth - menuWidth - 8);
+        menu.style.left       = left + 'px';
+        menu.style.right      = 'auto';
         menu.style.zIndex     = '9999';
         menu.style.visibility = 'visible';
       }

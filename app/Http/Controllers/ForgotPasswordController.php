@@ -46,7 +46,7 @@ class ForgotPasswordController extends Controller
         session(['password_reset_email' => $email]);
 
         if (!$tooManyRequests && !$inCooldown) {
-            $user = User::where('email', $email)->first();
+            $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
 
             if ($user) {
                 self::invalidatePreviousCodes($email);
@@ -160,7 +160,7 @@ class ForgotPasswordController extends Controller
             ]);
         }
 
-        $user = User::where('email', $email)->first();
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
 
         if ($user) {
             self::invalidatePreviousCodes($email);
@@ -196,7 +196,7 @@ class ForgotPasswordController extends Controller
             return redirect()->route('password.request');
         }
 
-        $user = User::where('email', $email)->first();
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
 
         // Stop if the account no longer exists.
         if (!$user) {

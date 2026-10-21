@@ -42,6 +42,9 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        // Emails are saved in lowercase so login and password reset always match.
+        $request->merge(['email' => Str::lower(trim((string) $request->input('email')))]);
+
         $commonPasswords = self::commonPasswords();
 
         $request->validate([
@@ -87,7 +90,7 @@ class AuthController extends Controller
 
         $user = User::create([
             'name'     => $request->name,
-            'email'    => $request->email,
+            'email'    => Str::lower(trim($request->email)),
             'password' => Hash::make($request->password),
         ]);
 
@@ -137,7 +140,7 @@ class AuthController extends Controller
             return back()->withErrors(['recaptcha' => 'Please complete the reCAPTCHA.'])->withInput();
         }
 
-        $credentials = $request->only('email', 'password');
+        $credentials = ['email' => Str::lower(trim((string) $request->input('email'))), 'password' => $request->input('password')];
         $remember    = $request->boolean('remember');
 
         if (Auth::attempt($credentials, $remember)) {

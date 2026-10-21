@@ -22,6 +22,7 @@ class OrderedMigrator extends Migrator
         'messages_DB',
         'email_otps_DB',
         'password_reset_otps_DB',
+        'faqs_DB',
     ];
 
     public function getMigrationFiles($paths)

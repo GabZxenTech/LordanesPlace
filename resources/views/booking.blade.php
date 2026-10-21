@@ -148,9 +148,10 @@
           <div class="w-3 h-3 rounded-sm" style="background: #f1e3bf;"></div> In range
         </div>
       </div>
-      <p id="rangeHint" class="text-[12px] text-warm-black/60 mt-3 mb-0" style="display: none;">
-        <strong class="text-gold-deep">Swimming &amp; Staycation:</strong> click a start date, then a later end date to book several days in a row. Each day is charged separately.
-      </p>
+      <div id="rangeHint" class="text-[12px] text-warm-black/70 mt-3 mb-0 bg-gold-deep/5 border border-gold-deep/15 rounded-md px-3 py-2.5 leading-relaxed">
+        <div data-hint="range"><strong class="text-gold-deep">Swimming &amp; Staycation:</strong> you can book several days. Tap the first day, then the last day. Each day is charged separately.</div>
+        <div data-hint="single" class="mt-1"><strong class="text-gold-deep">Events:</strong> one day only.</div>
+      </div>
 
       {{-- Blocked date message --}}
       <div id="blockedDateAlert" class="hidden mt-6 bg-[#fde8e8] border border-[#e74c3c] rounded-xl p-5 flex gap-4 items-center animate-[popIn_0.3s_ease]">
@@ -180,7 +181,8 @@
       </div>
 
       @if($errors->any() && !session('booking_success'))
-        <div class="bg-red-500/10 border border-red-500 text-red-600 p-3 rounded-md mb-5 text-[15px]">
+        <div id="bookingErrors" class="p-3 rounded-md mb-5 text-[15px]" style="background: #fbf0d9; border: 1px solid #b8860b; color: #6b4e12;">
+          <div class="font-bold mb-1">Please fix the following:</div>
           @foreach($errors->all() as $error)
             <div>{{ $error }}</div>
           @endforeach
@@ -209,9 +211,10 @@
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Occasion</label>
           <select name="occasion" id="occasionSelect" required
             class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body">
-            <option value="" disabled {{ old('occasion') ? '' : 'selected' }} hidden>Select an occasion</option>
+            <option value="" disabled hidden>Select an occasion</option>
             @foreach(\App\Models\Booking::OCCASIONS as $occasionValue => $occasionLabel)
-              <option value="{{ $occasionValue }}" {{ old('occasion') === $occasionValue ? 'selected' : '' }}>{{ $occasionLabel }}</option>
+              {{-- Event is selected by default. --}}
+              <option value="{{ $occasionValue }}" {{ old('occasion', 'event') === $occasionValue ? 'selected' : '' }}>{{ $occasionLabel }}</option>
             @endforeach
           </select>
           @error('occasion') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
@@ -317,13 +320,7 @@
         </div>
         <div id="itemsInputs"></div>
 
-        <div class="mb-4">
-          <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Total Amount (₱) <span id="weekendRateNote" class="font-normal text-warm-black/60" style="display: none;">— Weekend rate (Sat–Sun)</span></label>
-          <input type="number" name="total_amount" id="totalAmountInput" placeholder="0.00" step="0.01" value="{{ old('total_amount') }}" required
-            readonly
-            class="w-full bg-cream border border-gold-deep/25 text-warm-black px-3.5 py-2.5 rounded-md text-[15px] outline-none transition-colors focus:border-gold-deep font-body cursor-not-allowed opacity-75" />
-          @error('total_amount') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
-        </div>
+        <input type="hidden" name="total_amount" id="totalAmountInput" value="{{ old('total_amount') }}">
 
         <div class="mb-4">
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Payment Option</label>
@@ -336,8 +333,10 @@
           @error('payment_option') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
 
           <div class="mt-2 text-[13px] text-warm-black/70 bg-gold-deep/5 p-3 rounded border border-gold-deep/10 flex flex-col gap-1.5">
-            <div class="flex justify-between items-center">
-              <span>Total Booking Amount:</span>
+            <div class="text-[11px] font-bold tracking-[1px] uppercase text-gold-deep">Payment Breakdown</div>
+            <div id="summaryLines" class="flex flex-col gap-1"><div class="text-warm-black/50">Choose a date and package to see the price.</div></div>
+            <div class="flex justify-between items-center border-t border-gold-deep/15 pt-1.5 mt-0.5">
+              <span class="font-bold text-warm-black">Total:</span>
               <span class="font-bold text-warm-black" id="summaryTotal">₱0.00</span>
             </div>
             <div class="flex justify-between items-center">
@@ -345,7 +344,7 @@
               <span class="font-bold text-gold-deep" id="summaryAmountToPay">₱0.00</span>
             </div>
             <div class="flex justify-between items-center" id="summaryRemainingRow">
-              <span>Remaining Balance:</span>
+              <span id="summaryRemainingLabel">Remaining Balance:</span>
               <span class="font-bold text-warm-black" id="summaryRemaining">₱0.00</span>
             </div>
           </div>
@@ -419,7 +418,7 @@
         <div class="flex justify-between"><span>Payment Option:</span><span id="summaryPaymentOption" class="font-bold text-warm-black"></span></div>
         <div class="flex justify-between"><span>Total Booking Amount:</span><span id="summaryModalTotal" class="font-bold text-warm-black"></span></div>
         <div class="flex justify-between"><span id="summaryModalPayLabel"></span><span id="summaryModalPay" class="font-bold text-gold-deep"></span></div>
-        <div class="flex justify-between" id="summaryModalRemainingRow"><span>Remaining Balance:</span><span id="summaryModalRemaining" class="font-bold text-warm-black"></span></div>
+        <div class="flex justify-between" id="summaryModalRemainingRow"><span id="summaryModalRemainingLabel">Remaining Balance:</span><span id="summaryModalRemaining" class="font-bold text-warm-black"></span></div>
       </div>
       <p class="text-[12px] text-warm-black/50 italic mt-3 mb-0">Each package is saved as its own booking with its own reference number. This does not process any payment.</p>
     </div>
@@ -892,6 +891,34 @@
   </div>
 </div>
 
+@if($errors->any() && !session('booking_success'))
+<script>
+  // After a failed "Confirm Booking", point to the first problem: scroll, highlight and toast.
+  window.addEventListener('load', function () {
+    const errors = @json($errors->getMessages());
+    const fieldFor = {
+      event_date: '#calGrid', event_end_date: '#calGrid', occasion: '#occasionSelect',
+      event_type: '#eventTypeSelect', event_type_other: '#eventTypeOther', package: '#packageSelect',
+      room_number: '#packageSelect', items: '#packageSelect', guest_count: '#guestCountInput',
+      payment_option: '#paymentOptionSelect', terms: '#termsAgreementArea',
+    };
+    const keys = Object.keys(errors);
+    let target = null, message = null;
+    for (const key of keys) {
+      const name = key.startsWith('items.') ? key.split('.').pop() : key;
+      const selector = fieldFor[name] || fieldFor[key.split('.')[0]];
+      const el = selector && document.querySelector(selector);
+      if (el && el.offsetParent !== null) { target = el; message = errors[key][0]; break; }
+    }
+    if (target) {
+      uiFieldError(target, message);
+    } else {
+      document.getElementById('bookingErrors').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      uiToast(errors[keys[0]][0]);
+    }
+  });
+</script>
+@endif
 @include('chat-assistant')
 
 <script>
@@ -1029,8 +1056,6 @@
     const total = options.reduce(function (sum, o) { return sum + optionPrice(o); }, 0);
 
     document.getElementById('totalAmountInput').value = total > 0 ? total.toFixed(2) : '';
-    document.getElementById('weekendRateNote').style.display =
-      isWeekendDate() && options.some(function (o) { return o.dataset.weekendPrice; }) ? '' : 'none';
     renderBookingItems();
     updateDownPayment();
   }
@@ -1140,9 +1165,75 @@
     return '₱' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
+  // Packages in the total: the list plus the package currently selected.
+  function currentOptions() {
+    const option = packageSelectEl.options[packageSelectEl.selectedIndex];
+    const pending = option && option.dataset.price ? option : null;
+    return bookingItems.map(function (item) { return item.option; }).concat(pending ? [pending] : []);
+  }
+
+  // Price lines for one package, with weekend days listed separately.
+  function priceLines(option) {
+    const name = option.dataset.package + (option.dataset.room ? ' ' + option.dataset.room : '');
+    const dates = selectedDates();
+    if (!dates.length) return [{ label: name, amount: dayPrice(option, null) }];
+    const weekendDays = option.dataset.weekendPrice ? dates.filter(isWeekend).length : 0;
+    const weekdayDays = dates.length - weekendDays;
+    const days = function (n) { return n + (n === 1 ? ' day' : ' days'); };
+    const lines = [];
+    if (weekdayDays) lines.push({ label: name + (weekendDays ? ' – Weekday' : '') + ' × ' + days(weekdayDays), amount: weekdayDays * (parseFloat(option.dataset.price) || 0) });
+    if (weekendDays) lines.push({ label: name + ' – Weekend rate × ' + days(weekendDays), amount: weekendDays * (parseFloat(option.dataset.weekendPrice) || 0) });
+    return lines;
+  }
+
+  function renderPriceLines(container, options) {
+    container.innerHTML = '';
+    options.forEach(function (option) {
+      priceLines(option).forEach(function (line) {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center gap-3';
+        const label = document.createElement('span');
+        label.textContent = line.label;
+        const amount = document.createElement('span');
+        amount.className = 'text-warm-black shrink-0';
+        amount.textContent = formatPeso(line.amount);
+        row.append(label, amount);
+        container.appendChild(row);
+      });
+    });
+  }
+
+  // Down payment is due the day before the (first) event day; the balance on the event day.
+  function dueDates() {
+    if (!selectedDate) return null;
+    const fmt = function (d) { return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); };
+    const event = new Date(selectedDate + 'T00:00:00');
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const dayBefore = new Date(event); dayBefore.setDate(dayBefore.getDate() - 1);
+    return { downpayment: fmt(dayBefore < today ? today : dayBefore), balance: fmt(event) };
+  }
+
+  // Labels for the amount due now and the remaining balance.
+  function paymentLabels(isFull) {
+    const due = dueDates();
+    const payLabel = isFull ? 'Amount to Pay' : DOWN_PAYMENT_PERCENT + '% Downpayment';
+    return {
+      pay: payLabel + (due ? ' (Due on ' + due.downpayment + ')' : '') + ':',
+      remaining: 'Remaining Balance' + (due ? ' (Due on ' + due.balance + ')' : '') + ':',
+    };
+  }
+
   function updateDownPayment() {
     const total = parseFloat(totalAmountInput.value) || 0;
     const option = paymentOptionSelect.value;
+    const options = currentOptions();
+    if (options.length) {
+      renderPriceLines(document.getElementById('summaryLines'), options);
+    } else {
+      document.getElementById('summaryLines').innerHTML = '<div class="text-warm-black/50">Choose a date and package to see the price.</div>';
+    }
+    const labels = paymentLabels(option === 'full_payment');
+    document.getElementById('summaryRemainingLabel').textContent = labels.remaining;
 
     let amountToPay = 0;
     let remaining = 0;
@@ -1150,13 +1241,13 @@
     if (option === 'full_payment') {
       amountToPay = total;
       remaining = 0;
-      summaryAmountLabel.textContent = 'Amount to Pay:';
+      summaryAmountLabel.textContent = labels.pay;
       summaryRemainingRow.style.display = 'none';
     } else {
       // Show the down payment preview by default.
       amountToPay = Math.round(total * DOWN_PAYMENT_RATE * 100) / 100;
       remaining = Math.round((total - amountToPay) * 100) / 100;
-      summaryAmountLabel.textContent = DOWN_PAYMENT_PERCENT + '% Downpayment Amount:';
+      summaryAmountLabel.textContent = labels.pay;
       summaryRemainingRow.style.display = 'flex';
     }
 
@@ -1355,13 +1446,16 @@
       title.textContent = itemTitle(item);
       const price = document.createElement('div');
       price.className = 'text-[15px] font-bold text-gold-deep shrink-0';
-      price.textContent = formatPeso(optionPrice(item.option)) + (isWeekendDate() && item.option.dataset.weekendPrice ? (selectedDates().length > 1 ? ' (incl. weekend rate)' : ' (weekend)') : '');
+      price.textContent = formatPeso(optionPrice(item.option));
       head.append(title, price);
 
       const sub = document.createElement('div');
       sub.className = 'text-[13px] text-warm-black/60 mt-0.5';
       sub.textContent = itemSubtitle(item);
-      card.append(head, sub);
+      const lines = document.createElement('div');
+      lines.className = 'text-[13px] text-warm-black/70 mt-2 flex flex-col gap-0.5';
+      renderPriceLines(lines, [item.option]);
+      card.append(head, sub, lines);
 
       if (item.option.dataset.description) {
         const desc = document.createElement('div');
@@ -1378,7 +1472,9 @@
     const toPay = isFull ? total : Math.round(total * DOWN_PAYMENT_RATE * 100) / 100;
     document.getElementById('summaryPaymentOption').textContent = paymentOptionSelect.options[paymentOptionSelect.selectedIndex].textContent;
     document.getElementById('summaryModalTotal').textContent = formatPeso(total);
-    document.getElementById('summaryModalPayLabel').textContent = isFull ? 'Amount to Pay:' : DOWN_PAYMENT_PERCENT + '% Downpayment Amount:';
+    const modalLabels = paymentLabels(isFull);
+    document.getElementById('summaryModalPayLabel').textContent = modalLabels.pay;
+    document.getElementById('summaryModalRemainingLabel').textContent = modalLabels.remaining;
     document.getElementById('summaryModalPay').textContent = formatPeso(toPay);
     document.getElementById('summaryModalRemaining').textContent = formatPeso(Math.round((total - toPay) * 100) / 100);
     document.getElementById('summaryModalRemainingRow').style.display = isFull ? 'none' : 'flex';
@@ -1553,8 +1649,13 @@
       grid.appendChild(div);
     }
 
+    // The note stays visible; the line for the current occasion is emphasised.
     const hint = document.getElementById('rangeHint');
-    if (hint) hint.style.display = rangeAllowed() ? '' : 'none';
+    if (hint) {
+      const occasion = document.getElementById('occasionSelect').value;
+      hint.querySelector('[data-hint="range"]').style.opacity = occasion === 'event' ? '0.55' : '1';
+      hint.querySelector('[data-hint="single"]').style.opacity = occasion === 'event' || !occasion ? '1' : '0.55';
+    }
   }
 
   function showBlockedReason(dateStr) {

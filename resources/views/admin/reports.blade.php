@@ -373,7 +373,7 @@
         </div>
 
         <div style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse;" id="reportTable">
+          <table class="m-cards" style="width: 100%; border-collapse: collapse;" id="reportTable">
             <thead>
               <tr style="border-bottom: 1px solid #d4c4a0;">
                 <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">DATE</th>

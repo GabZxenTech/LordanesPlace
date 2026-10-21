@@ -325,60 +325,6 @@
           </div>
         </div>
       </div>
-
-      
-      <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
-        <div>
-          <div class="flex text-[18px] tracking-widest" style="color: #B8860B !important;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
-          <div class="w-10 h-10 rounded-full font-bold text-[16px] flex items-center justify-center shrink-0 shadow-sm border border-white/20" style="background-color: #2E7D32 !important; color: #ffffff !important;">
-            M
-          </div>
-          <div>
-            <h4 class="text-[15px] font-bold text-warm-black leading-tight">Mae</h4>
-            <p class="text-[12px] text-warm-black/50">5-Star Guest Review</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Review 6 (Minimal Google Review Style: Reyna Lim Baquiller) -->
-      <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
-        <div>
-          <div class="flex text-[18px] tracking-widest" style="color: #B8860B !important;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
-          <div class="w-10 h-10 rounded-full font-bold text-[16px] flex items-center justify-center shrink-0 shadow-sm border border-white/20" style="background-color: #C2185B !important; color: #ffffff !important;">
-            R
-          </div>
-          <div>
-            <h4 class="text-[15px] font-bold text-warm-black leading-tight">Reyna Lim Baquiller</h4>
-            <p class="text-[12px] text-warm-black/50">5-Star Guest Review</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="review-card bg-white/80 border border-gold-deep/25 rounded-xl p-6 transition-all duration-300 hover:border-gold-deep hover:shadow-md flex flex-col justify-between shrink-0">
-        <div>
-          <div class="flex text-[18px] tracking-widest" style="color: #B8860B !important;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-        </div>
-        <div class="flex items-center gap-3 pt-4 border-t border-gold-deep/15">
-          <div class="w-10 h-10 rounded-full font-bold text-[16px] flex items-center justify-center shrink-0 shadow-sm border border-white/20" style="background-color: #1565C0 !important; color: #ffffff !important;">
-            A
-          </div>
-          <div>
-            <h4 class="text-[15px] font-bold text-warm-black leading-tight">Ayan Rapada</h4>
-            <p class="text-[12px] text-warm-black/50">5-Star Guest Review</p>
-          </div>
-        </div>
-      </div>
-
     </div>
 
     <button id="reviewsNextBtn" onclick="scrollReviews(1)" type="button"

@@ -213,6 +213,8 @@
       ? \App\Models\Conversation::where('user_id', auth()->id())->first()
       : \App\Models\Conversation::where('session_id', session()->getId())->first();
   $chatHasUnread = $chatConversation ? $chatConversation->hasUnreadForCustomer() : false;
+  // FAQ answers that have a chat button.
+  try { $chatFaqs = \App\Models\Faq::published()->whereNotNull('chat_label')->values(); } catch (\Throwable $e) { $chatFaqs = collect(); }
 @endphp
 <div class="chat-bubble">
   <button class="chat-toggle" onclick="toggleChat()" id="chatToggleBtn" aria-label="Open chat">
@@ -236,10 +238,10 @@
     </div>
 
     <div class="quick-replies" id="quickReplies">
-      <button class="quick-btn" onclick="handleQuickReply('pricing')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px;"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Pricing</button>
-      <button class="quick-btn" onclick="handleQuickReply('booking')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px;"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>Booking</button>
-      <button class="quick-btn" onclick="handleQuickReply('location')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Location</button>
-      <button class="quick-btn" onclick="handleQuickReply('amenities')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Amenities</button>
+      @foreach($chatFaqs as $i => $chatFaq)
+        <button class="quick-btn" onclick="handleQuickReply({{ $i }})"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>{{ $chatFaq->chat_label }}</button>
+      @endforeach
+      <a class="quick-btn" href="{{ route('faq') }}" style="text-decoration: none;">All FAQs →</a>
     </div>
 
     <div class="chat-input-row" id="chatInputRow">
@@ -257,12 +259,9 @@
   let lastMessageId = 0;
   let chatActive = @json((bool) $chatConversation);
 
-  const quickResponses = {
-    pricing: "From memorable events and relaxing swimming getaways to comfortable room stays, we have the perfect package for your next special moment!\n\nEnjoy our packages starting at just **₱12,000**!\n\nBook now and <a href='{{ route('discover') }}' style='color: #D4A017;'>explore our packages</a>!",
-    booking: "You can book by filling out our booking form here: <a href='/booking' style='color: #D4A017;'>Click Here to Book</a>",
-    location: "We are located at Pulong Buhangin, Santa Maria, Bulacan, Philippines. Near the McDonald's Pulong Buhangin.",
-    amenities: "We offer: Olympic-size swimming pool, Air-conditioned Function Hall (200 pax), Outdoor Garden, Full Kitchen, and Free Parking."
-  };
+  // Quick reply answers from the FAQs (admin-edited text, so it is escaped).
+  const chatFaqs = @json($chatFaqs->map(fn ($f) => ['id' => $f->id, 'label' => $f->chat_label, 'answer' => $f->answer])->values());
+  const faqUrl = @json(route('faq'));
 
   function toggleChat() {
     chatOpen = !chatOpen;
@@ -306,12 +305,14 @@
     return div;
   }
 
-  function handleQuickReply(key) {
-    const labels = { pricing: "Pricing", booking: "Booking", location: "Location", amenities: "Amenities" };
-    addMessage('user', labels[key]);
-    
+  function handleQuickReply(i) {
+    const faq = chatFaqs[i];
+    if (!faq) return;
+    addMessage('user', faq.label);
+
     setTimeout(() => {
-      addMessage('bot', quickResponses[key], true);
+      const answer = escapeHtml(faq.answer) + "<br><br><a href='" + faqUrl + "#faq-" + faq.id + "' style='color: #D4A017;'>See more in our FAQs</a>";
+      addMessage('bot', answer, true);
     }, 500);
   }
 

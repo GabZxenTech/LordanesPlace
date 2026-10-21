@@ -28,7 +28,7 @@
         <h2 style="font-size: 12px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0;">PENDING REQUESTS</h2>
       </div>
       <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse;">
+        <table class="m-cards" style="width: 100%; border-collapse: collapse;">
           <thead>
             <tr style="border-bottom: 1px solid #d4c4a0;">
               <th style="padding: 14px 20px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">#</th>

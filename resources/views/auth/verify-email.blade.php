@@ -75,11 +75,10 @@
               @for ($i = 0; $i < 6; $i++)
                 <input type="text"
                   class="otp-box"
-                  maxlength="1"
+                  maxlength="6"
                   inputmode="numeric"
-                  pattern="[0-9]"
                   data-index="{{ $i }}"
-                  autocomplete="off"
+                  autocomplete="{{ $i === 0 ? 'one-time-code' : 'off' }}"
                   {{ $i === 0 ? 'autofocus' : '' }}
                   style="width: 46px; height: 52px; text-align: center; font-size: 22px; font-weight: 700;
                          border: 2px solid rgba(191,155,48,0.25); border-radius: 8px;
@@ -88,7 +87,7 @@
               @endfor
             </div>
 
-            <p style="color: rgba(255,255,255,0.35); font-size: 12px; margin-bottom: 20px;">Enter the 6-digit code • Expires in 5 minutes</p>
+            <p style="color: rgba(255,255,255,0.35); font-size: 12px; margin-bottom: 20px;">Enter the 6-digit code • Expires in 5 minutes<br>Not in your inbox? Check your Spam or Promotions folder.</p>
 
             <button type="submit" id="verifyBtn"
               style="width: 100%; padding: 12px; border: none; border-radius: 8px; background: #BF9B30; color: #1a1208;
@@ -167,9 +166,14 @@
         });
 
         input.addEventListener('input', function () {
-          this.value = this.value.replace(/[^0-9]/g, '');
-          if (this.value && idx < inputs.length - 1) {
-            inputs[idx + 1].focus();
+          const digits = this.value.replace(/[^0-9]/g, '');
+          // A whole code typed, autofilled or suggested into one box fills the next boxes.
+          if (digits.length > 1) {
+            digits.slice(0, inputs.length - idx).split('').forEach(function (d, i) { inputs[idx + i].value = d; });
+            inputs[Math.min(idx + digits.length, inputs.length - 1)].focus();
+          } else {
+            this.value = digits;
+            if (this.value && idx < inputs.length - 1) inputs[idx + 1].focus();
           }
           updateHidden();
         });
