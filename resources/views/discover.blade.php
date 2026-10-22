@@ -58,11 +58,27 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
       Open Fullscreen
     </a>
-    <iframe
-      src="{{ asset('lordanes-place-360/app-files/index.html') }}"
-      loading="lazy"
+    {{-- The tour (about 33 MB) only loads after the visitor presses Start. --}}
+    <div id="tourPoster" class="w-full h-[350px] md:h-[500px] lg:h-[600px] rounded-xl border border-gold-deep/20 relative overflow-hidden flex items-center justify-center"
+         style="background: linear-gradient(rgba(26,18,8,0.45), rgba(26,18,8,0.6)), url('{{ asset('images/360_BG.jpg') }}'); background-size: cover; background-position: center;">
+      <div class="text-center px-5">
+        <p class="text-gold-light text-[12px] tracking-[3px] font-bold mb-3">INTERACTIVE 360° TOUR</p>
+        <button type="button" id="startTourBtn" class="bg-gold-deep text-white px-7 py-3.5 rounded font-bold text-[15px] tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid inline-flex items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+          Start 360° Tour
+        </button>
+        <p class="text-white/70 text-[13px] mt-3">Loads only when you press start.</p>
+      </div>
+      <div id="tourLoading" class="absolute inset-0 flex-col items-center justify-center gap-3 text-white" style="display: none; background: rgba(26,18,8,0.75);">
+        <div class="ui-spinner"></div>
+        <p class="text-[14px] m-0">Loading the tour...</p>
+      </div>
+    </div>
+    <iframe id="tourFrame"
+      data-src="{{ asset('lordanes-place-360/app-files/index.html') }}"
+      title="360° virtual tour"
       class="w-full h-[350px] md:h-[500px] lg:h-[600px] rounded-xl border border-gold-deep/20"
-      style="border:none;"
+      style="border:none; display: none;"
       allow="accelerometer; gyroscope; magnetometer; fullscreen">
     </iframe>
   </div>
@@ -219,7 +235,7 @@
           <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Air-conditioned room</li>
           <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Max 4 pax</li>
         </ul>
-        <p class="text-[18px] font-bold text-gold-deep mb-3">₱4,500 <span class="text-[12px] font-normal text-warm-black/50">/ solo rate</span></p>
+        <p class="text-[18px] font-bold text-gold-deep mb-3">₱4,500 <span class="text-[12px] font-normal text-warm-black/50">/ per room, per day</span></p>
         <div class="flex justify-end items-center">
           <button onclick="window.location.href='{{ route('booking', ['package' => 'Standard Room']) }}'" class="bg-gold-deep text-white px-4 py-2 rounded text-[12px] font-bold tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid">BOOK NOW</button>
         </div>
@@ -238,7 +254,7 @@
           <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Spacious air-conditioned room</li>
           <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Max 7 pax</li>
         </ul>
-        <p class="text-[18px] font-bold text-gold-deep mb-3">₱8,500 <span class="text-[12px] font-normal text-warm-black/50">/ solo rate</span></p>
+        <p class="text-[18px] font-bold text-gold-deep mb-3">₱8,500 <span class="text-[12px] font-normal text-warm-black/50">/ per room, per day</span></p>
         <div class="flex justify-end items-center">
           <button onclick="window.location.href='{{ route('booking', ['package' => 'Family Room']) }}'" class="bg-gold-deep text-white px-4 py-2 rounded text-[12px] font-bold tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid">BOOK NOW</button>
         </div>
@@ -257,7 +273,7 @@
           <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Large air-conditioned dormitory</li>
           <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Max 15 pax</li>
         </ul>
-        <p class="text-[18px] font-bold text-gold-deep mb-3">₱11,500 <span class="text-[12px] font-normal text-warm-black/50">/ solo rate</span></p>
+        <p class="text-[18px] font-bold text-gold-deep mb-3">₱11,500 <span class="text-[12px] font-normal text-warm-black/50">/ per room, per day</span></p>
         <div class="flex justify-end items-center">
           <button onclick="window.location.href='{{ route('booking', ['package' => 'Dormitory Room']) }}'" class="bg-gold-deep text-white px-4 py-2 rounded text-[12px] font-bold tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid">BOOK NOW</button>
         </div>
@@ -279,7 +295,7 @@
           <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> 2 Preparation Rooms</li>
           <li class="text-[15px] text-warm-black/90 font-normal flex items-center gap-2"><span class="text-gold-deep flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Max 220 pax</li>
         </ul>
-        <p class="text-[22px] font-bold text-gold-deep mb-4">₱35,000</p>
+        <p class="text-[22px] font-bold text-gold-deep mb-4">₱35,000 <span class="text-[12px] font-normal text-warm-black/50">/ per event</span></p>
         <div class="flex justify-end items-center">
           <button onclick="window.location.href='{{ route('booking', ['package' => 'Venue Hall']) }}'" class="bg-gold-deep text-white px-6 py-2.5 rounded text-[15px] font-bold tracking-wide border-none cursor-pointer transition-all hover:bg-gold-mid">BOOK NOW</button>
         </div>
@@ -302,6 +318,19 @@
 </section>
 
 @include('partials._footer')
+<script>
+  // Start the 360 tour only when the visitor asks for it (a hidden iframe still loads).
+  document.getElementById('startTourBtn').addEventListener('click', function () {
+    const frame = document.getElementById('tourFrame');
+    this.style.display = 'none';
+    document.getElementById('tourLoading').style.display = 'flex';
+    frame.addEventListener('load', function () {
+      document.getElementById('tourPoster').style.display = 'none';
+      frame.style.display = 'block';
+    }, { once: true });
+    frame.src = frame.dataset.src;
+  });
+</script>
 @include('chat-assistant')
 </body>
 </html>

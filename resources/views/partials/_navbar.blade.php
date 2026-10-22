@@ -94,6 +94,9 @@
             <a href="{{ route('terms') }}" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline border-b border-gold-deep/10">
               Terms & Conditions
             </a>
+            <a href="{{ route('privacy') }}" class="block px-5 py-3 text-warm-black/80 text-[14px] transition-all hover:text-gold-deep hover:bg-gold-deep/5 no-underline border-b border-gold-deep/10">
+              Privacy Policy
+            </a>
             <div class="mt-1">
               <form method="POST" action="{{ route('logout') }}">
                 @csrf
@@ -154,6 +157,7 @@
           <a href="{{ route('profile') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Profile & Bookings</a>
           <a href="{{ route('account.settings') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Account Settings</a>
           <a href="{{ route('terms') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Terms & Conditions</a>
+          <a href="{{ route('privacy') }}" class="block py-3 px-4 text-[15px] text-warm-black rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5 no-underline">Privacy Policy</a>
           <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="w-full text-left py-3 px-4 text-[15px] text-warm-black bg-transparent border-none cursor-pointer rounded transition-colors hover:text-gold-deep hover:bg-gold-deep/5">Logout</button>

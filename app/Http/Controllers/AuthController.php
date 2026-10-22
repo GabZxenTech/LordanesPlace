@@ -64,6 +64,7 @@ class AuthController extends Controller
                     ->symbols(),
                 'not_in:' . implode(',', $commonPasswords),
             ],
+            'terms' => 'accepted',
         ], [
             'name.required'      => 'Full name is required.',
             'email.required'     => 'Email is required.',
@@ -72,6 +73,7 @@ class AuthController extends Controller
             'password.required'  => 'Password is required.',
             'password.confirmed' => 'Passwords do not match.',
             'password.not_in'    => 'This password is too common. Please choose a stronger password.',
+            'terms.accepted'     => 'Please agree to the Terms & Conditions and the Privacy Policy.',
         ]);
 
         $recaptcha = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [

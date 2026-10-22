@@ -9,6 +9,11 @@
         <h3 class="font-heading text-[24px] text-gold-deep leading-none m-0">LorDane's Place</h3>
       </div>
       <p class="text-[15px] text-off-white/80 font-normal leading-[1.6] m-0">An elegant event venue in Santa Maria, Bulacan — where every celebration becomes a lasting memory.</p>
+      <div class="mt-3 flex flex-col gap-1 text-[14px] text-off-white/80">
+        <span>Pulong Buhangin, Santa Maria, Bulacan</span>
+        <a href="tel:09177455049" class="text-off-white/80 no-underline hover:text-gold-light">0917 745 5049</a>
+        <a href="mailto:lordanesplace@gmail.com" class="text-off-white/80 no-underline hover:text-gold-light">lordanesplace@gmail.com</a>
+      </div>
       <p class="text-[12px] text-off-white/50 tracking-wide mt-2 mb-0">&copy; 2026 <span class="text-gold-deep">LorDane's Place</span>. All rights reserved.</p>
     </div>
 
@@ -23,6 +28,8 @@
         <a href="{{ route('discover') }}#gallery" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Gallery</a>
         <a href="{{ url('/contact') }}" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Contact Us</a>
         <a href="{{ route('faq') }}" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">FAQs</a>
+        <a href="{{ route('terms') }}" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Terms &amp; Conditions</a>
+        <a href="{{ route('privacy') }}" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Privacy Policy</a>
       </div>
     </div>
 

@@ -28,6 +28,14 @@ Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
 
+Route::get('/terms-and-conditions', function () {
+    return view('terms');
+})->name('terms');
+
+Route::get('/privacy', function () {
+    return view('privacy');
+})->name('privacy');
+
 Route::get('/faq', function () {
     return view('faq', ['faqs' => \App\Models\Faq::published()]);
 })->name('faq');
@@ -86,7 +94,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/booking/check-room-availability', [BookingController::class, 'checkRoomAvailability'])->name('booking.check-room-availability');
     Route::get('/booking/success', [BookingController::class, 'success'])->name('booking.success');
     Route::get('/profile', [BookingController::class, 'profile'])->name('profile');
-    Route::get('/terms-and-conditions', function() { return view('terms'); })->name('terms');
 
     // Account settings.
     Route::get('/account/settings', [App\Http\Controllers\AccountController::class, 'show'])->name('account.settings');

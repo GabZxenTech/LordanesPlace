@@ -295,6 +295,18 @@
           </select>
           <input type="hidden" name="package" id="packageHiddenInput" value="{{ old('package') }}" />
           <input type="hidden" name="room_number" id="roomNumberHiddenInput" value="{{ old('room_number') }}" />
+          {{-- Price, guests, time and inclusions of the selected package --}}
+          <div id="packageInfoCard" class="mt-3 rounded-lg border border-gold-deep/20 bg-gold-deep/5 p-3.5 text-[13px] text-warm-black/80" style="display: none;">
+            <div class="flex justify-between items-start gap-3">
+              <div id="pkgInfoName" class="text-[14px] font-bold text-warm-black"></div>
+              <div id="pkgInfoPrice" class="text-right shrink-0 leading-snug"></div>
+            </div>
+            <div id="pkgInfoFacts" class="mt-1.5 text-warm-black/70"></div>
+            <div id="pkgInfoDescWrap" class="mt-2 pt-2 border-t border-gold-deep/15">
+              <div class="text-[11px] font-bold tracking-[1px] uppercase text-gold-deep mb-1">What's included</div>
+              <div id="pkgInfoDesc" class="leading-relaxed"></div>
+            </div>
+          </div>
           <div id="roomUnavailableNotice" class="text-red-500 text-[12px] mt-1" style="display:none;">That package or room is already booked for the selected date — please choose another.</div>
           @error('package') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
           @error('room_number') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror
@@ -363,6 +375,18 @@
             <div class="text-[13.5px] text-warm-black/80 leading-relaxed">
                 <strong>Please note:</strong> A {{ \App\Models\Booking::downPaymentRatePercent() }}% down payment is required to confirm your reservation. Our admin will contact you with payment instructions after booking.
             </div>
+        </div>
+
+        {{-- Booking terms in short --}}
+        <div class="mb-4 rounded-lg border border-gold-deep/20 bg-white/60 p-4 text-[13px] text-warm-black/80 leading-relaxed">
+          <div class="text-[11px] font-bold tracking-[1px] uppercase text-gold-deep mb-1.5">Booking terms in short</div>
+          <ul class="m-0 pl-4 list-disc space-y-0.5">
+            <li>{{ \App\Models\Booking::downPaymentRatePercent() }}% downpayment is due the day before your event; the balance is due on the event day.</li>
+            <li>Reservation fees are non-refundable.</li>
+            <li>Unpaid bookings and missed venue visits are automatically cancelled.</li>
+            <li>The first reschedule is free; each one after costs ₱5,000.</li>
+          </ul>
+          <p class="mt-2 mb-0 text-[12px]">Read the full <a href="{{ route('terms') }}" target="_blank" rel="noopener" class="text-gold-deep font-bold underline">Terms &amp; Conditions</a> and <a href="{{ route('privacy') }}" target="_blank" rel="noopener" class="text-gold-deep font-bold underline">Privacy Policy</a>.</p>
         </div>
 
         {{-- Hidden terms checkbox that is submitted (checked after agreeing in the modal) --}}
@@ -1056,6 +1080,7 @@
     const total = options.reduce(function (sum, o) { return sum + optionPrice(o); }, 0);
 
     document.getElementById('totalAmountInput').value = total > 0 ? total.toFixed(2) : '';
+    renderPackageInfo();
     renderBookingItems();
     updateDownPayment();
   }
@@ -1163,6 +1188,66 @@
 
   function formatPeso(amount) {
     return '₱' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // Package details card: price (weekday/weekend), guests, time and inclusions.
+  function renderPackageInfo() {
+    const card = document.getElementById('packageInfoCard');
+    const option = packageSelectEl.options[packageSelectEl.selectedIndex];
+    if (!option || !option.dataset.price) { card.style.display = 'none'; return; }
+
+    const peso = function (n) { return '₱' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 }); };
+    const time = function (hhmm) {
+      const parts = hhmm.split(':'); const h = parseInt(parts[0], 10);
+      return ((h % 12) || 12) + ':' + parts[1] + ' ' + (h < 12 ? 'AM' : 'PM');
+    };
+    const name = option.dataset.package + (option.dataset.room ? ' ' + option.dataset.room : '');
+    document.getElementById('pkgInfoName').textContent = name;
+
+    const priceEl = document.getElementById('pkgInfoPrice');
+    priceEl.textContent = '';
+    const weekday = document.createElement('div');
+    weekday.className = 'font-bold text-gold-deep';
+    weekday.textContent = peso(option.dataset.price) + (option.dataset.weekendPrice ? ' weekday' : ' per day');
+    priceEl.appendChild(weekday);
+    if (option.dataset.weekendPrice) {
+      const weekend = document.createElement('div');
+      weekend.className = 'font-bold text-gold-deep';
+      weekend.textContent = peso(option.dataset.weekendPrice) + ' weekend (Sat–Sun)';
+      priceEl.appendChild(weekend);
+    }
+
+    const facts = ['Up to ' + option.dataset.max + ' guests'];
+    if (option.dataset.start && option.dataset.end) {
+      const overnight = option.dataset.end <= option.dataset.start;
+      facts.push(time(option.dataset.start) + ' – ' + time(option.dataset.end) + (overnight ? ' (next day)' : ''));
+    }
+    if (option.dataset.roomType || option.dataset.occasion === 'staycation') facts.push('Price is per room, per day');
+    document.getElementById('pkgInfoFacts').textContent = facts.join(' · ');
+
+    // Description: one line is a sentence; several lines become a list ("Heading:" lines are titles).
+    const lines = (option.dataset.description || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+    const box = document.getElementById('pkgInfoDesc');
+    box.textContent = '';
+    document.getElementById('pkgInfoDescWrap').style.display = lines.length ? '' : 'none';
+    if (lines.length === 1) {
+      box.textContent = lines[0];
+    } else {
+      lines.forEach(function (line) {
+        const row = document.createElement('div');
+        if (/:$/.test(line)) {
+          row.className = 'font-bold text-warm-black mt-1.5';
+          row.textContent = line.replace(/:$/, '');
+        } else {
+          row.className = 'flex gap-1.5';
+          const tick = document.createElement('span'); tick.className = 'text-gold-deep'; tick.textContent = '✓';
+          const text = document.createElement('span'); text.textContent = line;
+          row.append(tick, text);
+        }
+        box.appendChild(row);
+      });
+    }
+    card.style.display = '';
   }
 
   // Packages in the total: the list plus the package currently selected.

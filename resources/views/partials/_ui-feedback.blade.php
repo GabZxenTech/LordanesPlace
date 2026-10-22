@@ -28,8 +28,15 @@
   .ui-confirm-cancel { background: transparent; border: 1px solid #d4c4a0; color: #2c1a0e; }
   .ui-confirm-ok { background: #b8860b; border: 1px solid #b8860b; color: #fff; }
   .ui-confirm-box.is-danger .ui-confirm-ok { background: #b03a2e; border-color: #b03a2e; }
+
+  /* Page loading bar and spinner */
+  .ui-loadbar { position: fixed; top: 0; left: 0; height: 3px; width: 0; background: linear-gradient(90deg, #b8860b, #e8c96d); z-index: 100002; opacity: 0; pointer-events: none; transition: width .4s ease, opacity .3s ease; }
+  .ui-loadbar.is-on { opacity: 1; }
+  .ui-spinner { width: 34px; height: 34px; border: 3px solid rgba(232,201,109,0.3); border-top-color: #e8c96d; border-radius: 50%; animation: ui-spin .8s linear infinite; }
+  @keyframes ui-spin { to { transform: rotate(360deg); } }
 </style>
 
+<div class="ui-loadbar" id="uiLoadBar" role="progressbar" aria-hidden="true"></div>
 <div class="ui-toast-wrap" id="uiToastWrap" aria-live="polite"></div>
 
 <div class="ui-confirm-overlay" id="uiConfirm" role="dialog" aria-modal="true" aria-labelledby="uiConfirmTitle">
@@ -143,6 +150,51 @@
       document.addEventListener('keydown', onKey);
     });
   };
+
+  // Loading bar while the next page loads. If the server is slow to answer
+  // (the free host waking up), a message explains the wait.
+  (function () {
+    const bar = document.getElementById('uiLoadBar');
+    let slowTimer = null, slowToast = null;
+
+    function start() {
+      if (!bar || bar.classList.contains('is-on')) return;
+      bar.classList.add('is-on');
+      bar.style.width = '70%';
+      slowTimer = setTimeout(function () {
+        if (typeof uiToast === 'function') uiToast('Waking up the server, this can take up to a minute. Please wait...', 'info');
+      }, 4000);
+    }
+
+    function stop() {
+      clearTimeout(slowTimer);
+      if (!bar) return;
+      bar.style.width = '100%';
+      setTimeout(function () { bar.classList.remove('is-on'); bar.style.width = '0'; }, 300);
+    }
+
+    // Links that open another page on this site.
+    document.addEventListener('click', function (e) {
+      const a = e.target.closest('a[href]');
+      if (!a || e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+      if (a.target && a.target !== '_self') return;
+      if (a.hasAttribute('download') || a.origin !== location.origin) return;
+      if (/^(mailto:|tel:|javascript:)/i.test(a.getAttribute('href'))) return;
+      if (a.pathname === location.pathname && a.search === location.search) return; // same page (anchor)
+      if (/\/receipt|\/avatar|\.pdf$/i.test(a.pathname)) return; // downloads and images stay on the page
+      start();
+    });
+
+    // Forms that submit to the server.
+    document.addEventListener('submit', function (e) {
+      if (e.defaultPrevented || (e.target.target && e.target.target !== '_self')) return;
+      start();
+    });
+
+    // Back/forward from the browser cache: clear a stuck bar.
+    window.addEventListener('pageshow', function () { clearTimeout(slowTimer); if (bar) { bar.classList.remove('is-on'); bar.style.width = '0'; } });
+    window.addEventListener('pagehide', function () { clearTimeout(slowTimer); });
+  })();
 
   // Forms or buttons with data-confirm ask before submitting.
   document.addEventListener('click', function (e) {
