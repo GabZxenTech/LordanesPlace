@@ -113,7 +113,7 @@
             <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="w-5 h-5" />
             Continue with Google
           </a>
-          <p class="text-center text-[12px] text-white/45 mt-2 mb-0">By continuing with Google you agree to our <a href="{{ route('terms') }}" target="_blank" rel="noopener" class="text-gold-deep underline">Terms</a> and <a href="{{ route('privacy') }}" target="_blank" rel="noopener" class="text-gold-deep underline">Privacy Policy</a>.</p>
+          <p class="text-center text-[12px] text-white/60 mt-2 mb-3">By continuing with Google you agree to our <a href="{{ route('terms') }}" target="_blank" rel="noopener" class="text-gold-deep underline">Terms</a> and <a href="{{ route('privacy') }}" target="_blank" rel="noopener" class="text-gold-deep underline">Privacy Policy</a>.</p>
 
           <p class="text-center text-[14px] text-white/60 mb-3">
             Already have an account? <a href="{{ route('login') }}" class="text-gold-deep no-underline hover:text-gold-light">Login</a>

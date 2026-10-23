@@ -76,6 +76,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/verify-otp', [OtpVerificationController::class, 'show'])->name('otp.show');
     Route::post('/verify-otp', [OtpVerificationController::class, 'verify'])->name('otp.verify');
     Route::post('/resend-otp', [OtpVerificationController::class, 'resend'])->name('otp.resend');
+    Route::post('/verify-otp/back', [OtpVerificationController::class, 'back'])->name('otp.back');
+    Route::post('/change-email', [OtpVerificationController::class, 'changeEmail'])->name('otp.change-email');
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {

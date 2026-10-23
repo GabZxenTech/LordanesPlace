@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\EmailOtp;
+use App\Models\User;
 use App\Mail\EmailOtpMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class OtpVerificationController extends Controller
 {
@@ -136,6 +139,86 @@ class OtpVerificationController extends Controller
         RateLimiter::hit($cooldownKey, 60);    // 60-second cooldown
 
         return back()->with('message', 'A new verification code has been sent to your email.');
+    }
+
+    // Back to the sign up page; the unverified signup is dropped.
+    public function back(Request $request)
+    {
+        $user = Auth::user();
+
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        if ($user && !$user->email_verified_at) {
+            $user->delete();
+        }
+
+        return redirect()->route('register');
+    }
+
+    // Lets an unverified user fix a mistyped email and gets a new code.
+    public function changeEmail(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user->email_verified_at) {
+            return redirect()->route('home');
+        }
+
+        $request->merge(['email' => Str::lower(trim((string) $request->input('email')))]);
+
+        $request->validate([
+            'email' => [
+                'required',
+                'email:dns',
+                'max:255',
+                Rule::unique('users', 'email')->whereNotNull('email_verified_at'),
+            ],
+        ], [
+            'email.required' => 'Email is required.',
+            'email.email'    => 'Please enter a valid email address.',
+            'email.unique'   => 'Email is already taken.',
+        ]);
+
+        // Max 3 email changes per 15 minutes.
+        $changeKey = 'otp-change-email:' . $user->id;
+
+        if (RateLimiter::tooManyAttempts($changeKey, 3)) {
+            $minutes = (int) ceil(RateLimiter::availableIn($changeKey) / 60);
+
+            return back()->withErrors([
+                'email' => "Too many email changes. Please wait {$minutes} minute(s) and try again.",
+            ]);
+        }
+
+        RateLimiter::hit($changeKey, 900);
+
+        // Drop other unverified signups using this email.
+        User::where('email', $request->email)
+            ->where('id', '!=', $user->id)
+            ->whereNull('email_verified_at')
+            ->delete();
+
+        $user->update(['email' => $request->email]);
+
+        // Codes sent to the old address stop working.
+        EmailOtp::where('user_id', $user->id)
+            ->whereNull('used_at')
+            ->update(['used_at' => now()]);
+
+        RateLimiter::clear('otp-verify:' . $user->id);
+
+        $sent = self::generateAndSendOtp($user);
+
+        // Start the resend cooldown for the new code.
+        RateLimiter::hit('otp-cooldown:' . $user->id, 60);
+
+        return redirect()->route('otp.show')
+            ->with($sent
+                ? ['message' => 'Your email was updated. A new verification code has been sent.']
+                : ['email_warning' => 'We could not deliver the verification code to your email. Please make sure your email address is correct or try resending.']);
     }
 
     // Creates a 6-digit code, saves its hash and emails it.

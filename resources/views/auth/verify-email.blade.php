@@ -112,12 +112,38 @@
             <p id="cooldownText" style="color: rgba(255,255,255,0.35); font-size: 12px; margin-top: 4px; display: none; font-variant-numeric: tabular-nums;"></p>
           </div>
 
+          {{-- Change Email --}}
+          <div style="margin-bottom: 16px;">
+            <p style="color: rgba(255,255,255,0.45); font-size: 13px; margin-bottom: 6px;">Wrong email address?</p>
+            <button type="button" id="changeEmailToggle"
+              style="color: #BF9B30; font-size: 13px; background: transparent; border: none; cursor: pointer; text-decoration: underline; font-weight: 500;">
+              Change Email
+            </button>
+
+            <form method="POST" action="{{ route('otp.change-email') }}" id="changeEmailForm"
+                  style="display: {{ $errors->has('email') ? 'block' : 'none' }}; margin-top: 12px;">
+              @csrf
+              <input type="email" name="email" value="{{ old('email') }}" placeholder="Enter your correct email" required
+                style="width: 100%; padding: 11px 14px; border: 1px solid rgba(191,155,48,0.25); border-radius: 8px;
+                       background: rgba(255,255,255,0.06); color: #fff; font-size: 14px; outline: none; margin-bottom: 8px;
+                       font-family: 'Jost', sans-serif;" />
+              @if ($errors->has('email'))
+                <p style="color: #f87171; font-size: 12px; margin-bottom: 8px; text-align: left;">{{ $errors->first('email') }}</p>
+              @endif
+              <button type="submit"
+                style="width: 100%; padding: 10px; border: 1px solid #BF9B30; border-radius: 8px; background: transparent;
+                       color: #BF9B30; font-size: 13px; font-weight: 700; letter-spacing: 1px; cursor: pointer;">
+                UPDATE &amp; RESEND CODE
+              </button>
+            </form>
+          </div>
+
           <div style="border-top: 1px solid rgba(191,155,48,0.15); padding-top: 14px;">
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ route('otp.back') }}">
               @csrf
               <button type="submit"
                 style="color: rgba(255,255,255,0.45); font-size: 13px; background: transparent; border: none; cursor: pointer; transition: color 0.2s;">
-                ← Log Out
+                ← Back
               </button>
             </form>
           </div>
@@ -197,6 +223,13 @@
           inputs[focusIdx].focus();
           updateHidden();
         });
+      });
+
+      // ── Change Email Toggle ──
+      document.getElementById('changeEmailToggle').addEventListener('click', function () {
+        const form = document.getElementById('changeEmailForm');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        if (form.style.display === 'block') form.querySelector('input[name=email]').focus();
       });
 
       // ── Resend Cooldown Timer ──
