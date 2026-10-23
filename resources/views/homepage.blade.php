@@ -80,7 +80,7 @@
       </p>
       <div class="mt-7 md:mt-9 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
         <div class="p-4 md:p-5 border border-gold-deep/25 rounded-md bg-white/70 transition-all duration-300 hover:border-gold-deep hover:shadow-sm">
-          <h4 class="text-[16px] md:text-[15px] font-bold text-gold-deep tracking-[0.5px] mb-2">200–250 Guest Capacity</h4>
+          <h4 class="text-[16px] md:text-[15px] font-bold text-gold-deep tracking-[0.5px] mb-2">200–220 Guest Capacity</h4>
           <p class="text-[15px] md:text-[16px] font-normal text-warm-black/90 leading-[1.6]">Spacious venue with flexible arrangements for any event.</p>
         </div>
         <div class="p-4 md:p-5 border border-gold-deep/25 rounded-md bg-white/70 transition-all duration-300 hover:border-gold-deep hover:shadow-sm">
