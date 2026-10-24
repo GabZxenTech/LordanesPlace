@@ -31,6 +31,12 @@ class Conversation extends Model
         return $this->belongsTo(User::class);
     }
 
+    // Name shown to the admin; guests get a unique "Guest #id".
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->user->name ?? 'Guest #' . $this->id;
+    }
+
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
