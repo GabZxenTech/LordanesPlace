@@ -19,6 +19,12 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Commands that erase the database (migrate:fresh, migrate:refresh, db:wipe) are blocked
+        // on the live Supabase database. Set ALLOW_DESTRUCTIVE_DB=true only on purpose.
+        if (str_contains((string) config('database.connections.pgsql.host'), 'supabase.com') && ! env('ALLOW_DESTRUCTIVE_DB')) {
+            \Illuminate\Support\Facades\DB::prohibitDestructiveCommands();
+        }
+
         // Rate limit for account settings actions, counted separately per action.
         \Illuminate\Support\Facades\RateLimiter::for('account', function ($request) {
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(10)
