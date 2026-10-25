@@ -13,6 +13,9 @@
     .b-pending { background: rgba(234, 179, 8, 0.15); color: #ca8a04; border: 1px solid #eab308; }
     .b-approved { background: rgba(34, 197, 94, 0.15); color: #16a34a; border: 1px solid #22c55e; }
     .b-rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444; }
+    .b-ongoing { background: #d6e9ff; color: #0d4a91; border: 1px solid #3b82f6; }
+    .b-completed { background: #c9a84c; color: #fff; border: 1px solid #b8860b; }
+    .b-cancelled { background: #2c1a0e; color: #fff9ef; border: 1px solid #2c1a0e; }
     
     .pay-status { display: inline-block; padding: 0.25rem 0.625rem; border-radius: 0.375rem; font-size: 0.6875rem; font-weight: 700; }
     .p-unpaid { background: rgba(248, 113, 113, 0.15); color: #ef4444; border: 1px solid #f87171; }

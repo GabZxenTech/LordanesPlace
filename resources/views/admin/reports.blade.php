@@ -128,8 +128,8 @@
     .badge-pending { background: #fff3cd; color: #856404; border: 1px solid #d4a017; }
     .badge-rejected { background: #f8d7da; color: #c0392b; border: 1px solid #e74c3c; }
     .badge-ongoing { background: #d6e9ff; color: #0d4a91; border: 1px solid #3b82f6; }
-    .badge-completed { background: #f5edd8; color: #8a6a40; border: 1px solid #a88a4c; }
-    .badge-cancelled { background: #e5e7eb; color: #4b5563; border: 1px solid #94a3b8; }
+    .badge-completed { background: #c9a84c; color: #fff; border: 1px solid #b8860b; }
+    .badge-cancelled { background: #2c1a0e; color: #fff9ef; border: 1px solid #2c1a0e; }
 
     .badge-paid { background: #d4edda; color: #28a745; border: 1px solid #28a745; }
     .badge-partial { background: #fff3cd; color: #856404; border: 1px solid #d4a017; }

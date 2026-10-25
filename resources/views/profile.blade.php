@@ -68,8 +68,9 @@
     .rv-s-pending { color: #a86a00; background: #fbf0d9; }
     .rv-s-approved { color: #2f8f5b; background: #e3f3ea; }
     .rv-s-ongoing { color: #2f6fbf; background: #e3ecf8; }
-    .rv-s-completed { color: var(--rv-gold); background: var(--rv-tint); }
-    .rv-s-cancelled, .rv-s-rejected { color: #6b7680; background: #eceff1; }
+    .rv-s-completed { color: #fff; background: #c9a84c; }
+    .rv-s-cancelled { color: #fff9ef; background: #2c1a0e; }
+    .rv-s-rejected { color: #c0392b; background: #fbe5e2; }
     .rv-p-unpaid { color: #c0392b; background: #fbe5e2; }
     .rv-p-partial { color: #a86a00; background: #fbf0d9; }
     .rv-p-paid { color: #2f8f5b; background: #e3f3ea; }

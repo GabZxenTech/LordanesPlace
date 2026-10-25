@@ -64,8 +64,8 @@ class BookingController extends Controller
             'items.*.package'          => 'required|string',
             'items.*.room_number'      => 'nullable|string',
             'items.*.guest_count'      => 'required|integer|min:1',
-            // Same-day bookings are allowed.
-            'event_date'     => 'required|date|after_or_equal:today',
+            // No same-day bookings, a site visit must fit before the event.
+            'event_date'     => 'required|date|after:today',
             // Swimming/Staycation can book a date range.
             'event_end_date' => 'nullable|date|after_or_equal:event_date',
             'notes'          => 'nullable|string|max:1000',
@@ -371,13 +371,13 @@ class BookingController extends Controller
         }
 
         $request->validate([
-            'requested_event_date' => 'required|date|after_or_equal:today',
+            'requested_event_date' => 'required|date|after:today',
             'requested_visit_date' => 'required|date|after_or_equal:today|before:requested_event_date',
             'reschedule_reason'    => 'nullable|string|max:1000',
         ], [
             'requested_visit_date.before' => 'The Site Visit must be scheduled before your event date.',
             'requested_visit_date.after_or_equal' => 'The Site Visit date cannot be in the past.',
-            'requested_event_date.after_or_equal' => 'The event date cannot be in the past.',
+            'requested_event_date.after' => 'The event date must be tomorrow or later.',
         ]);
 
         // One event per day check for the new date (not for rooms).

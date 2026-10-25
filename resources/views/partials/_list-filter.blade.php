@@ -44,7 +44,8 @@
       try { Object.assign(state, JSON.parse(localStorage.getItem(storeKey) || '{}')); } catch (e) {}
       if (!tabs.some(function (t) { return t.dataset.filterTab === state.tab; })) state.tab = bar.dataset.defaultTab || 'all';
       fields.forEach(function (f) { if (state.fields[f.dataset.filterField] !== undefined) f.value = state.fields[f.dataset.filterField]; });
-      if (sortSel && state.sort && Array.from(sortSel.options).some(function (o) { return o.value === state.sort; })) sortSel.value = state.sort;
+      // Sort is not restored: the page always opens on its default (newest booking).
+      state.sort = sortSel ? sortSel.value : '';
       // Search is not restored: a stale query would silently hide rows.
 
       function save() {

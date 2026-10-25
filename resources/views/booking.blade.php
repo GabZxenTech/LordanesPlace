@@ -12,9 +12,10 @@
   <style>
     /* Calendar styles */
     .cal-day:hover:not(.unavailable):not(.past):not(.empty) { background: rgba(184,134,11,0.15); color: #B8860B; }
+    .cal-day.available { background: #dff3e4; color: #1e7a3c; }
     .cal-day.selected { background: #B8860B; color: #fff; font-weight: 700; }
     .cal-day.in-range { background: #f1e3bf; color: #6b4d06; font-weight: 600; border-radius: 0; }
-    .cal-day.unavailable { background: #fde8e8; color: #e74c3c; cursor: pointer; }
+    .cal-day.unavailable { background: #e74c3c; color: #fff; cursor: pointer; }
     .cal-day.past { color: rgba(26,18,8,0.25); cursor: not-allowed; }
     .cal-day.beyond-year { background: #f0f0f0; color: rgba(26,18,8,0.20); cursor: not-allowed; }
     .cal-day.today { border: 1px solid #B8860B; }
@@ -136,10 +137,10 @@
       </div>
       <div class="flex gap-3 md:gap-4 mt-4 flex-wrap">
         <div class="flex items-center gap-1.5 text-[11px] text-warm-black/60">
-          <div class="w-3 h-3 rounded-sm bg-gold-deep/20 border border-gold-deep"></div> Available
+          <div class="w-3 h-3 rounded-sm" style="background: #dff3e4; border: 1px solid #1e7a3c;"></div> Available
         </div>
         <div class="flex items-center gap-1.5 text-[11px] text-warm-black/60">
-          <div class="w-3 h-3 rounded-sm bg-red-500/20"></div> Unavailable
+          <div class="w-3 h-3 rounded-sm" style="background: #e74c3c;"></div> Unavailable
         </div>
         <div class="flex items-center gap-1.5 text-[11px] text-warm-black/60">
           <div class="w-3 h-3 rounded-sm bg-gold-deep"></div> Selected
@@ -304,7 +305,8 @@
             <div id="pkgInfoFacts" class="mt-1.5 text-warm-black/70"></div>
             <div id="pkgInfoDescWrap" class="mt-2 pt-2 border-t border-gold-deep/15">
               <div class="text-[11px] font-bold tracking-[1px] uppercase text-gold-deep mb-1">What's included</div>
-              <div id="pkgInfoDesc" class="leading-relaxed"></div>
+              <div id="pkgInfoDesc" class="leading-relaxed overflow-hidden"></div>
+              <button type="button" id="pkgInfoToggle" class="mt-2 text-[12px] font-bold text-gold-deep hover:underline" style="display:none;"></button>
             </div>
           </div>
           <div id="roomUnavailableNotice" class="text-red-500 text-[12px] mt-1" style="display:none;">That package or room is already booked for the selected date — please choose another.</div>
@@ -1247,6 +1249,23 @@
         box.appendChild(row);
       });
     }
+
+    // Collapse long lists behind a See more / See less toggle.
+    const toggle = document.getElementById('pkgInfoToggle');
+    const collapsedHeight = 150;
+    box.style.maxHeight = '';
+    toggle.style.display = 'none';
+    card.style.display = '';
+    if (box.scrollHeight > collapsedHeight + 40) {
+      let open = false;
+      const apply = function () {
+        box.style.maxHeight = open ? '' : collapsedHeight + 'px';
+        toggle.textContent = open ? 'See less ▲' : 'See more ▼';
+      };
+      toggle.onclick = function () { open = !open; apply(); };
+      toggle.style.display = '';
+      apply();
+    }
     card.style.display = '';
   }
 
@@ -1716,7 +1735,8 @@
       div.className = 'cal-day text-center py-2 rounded-md text-[15px] cursor-pointer transition-all text-warm-black';
       div.textContent = d;
 
-      if (dateObj < today) {
+      if (dateObj <= today) {
+        // Today is disabled, a visit must come before the event.
         div.classList.add('past');
       } else if (unavailables.includes(dateStr)) {
         div.classList.add('unavailable');
@@ -1725,6 +1745,7 @@
           showBlockedReason(dateStr);
         });
       } else {
+        div.classList.add('available');
         if (formatDate(today) === dateStr) div.classList.add('today');
         if (chosen.includes(dateStr)) {
           div.classList.add(dateStr === selectedDate || dateStr === selectedEndDate ? 'selected' : 'in-range');

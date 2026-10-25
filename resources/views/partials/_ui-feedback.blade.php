@@ -29,6 +29,11 @@
   .ui-confirm-ok { background: #b8860b; border: 1px solid #b8860b; color: #fff; }
   .ui-confirm-box.is-danger .ui-confirm-ok { background: #b03a2e; border-color: #b03a2e; }
 
+  /* Hide the up/down arrows on number inputs everywhere */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none !important; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield !important; appearance: textfield !important; }
+
   /* Page loading bar and spinner */
   .ui-loadbar { position: fixed; top: 0; left: 0; height: 3px; width: 0; background: linear-gradient(90deg, #b8860b, #e8c96d); z-index: 100002; opacity: 0; pointer-events: none; transition: width .4s ease, opacity .3s ease; }
   .ui-loadbar.is-on { opacity: 1; }

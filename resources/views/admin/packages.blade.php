@@ -267,6 +267,21 @@
   </main>
 
   <script>
+    // Prices take digits with up to 2 decimals, guests take whole numbers (no e, +, -, or letters).
+    document.querySelectorAll('input[name="price"], input[name="weekend_price"], input[name="max_guests"], input[id^="edit-price-"], input[id^="edit-weekend_price-"], input[id^="edit-guests-"]').forEach(function (el) {
+      const whole = el.name === 'max_guests' || el.id.indexOf('edit-guests-') === 0;
+      el.addEventListener('keydown', function (e) {
+        const blocked = whole ? ['e', 'E', '+', '-', '.', ','] : ['e', 'E', '+', '-', ','];
+        if (blocked.includes(e.key) || (e.key === '.' && el.value.includes('.'))) e.preventDefault();
+      });
+      el.addEventListener('input', function () {
+        const parts = el.value.replace(whole ? /\D/g : /[^\d.]/g, '').split('.');
+        const clean = whole || parts.length === 1 ? parts[0] : parts[0] + '.' + parts.slice(1).join('').slice(0, 2);
+        if (el.value !== clean) el.value = clean;
+      });
+    });
+  </script>
+  <script>
     // ── Description preview: "See more…" / "See less" per package ──
     function togglePkgDescription(btn) {
       const desc = btn.parentElement.querySelector('.pkg-desc');

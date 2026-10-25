@@ -15,7 +15,7 @@
     .v-pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
     .v-confirmed { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .v-rescheduled { background: #e1f5fe; color: #0277bd; border: 1px solid #b3e5fc; }
-    .v-completed { background: #f5f0e8; color: #8a6a40; border: 1px solid #d4c4a0; }
+    .v-completed { background: #c9a84c; color: #fff; border: 1px solid #b8860b; }
     .v-missed { background: #fde8e8; color: #e74c3c; border: 1px solid #f5c6cb; }
 
     /* Remove-visit confirmation (same look as the customer cancel dialog) */

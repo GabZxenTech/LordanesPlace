@@ -16,8 +16,8 @@
     .status-approved { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .status-rejected { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     .status-ongoing { background: #d6e9ff; color: #0d4a91; border: 1px solid #b8d9ff; }
-    .status-completed { background: #f5edd8; color: #8a6a40; border: 1px solid #d4c4a0; }
-    .status-cancelled { background: #e5e7eb; color: #4b5563; border: 1px solid #d1d5db; }
+    .status-completed { background: #c9a84c; color: #fff; border: 1px solid #b8860b; }
+    .status-cancelled { background: #2c1a0e; color: #fff9ef; border: 1px solid #2c1a0e; }
   </style>
 </head>
 <body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
@@ -141,9 +141,9 @@
             </label>
             <label class="lf-control">Sort
               <select data-filter-sort>
+                <option value="created:desc">Newest booking</option>
                 <option value="date:asc">Event date (earliest)</option>
                 <option value="date:desc">Event date (latest)</option>
-                <option value="created:desc">Newest booking</option>
               </select>
             </label>
             <input type="search" class="lf-search" data-filter-search placeholder="Search name, email, booking # or package (this month)" aria-label="Search bookings this month">
@@ -268,7 +268,7 @@
                           @endif
                           @if($booking->canTransitionTo('cancelled'))
                             <button type="button"
-                              style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e74c3c; font-weight: 600; cursor: pointer;"
+                              style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e67e22; font-weight: 600; cursor: pointer;"
                               onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'"
                               onclick="openReasonModal('cancel', {{ $booking->id }}, '{{ addslashes($booking->user->name) }}', '{{ route('admin.booking.cancel', $booking->id) }}')"
                             >Cancel Booking</button>
@@ -295,7 +295,7 @@
                           @endif
                           <form method="POST" action="{{ route('admin.booking.destroy', $booking->id) }}" data-confirm="Delete this booking?">
                             @csrf @method('DELETE')
-                            <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e74c3c; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Delete</button>
+                            <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #7b241c; font-weight: 700; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Delete</button>
                           </form>
                         </div>
                       </div>
@@ -349,17 +349,10 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-          <div>
-            <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Guests</label>
-            <input type="number" name="guest_count" id="edit_guest_count" required 
-              style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
-          </div>
-          <div>
-            <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Total (₱)</label>
-            <input type="number" name="total_amount" id="edit_total_amount" required step="0.01" 
-              style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
-          </div>
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">Guests</label>
+          <input type="number" name="guest_count" id="edit_guest_count" required
+            style="width: 100%; background: #f5f0e8; border: 1px solid #d4c4a0; color: #2c1a0e; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.3s; font-family: 'Jost', sans-serif; box-sizing: border-box;" />
         </div>
 
         <div style="margin-bottom: 28px;">
@@ -669,17 +662,33 @@
       const total = pmRound((parseFloat(modal.dataset.total) || 0) + adj);
       const paid  = parseFloat(modal.dataset.paid) || 0;
       const dp    = pmRound(total * DOWN_PAYMENT_RATE);
-      return { adj, total, paid, dp, remaining: pmRound(total - paid) };
+      const remaining = pmRound(total - paid);
+      // What is still missing from the downpayment (0 once it is covered).
+      const dpDue = Math.max(0, Math.min(pmRound(dp - paid), remaining));
+      return { adj, total, paid, dp, dpDue, remaining };
+    }
+
+    // Downpayment option only while the downpayment is not yet fully paid; shows the amount still due.
+    function syncDownpaymentOption(f) {
+      const select = document.getElementById('pm_type');
+      const opt = select.querySelector('option[value="downpayment"]');
+      opt.hidden = opt.disabled = f.dpDue <= 0;
+      opt.textContent = f.paid > 0 ? 'Remaining Downpayment (' + pmFmt(f.dpDue) + ')' : '25% Downpayment';
+      if (f.dpDue <= 0 && select.value === 'downpayment') select.value = 'full';
     }
 
     // Updates the numbers at the top while typing; the amount follows the new price.
     function refreshPaymentBreakdown(priceChanged) {
       const f = paymentFigures();
+      const wasDownpayment = document.getElementById('pm_type').value === 'downpayment';
+      syncDownpaymentOption(f);
       const type = document.getElementById('pm_type').value;
+      // The downpayment got covered by the new price, so the form switched to full payment.
+      if (wasDownpayment && type !== 'downpayment') { onPaymentTypeChange(); return; }
       const amtInput = document.getElementById('payment_amount');
 
       if (priceChanged && type === 'full') amtInput.value = Math.max(0, f.remaining).toFixed(2);
-      if (priceChanged && type === 'downpayment') amtInput.value = Math.max(0, Math.min(f.dp, f.remaining)).toFixed(2);
+      if (priceChanged && type === 'downpayment') amtInput.value = f.dpDue.toFixed(2);
 
       document.getElementById('pm_total').textContent       = pmFmt(f.total);
       document.getElementById('pm_remaining').textContent   = pmFmt(f.remaining);
@@ -708,6 +717,7 @@
 
     function onPaymentTypeChange() {
       const f        = paymentFigures();
+      syncDownpaymentOption(f);
       const type     = document.getElementById('pm_type').value;
       const amtInput = document.getElementById('payment_amount');
       const hint     = document.getElementById('pm_amount_hint');
@@ -718,10 +728,10 @@
         amtInput.style.opacity = '0.7';
         hint.textContent  = 'Full remaining balance will be recorded as paid.';
       } else if (type === 'downpayment') {
-        amtInput.value    = Math.max(0, Math.min(f.dp, f.remaining)).toFixed(2);
+        amtInput.value    = f.dpDue.toFixed(2);
         amtInput.readOnly = false;
         amtInput.style.opacity = '1';
-        hint.textContent  = 'Pre-filled with the 25% downpayment — adjust if needed.';
+        hint.textContent  = f.paid > 0 ? 'Pre-filled with the downpayment still due — adjust if needed.' : 'Pre-filled with the 25% downpayment — adjust if needed.';
       } else {
         // partial
         amtInput.value    = '';
@@ -811,7 +821,6 @@
       document.getElementById('edit_end_time').value = end;
       document.getElementById('edit_guest_count').value = guests;
       document.getElementById('edit_notes').value = notes;
-      document.getElementById('edit_total_amount').value = total;
       document.getElementById('editModal').classList.add('open');
     }
 
