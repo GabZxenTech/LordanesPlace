@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->prepend(\App\Http\Middleware\RedirectToCanonicalHost::class);
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->web(append: [\App\Http\Middleware\PreventBackHistory::class]);
         $middleware->alias([
@@ -29,5 +30,19 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // An expired form (old tab or old address) goes back with a short message, not a 419 page.
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, \Illuminate\Http\Request $request) {
+            // 419 is how Laravel reports an expired form token.
+            if ($e->getStatusCode() !== 419 || $request->expectsJson()) {
+                return null;
+            }
+
+            $message = 'Your page expired. Please try again.';
+
+            if ($request->is('login', 'register')) {
+                return redirect('/' . $request->path())->withErrors(['email' => $message]);
+            }
+
+            return redirect()->back(fallback: '/')->withInput()->withErrors(['session' => $message]);
+        });
     })->create();
