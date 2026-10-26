@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Edit User | Admin</title>
+  @include('partials._favicon')
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -19,7 +20,7 @@
 
   <main style="flex: 1; padding: 40px 48px; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow-y: auto;">
     <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 40px; width: 100%; max-width: 500px;">
-      <a href="{{ route('admin.dashboard') }}" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #8a6a40; text-decoration: none; margin-bottom: 16px; transition: color 0.2s;" onmouseover="this.style.color='#c9a84c'" onmouseout="this.style.color='#8a6a40'">&larr; Back to User Management</a>
+      <a href="{{ route('admin.users') }}" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #8a6a40; text-decoration: none; margin-bottom: 16px; transition: color 0.2s;" onmouseover="this.style.color='#c9a84c'" onmouseout="this.style.color='#8a6a40'">&larr; Back to User Management</a>
       <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; color: #2c1a0e; margin: 0 0 4px;">Edit User</h2>
       <p style="font-size: 14px; color: #8a6a40; margin: 0 0 20px;">Details for {{ $user->name }}</p>
 
@@ -52,7 +53,7 @@
       @endif
 
       <div style="margin-top: 24px;">
-        <a href="{{ route('admin.dashboard') }}" style="display: block; text-align: center; border: 1px solid #d4c4a0; color: #8a6a40; padding: 14px; border-radius: 6px; font-size: 15px; text-decoration: none; transition: all 0.3s;" onmouseover="this.style.borderColor='#c9a84c'; this.style.color='#c9a84c';" onmouseout="this.style.borderColor='#d4c4a0'; this.style.color='#8a6a40';">Back to User Management</a>
+        <a href="{{ route('admin.users') }}" style="display: block; text-align: center; border: 1px solid #d4c4a0; color: #8a6a40; padding: 14px; border-radius: 6px; font-size: 15px; text-decoration: none; transition: all 0.3s;" onmouseover="this.style.borderColor='#c9a84c'; this.style.color='#c9a84c';" onmouseout="this.style.borderColor='#d4c4a0'; this.style.color='#8a6a40';">Back to User Management</a>
       </div>
 
       <div style="border-top: 1px solid #e8dcc8; margin-top: 28px; padding-top: 24px;">

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Book Now | LorDane's Place</title>
+  @include('partials._favicon')
   <meta name="description" content="Book your event at LorDane's Place. Check availability, choose a package, and reserve your date.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

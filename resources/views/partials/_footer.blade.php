@@ -6,7 +6,7 @@
     <div class="flex flex-col items-start text-left max-w-[420px]">
       <div class="flex items-center gap-3 mb-2">
         <img src="{{ asset('images/NEWLOGO.png') }}" alt="LorDane's Place Logo" style="height: 40px; width: auto; object-fit: contain;">
-        <h3 class="font-heading text-[24px] text-gold-deep leading-none m-0">LorDane's Place</h3>
+        <h3 class="font-heading text-[24px] text-gold-deep leading-none m-0">LDReserve</h3>
       </div>
       <p class="text-[15px] text-off-white/80 font-normal leading-[1.6] m-0">An elegant event venue in Santa Maria, Bulacan — where every celebration becomes a lasting memory.</p>
       <div class="mt-3 flex flex-col gap-1 text-[14px] text-off-white/80">

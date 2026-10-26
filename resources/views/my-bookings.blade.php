@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Bookings | LorDane's Place</title>
+  @include('partials._favicon')
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -19,8 +20,8 @@
     
     .pay-status { display: inline-block; padding: 0.25rem 0.625rem; border-radius: 0.375rem; font-size: 0.6875rem; font-weight: 700; }
     .p-unpaid { background: rgba(248, 113, 113, 0.15); color: #ef4444; border: 1px solid #f87171; }
-    .p-partially_paid { background: rgba(74, 222, 128, 0.15); color: #16a34a; border: 1px solid #4ade80; }
-    .p-fully_paid { background: rgba(96, 165, 250, 0.15); color: #2563eb; border: 1px solid #60a840; }
+    .p-partially_paid { background: #fdf0c4; color: #9a5b0c; border: 1px solid #f6e3a1; }
+    .p-fully_paid { background: #d5f5e3; color: #15803d; border: 1px solid #b7ebcb; }
   </style>
 </head>
 <body class="bg-off-white text-warm-black font-body">

@@ -21,6 +21,20 @@
   var screenfull = window.screenfull;
   var data = window.APP_DATA;
 
+  // Build the scene list from the data (scenes are managed in the admin panel).
+  var sceneListUl = document.querySelector('#sceneList ul.scenes');
+  data.scenes.forEach(function(scene) {
+    var link = document.createElement('a');
+    link.href = 'javascript:void(0)';
+    link.className = 'scene';
+    link.setAttribute('data-id', scene.id);
+    var text = document.createElement('li');
+    text.className = 'text';
+    text.textContent = scene.name;
+    link.appendChild(text);
+    sceneListUl.appendChild(link);
+  });
+
   // Grab elements from DOM.
   var panoElement = document.querySelector('#pano');
   var sceneNameElement = document.querySelector('#titleBar .sceneName');
@@ -72,13 +86,20 @@
 
   // Create scenes.
   var scenes = data.scenes.map(function(data) {
-    var urlPrefix = "tiles";
-    var source = Marzipano.ImageUrlSource.fromString(
-      urlPrefix + "/" + data.id + "/{z}/{f}/{y}/{x}.jpg",
-      { cubeMapPreviewUrl: urlPrefix + "/" + data.id + "/preview.jpg" });
-    var geometry = new Marzipano.CubeGeometry(data.levels);
-
-    var limiter = Marzipano.RectilinearView.limit.traditional(data.faceSize, 100*Math.PI/180, 120*Math.PI/180);
+    var source, geometry, limiter;
+    if (data.imageUrl) {
+      // Single 360 picture uploaded from the admin panel.
+      source = Marzipano.ImageUrlSource.fromString(data.imageUrl);
+      geometry = new Marzipano.EquirectGeometry([{ width: data.imageWidth }]);
+      limiter = Marzipano.RectilinearView.limit.traditional(65536, 100*Math.PI/180);
+    } else {
+      var urlPrefix = "tiles";
+      source = Marzipano.ImageUrlSource.fromString(
+        urlPrefix + "/" + data.id + "/{z}/{f}/{y}/{x}.jpg",
+        { cubeMapPreviewUrl: urlPrefix + "/" + data.id + "/preview.jpg" });
+      geometry = new Marzipano.CubeGeometry(data.levels);
+      limiter = Marzipano.RectilinearView.limit.traditional(data.faceSize, 100*Math.PI/180, 120*Math.PI/180);
+    }
     var view = new Marzipano.RectilinearView(data.initialViewParameters, limiter);
 
     var scene = viewer.createScene({
@@ -274,7 +295,7 @@
     var tooltip = document.createElement('div');
     tooltip.classList.add('hotspot-tooltip');
     tooltip.classList.add('link-hotspot-tooltip');
-    tooltip.innerHTML = findSceneDataById(hotspot.target).name;
+    tooltip.textContent = hotspot.label || findSceneDataById(hotspot.target).name;
 
     wrapper.appendChild(icon);
     wrapper.appendChild(tooltip);
@@ -385,6 +406,10 @@
   }
 
   // Display the initial scene.
-  switchScene(scenes[0]);
+  if (scenes.length) {
+    switchScene(scenes[0]);
+  } else {
+    sceneNameElement.textContent = 'No scenes yet';
+  }
 
 })();

@@ -1,5 +1,8 @@
 {{-- ADMIN SIDEBAR --}}
 <style>
+  /* Admin uses only Cormorant Garamond (headings) + Jost (body); form controls inherit it */
+  body, button, input, select, textarea, table, td, th, code, pre { font-family: 'Jost', sans-serif; }
+
   /* Collapsible sidebar (state saved as a class on <html>) */
   .admin-sidebar, .admin-sidebar-spacer { transition: transform 0.25s ease, width 0.25s ease; }
   html.admin-sidebar-collapsed .admin-sidebar { transform: translateX(-100%); box-shadow: none !important; }
@@ -56,7 +59,7 @@
         onmouseover="this.style.color='#c9a84c'; this.style.borderColor='#c9a84c';" onmouseout="this.style.color='#8a6a40'; this.style.borderColor='rgba(201,168,76,0.25)';">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
       </button>
-      <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1.2;">LorDane's Place</h1>
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1.2;">LDReserve</h1>
       <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 6px 0 0; text-transform: uppercase; font-weight: 600;">ADMIN PANEL</p>
     </div>
   </div>
@@ -65,7 +68,12 @@
     <div style="padding: 24px 0; flex: 1; overflow-y: auto; overflow-x: hidden;">
       <p style="font-size: 10px; letter-spacing: 3px; color: #8a6a40; padding: 0 28px; margin: 0 0 14px; text-transform: uppercase; font-weight: 700;">Main Menu</p>
 
-      <a href="{{ route('admin.dashboard') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('admin.dashboard') || request()->routeIs('admin.edit') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}" onmouseover="if(!this.classList.contains('active-nav')){this.style.background='#3d2312'; this.style.color='#c9a84c';}" onmouseout="if(!this.classList.contains('active-nav')){this.style.background='transparent'; this.style.color='#b89060';}">
+      <a href="{{ route('admin.dashboard') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('admin.dashboard') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}" onmouseover="if(!this.classList.contains('active-nav')){this.style.background='#3d2312'; this.style.color='#c9a84c';}" onmouseout="if(!this.classList.contains('active-nav')){this.style.background='transparent'; this.style.color='#b89060';}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        Dashboard
+      </a>
+
+      <a href="{{ route('admin.users') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('admin.users') || request()->routeIs('admin.edit') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}" onmouseover="if(!this.classList.contains('active-nav')){this.style.background='#3d2312'; this.style.color='#c9a84c';}" onmouseout="if(!this.classList.contains('active-nav')){this.style.background='transparent'; this.style.color='#b89060';}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Users
       </a>
@@ -73,6 +81,11 @@
       <a href="{{ route('admin.packages.index') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('admin.packages.*') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
         Packages
+      </a>
+
+      <a href="{{ route('admin.tour.index') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('admin.tour.*') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>
+        360 Tour
       </a>
 
       <a href="{{ route('admin.schedule') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('admin.schedule') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}">

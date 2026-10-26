@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reschedule Requests | Admin</title>
+  @include('partials._favicon')
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -42,7 +43,7 @@
           <tbody>
             @forelse($reschedules as $booking)
               <tr style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
-                <td style="padding: 14px 20px; font-size: 13px; color: #c9a84c; font-family: monospace;">{{ $booking->booking_number }}</td>
+                <td style="padding: 14px 20px; font-size: 13px; color: #c9a84c; font-family: 'Jost', sans-serif; letter-spacing: 0.5px;">{{ $booking->booking_number }}</td>
                 <td style="padding: 14px 20px;">
                   <div style="font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $booking->user->name }}</div>
                   <div style="font-size: 12px; color: #8a6a40;">Reason: {{ $booking->reschedule_reason ?? '—' }}</div>

@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reports | LorDane's Place Admin</title>
+  <title>Reports | LDReserve Admin</title>
+  @include('partials._favicon')
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -221,7 +222,7 @@
 
     {{-- Print-only header --}}
     <div class="print-header" style="display: none; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #c9a84c;">
-      <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; color: #2c1a0e; margin: 0;">LorDane's Place — Report</h1>
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; color: #2c1a0e; margin: 0;">LDReserve — Report</h1>
       @isset($filters)
         <p style="font-size: 14px; color: #8a6a40; margin: 4px 0 0;">{{ $filters['period_label'] ?? '' }}</p>
       @endisset

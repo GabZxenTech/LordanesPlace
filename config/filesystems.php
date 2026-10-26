@@ -15,6 +15,9 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    // Disk for the uploaded 360 pictures (set to s3 on hosts with a temporary disk).
+    'tour_disk' => env('TOUR_DISK', 'local'),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks

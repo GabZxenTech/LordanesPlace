@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Visit Schedules | Admin</title>
+  @include('partials._favicon')
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -106,7 +107,7 @@
                 <td style="padding: 14px 20px;">
                   @if($rowBookings->count() === 1)
                     <div style="font-size: 14px; color: #2c1a0e;">{{ $visit->booking->event_type }} <span style="color: #8a6a40;">· {{ $visit->booking->package }}{{ $visit->booking->room_number ? ' ' . $visit->booking->room_number : '' }}</span></div>
-                    <div style="font-size: 11px; color: #8a6a40; font-family: monospace;">{{ $visit->booking->booking_number }}</div>
+                    <div style="font-size: 11px; color: #8a6a40; font-family: 'Jost', sans-serif; letter-spacing: 0.5px;">{{ $visit->booking->booking_number }}</div>
                     <div style="font-size: 11px; color: #c9a84c; font-weight: 700;">Event: {{ $visit->booking->event_date->format('M d, Y') }}</div>
                   @else
                     @php
@@ -114,7 +115,7 @@
                       $packagesLine = $rowBookings->map(fn ($b) => $b->package . ($b->room_number ? ' ' . $b->room_number : ''))->unique()->implode(', ');
                     @endphp
                     <div style="font-size: 14px; color: #2c1a0e;">{{ $rowBookings->pluck('event_type')->unique()->implode(' + ') }} <span style="color: #8a6a40;">· {{ $packagesLine }}</span></div>
-                    <div style="font-size: 11px; color: #8a6a40; font-family: monospace;">{{ $rowBookings->count() }} bookings · {{ $rowBookings->first()->booking_number }} – {{ $rowBookings->last()->booking_number }}</div>
+                    <div style="font-size: 11px; color: #8a6a40; font-family: 'Jost', sans-serif; letter-spacing: 0.5px;">{{ $rowBookings->count() }} bookings · {{ $rowBookings->first()->booking_number }} – {{ $rowBookings->last()->booking_number }}</div>
                     <div style="font-size: 11px; color: #c9a84c; font-weight: 700;">Event: {{ $first->isSameDay($last) ? $first->format('M d, Y') : $first->format('M d') . ' – ' . $last->format('M d, Y') }}</div>
                   @endif
                 </td>

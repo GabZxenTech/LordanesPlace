@@ -22,7 +22,7 @@
       <a href="{{ route('home') }}" class="no-underline flex items-center gap-3.5 group">
         <img src="{{ asset('images/NEWLOGO.png') }}" alt="LorDane's Place Logo" style="height: 66px; width: auto; object-fit: contain; transition: 0.3s;" class="group-hover:scale-105">
         <div>
-          <h2 class="text-gold-deep font-heading text-[22px] lg:text-[26px] tracking-tight leading-none">LorDane's Place</h2>
+          <h2 class="text-gold-deep font-heading text-[22px] lg:text-[26px] tracking-tight leading-none">LDReserve</h2>
           <p class="text-[10px] tracking-[2.5px] text-warm-black/50 mt-1 uppercase">PLACE • EVENT VENUE</p>
         </div>
       </a>
@@ -129,7 +129,7 @@
       <div class="px-4 mb-6 flex items-center gap-3.5">
         <img src="{{ asset('images/NEWLOGO.png') }}" alt="Logo" style="height: 58px; width: auto; object-fit: contain;">
         <div>
-          <p class="text-gold-deep font-heading text-[24px] leading-tight mb-0">LorDane's Place</p>
+          <p class="text-gold-deep font-heading text-[24px] leading-tight mb-0">LDReserve</p>
           <p class="text-[10px] tracking-[2px] text-warm-black/40 uppercase">Place • Event Venue</p>
         </div>
       </div>

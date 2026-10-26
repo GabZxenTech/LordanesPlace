@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Discover — LorDane's Place</title>
+  @include('partials._favicon')
 <meta name="description" content="Browse gallery, take a 360° virtual tour, and explore packages at LorDane's Place event venue.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

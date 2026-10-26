@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Schedule Management | Admin</title>
+  @include('partials._favicon')
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -11,13 +12,26 @@
   <style>
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
     .modal-overlay.open { display: flex; }
+    /* Row opened from a notification: gold flash that fades out */
+    .row-flash { animation: rowFlash 6s ease-out; box-shadow: inset 5px 0 0 #c9a84c; }
+    @keyframes rowFlash { 0%, 55% { background: #f6dfa0; } 100% { background: transparent; } }
     .status-dot { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: capitalize; }
-    .status-pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-    .status-approved { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .status-rejected { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-    .status-ongoing { background: #d6e9ff; color: #0d4a91; border: 1px solid #b8d9ff; }
-    .status-completed { background: #c9a84c; color: #fff; border: 1px solid #b8860b; }
-    .status-cancelled { background: #2c1a0e; color: #fff9ef; border: 1px solid #2c1a0e; }
+    .status-pending { background: #fdf0c4; color: #9a5b0c; border: 1px solid #f6e3a1; }
+    .status-approved { background: #d5f5e3; color: #15803d; border: 1px solid #b7ebcb; }
+    .status-rejected { background: #fde0e0; color: #c0392b; border: 1px solid #f8c4c4; }
+    .status-ongoing { background: #dbeafe; color: #1d6fb8; border: 1px solid #bfd9f8; }
+    .status-completed { background: #ece3ff; color: #7c4dcc; border: 1px solid #d9c9fa; }
+    .status-cancelled { background: #dde3ec; color: #3d4a5c; border: 1px solid #c9d2df; }
+    /* Action menu items tint on hover with their own color */
+    .am-item { display: block; width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; font-weight: 600; cursor: pointer; box-sizing: border-box; text-decoration: none; font-family: inherit; }
+    .am-approve { color: #15803d; } .am-approve:hover { background: #d5f5e3; }
+    .am-reject { color: #c0392b; } .am-reject:hover { background: #fde0e0; }
+    .am-ongoing { color: #1d6fb8; } .am-ongoing:hover { background: #dbeafe; }
+    .am-completed { color: #7c4dcc; } .am-completed:hover { background: #ece3ff; }
+    .am-cancel { color: #c2631a; } .am-cancel:hover { background: #ffe8d1; }
+    .am-payment { color: #1d6fb8; } .am-payment:hover { background: #dbeafe; }
+    .am-receipt { color: #2c1a0e; } .am-receipt:hover { background: #f5f0e8; }
+    .am-delete { color: #8b1a1a; font-weight: 700; } .am-delete:hover { background: #fde0e0; }
   </style>
 </head>
 <body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
@@ -171,7 +185,7 @@
                   data-created="{{ $booking->created_at->timestamp }}"
                   data-search="{{ mb_strtolower($booking->booking_number . ' ' . $booking->user->name . ' ' . $booking->user->email . ' ' . $booking->package . ' ' . $booking->room_number . ' ' . $booking->event_type) }}"
                   style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s; scroll-margin-top: 30px;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
-                  <td style="padding: 14px 20px; font-size: 13px; color: #c9a84c; font-family: monospace;">{{ $booking->booking_number }}</td>
+                  <td style="padding: 14px 20px; font-size: 13px; color: #c9a84c; font-family: 'Jost', sans-serif; letter-spacing: 0.5px;">{{ $booking->booking_number }}</td>
                   <td style="padding: 14px 20px;">
                     <div style="font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $booking->user->name }}</div>
                     <div style="font-size: 12px; color: #8a6a40;">{{ $booking->event_type }}</div>
@@ -185,7 +199,7 @@
                       @if($booking->scheduleLabel())
                         {{ $booking->scheduleLabel(' - ') }}
                       @else
-                        <span style="color: #e74c3c;">Schedule not yet assigned</span>
+                        <span style="color: #8a6a40;">Schedule not yet assigned</span>
                       @endif
                     </div>
                   </td>
@@ -221,13 +235,11 @@
                       
                       {{-- Action Menu --}}
                       <div style="position: relative;">
-                        <button type="button" class="action-menu-btn" style="background: #2c1a0e; color: #c9a84c; width: 28px; height: 28px; border-radius: 4px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;" data-id="{{ $booking->id }}">⋮</button>
+                        <button type="button" class="action-menu-btn" style="background: transparent; color: #2c1a0e; width: 28px; height: 28px; border-radius: 4px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; line-height: 1;" onmouseover="this.style.background='rgba(138,106,64,0.15)';" onmouseout="this.style.background='transparent';" data-id="{{ $booking->id }}">⋮</button>
                         <div id="menu-{{ $booking->id }}" style="display: none; position: absolute; right: 0; top: 100%; background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 50; min-width: 140px; margin-top: 5px;">
                           {{-- Only actions the booking's status allows --}}
                           @if($booking->canTransitionTo('approved'))
-                            <button type="button"
-                              style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #28a745; font-weight: 600; cursor: pointer;"
-                              onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'"
+                            <button type="button" class="am-item am-approve"
                               onclick="openApproveModal(
                                 {{ $booking->id }},
                                 '{{ addslashes($booking->booking_number) }}',
@@ -248,28 +260,24 @@
                             >Approve</button>
                           @endif
                           @if($booking->canTransitionTo('rejected'))
-                            <button type="button"
-                              style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e74c3c; font-weight: 600; cursor: pointer;"
-                              onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'"
+                            <button type="button" class="am-item am-reject"
                               onclick="openReasonModal('reject', {{ $booking->id }}, '{{ addslashes($booking->user->name) }}', '{{ route('admin.booking.reject', $booking->id) }}')"
                             >Reject</button>
                           @endif
                           @if($booking->canTransitionTo('ongoing'))
                             <form method="POST" action="{{ route('admin.booking.ongoing', $booking->id) }}">
                               @csrf
-                              <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #3498db; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Mark Ongoing</button>
+                              <button type="submit" class="am-item am-ongoing">Mark Ongoing</button>
                             </form>
                           @endif
                           @if($booking->canTransitionTo('completed'))
                             <form method="POST" action="{{ route('admin.booking.completed', $booking->id) }}">
                               @csrf
-                              <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #8a6a40; font-weight: 600; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Mark Completed</button>
+                              <button type="submit" class="am-item am-completed">Mark Completed</button>
                             </form>
                           @endif
                           @if($booking->canTransitionTo('cancelled'))
-                            <button type="button"
-                              style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #e67e22; font-weight: 600; cursor: pointer;"
-                              onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'"
+                            <button type="button" class="am-item am-cancel"
                               onclick="openReasonModal('cancel', {{ $booking->id }}, '{{ addslashes($booking->user->name) }}', '{{ route('admin.booking.cancel', $booking->id) }}')"
                             >Cancel Booking</button>
                           @endif
@@ -278,9 +286,7 @@
                               $dp25 = \App\Models\Booking::calculateDownPayment($booking->total_amount);
                             @endphp
                             <button type="button"
-                              class="record-payment-btn"
-                              style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #c9a84c; font-weight: 600; cursor: pointer;"
-                              onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'"
+                              class="record-payment-btn am-item am-payment"
                               data-id="{{ $booking->id }}"
                               data-remaining="{{ $booking->remainingBalance() }}"
                               data-total="{{ $booking->total_amount }}"
@@ -291,11 +297,11 @@
                             </button>
                           @endif
                           @if(!$booking->isCancelledOrRejected() && $booking->hasConfirmedPayment())
-                            <a href="{{ route('booking.receipt', $booking->id) }}" target="_blank" style="display: block; width: 100%; text-align: left; padding: 10px 16px; font-size: 13px; color: #2c1a0e; font-weight: 600; text-decoration: none; box-sizing: border-box;" onmouseover="this.style.background='#f5f0e8'" onmouseout="this.style.background='transparent'">View / Print Receipt</a>
+                            <a href="{{ route('booking.receipt', $booking->id) }}" target="_blank" class="am-item am-receipt">View / Print Receipt</a>
                           @endif
                           <form method="POST" action="{{ route('admin.booking.destroy', $booking->id) }}" data-confirm="Delete this booking?">
                             @csrf @method('DELETE')
-                            <button type="submit" style="width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; color: #7b241c; font-weight: 700; cursor: pointer;" onmouseover="this.style.background='#f5f0e8'">Delete</button>
+                            <button type="submit" class="am-item am-delete">Delete</button>
                           </form>
                         </div>
                       </div>
@@ -387,8 +393,8 @@
             <div id="pm_remaining" style="font-size: 16px; color: #2c1a0e; font-weight: 700;">₱0.00</div>
           </div>
           <div>
-            <div style="font-size: 10px; color: #c9a84c; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">25% Downpayment</div>
-            <div id="pm_downpayment" style="font-size: 16px; color: #c9a84c; font-weight: 700;">₱0.00</div>
+            <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">25% Downpayment</div>
+            <div id="pm_downpayment" style="font-size: 16px; color: #7a5a10; font-weight: 700;">₱0.00</div>
           </div>
           <div>
             <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Balance After DP</div>
@@ -466,7 +472,7 @@
       {{-- Booking Number Banner --}}
       <div style="background: #f5edd8; border: 1px solid #d4c4a0; border-radius: 6px; padding: 10px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700; text-transform: uppercase;">Booking #</span>
-        <span id="ap_booking_number" style="font-size: 14px; color: #c9a84c; font-family: monospace; font-weight: 700;"></span>
+        <span id="ap_booking_number" style="font-size: 14px; color: #c9a84c; font-family: 'Jost', sans-serif; letter-spacing: 0.5px; font-weight: 700;"></span>
       </div>
 
       {{-- Customer Info --}}
@@ -523,7 +529,7 @@
         <div style="padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
           <div>
             <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Total Amount</div>
-            <div id="ap_total" style="font-size: 18px; color: #c9a84c; font-weight: 700;"></div>
+            <div id="ap_total" style="font-size: 24px; color: #7a5a10; font-weight: 700;"></div>
           </div>
           <div>
             <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Payment Option</div>
@@ -531,7 +537,7 @@
           </div>
           <div>
             <div style="font-size: 10px; color: #8a6a40; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Payment Status</div>
-            <div id="ap_payment_status" style="font-size: 14px; color: #2c1a0e; font-weight: 600; text-transform: capitalize;"></div>
+            <span id="ap_payment_status" style="display: inline-block; font-size: 12px; font-weight: 700; text-transform: capitalize; padding: 3px 12px; border-radius: 100px;"></span>
           </div>
         </div>
       </div>
@@ -828,9 +834,8 @@
     if (window.location.hash.startsWith('#booking-')) {
       const target = document.querySelector(window.location.hash);
       if (target) {
-        target.style.transition = 'background 0.4s ease';
-        target.style.background = '#f5edd8';
-        setTimeout(() => { target.style.background = ''; }, 2500);
+        target.classList.add('row-flash');
+        setTimeout(() => target.classList.remove('row-flash'), 6000);
       }
     }
 
@@ -845,7 +850,14 @@
       document.getElementById('ap_guests').textContent = guests + ' guests';
       document.getElementById('ap_total').textContent = '₱' + total;
       document.getElementById('ap_payment_option').textContent = paymentOption;
-      document.getElementById('ap_payment_status').textContent = paymentStatus;
+      const apStatus = document.getElementById('ap_payment_status');
+      apStatus.textContent = '• ' + paymentStatus;
+      // Pill color: red = unpaid, amber = partial, green = paid
+      const apPill = /unpaid/i.test(paymentStatus) ? ['#fde0e0', '#c0392b']
+        : /partial|down/i.test(paymentStatus) ? ['#fdf0c4', '#9a5b0c']
+        : ['#d5f5e3', '#15803d'];
+      apStatus.style.background = apPill[0];
+      apStatus.style.color = apPill[1];
 
       const notesWrap = document.getElementById('ap_notes_wrap');
       const notesEl   = document.getElementById('ap_notes');

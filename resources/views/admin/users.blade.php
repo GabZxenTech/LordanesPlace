@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Management | LDReserve</title>
+  @include('partials._favicon')
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  @vite(['resources/css/app.css', 'resources/js/app.js'])
+  <style>
+    .user-status { display: inline-block; padding: 5px 14px; border-radius: 100px; font-size: 11px; font-weight: 700; }
+    .status-active { background: #d4edda; color: #28a745; border: 1px solid #28a745; }
+    .status-inactive { background: #f5f0e8; color: #8a6a40; border: 1px solid #d4c4a0; }
+  </style>
+</head>
+<body style="margin: 0; font-family: 'Jost', sans-serif; background: #f5f0e8; min-height: 100vh; display: flex;">
+
+  @include('partials._admin-sidebar')
+
+  {{-- MAIN CONTENT --}}
+  <main style="flex: 1; padding: 40px 48px; min-height: 100vh; overflow-y: auto;">
+
+    {{-- Page Header --}}
+    <div style="margin-bottom: 32px;">
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; color: #2c1a0e; margin: 0 0 4px;">User Management</h1>
+      <p style="font-size: 12px; letter-spacing: 3px; color: #8a6a40; text-transform: uppercase; font-weight: 600; margin: 0;">Manage Registered Accounts</p>
+    </div>
+
+    @if(session('success'))
+      <div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 14px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 15px; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg> {{ session('success') }}</div>
+    @endif
+
+    {{-- Stats Cards --}}
+    <div class="adm-stats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 36px;">
+      <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 28px 24px; text-align: center;">
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $stats['total'] }}</h3>
+        <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 10px 0 0; text-transform: uppercase; font-weight: 700;">Total Users</p>
+      </div>
+      <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 28px 24px; text-align: center;">
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $stats['active'] }}</h3>
+        <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 10px 0 0; text-transform: uppercase; font-weight: 700;">Active Now</p>
+      </div>
+      <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; padding: 28px 24px; text-align: center;">
+        <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 700; color: #c9a84c; margin: 0; line-height: 1;">{{ $stats['today'] }}</h3>
+        <p style="font-size: 11px; letter-spacing: 3px; color: #8a6a40; margin: 10px 0 0; text-transform: uppercase; font-weight: 700;">New Today</p>
+      </div>
+    </div>
+
+    {{-- Users Table --}}
+    <div style="background: #fff9ef; border: 1px solid #d4c4a0; border-radius: 10px; overflow: hidden;">
+      <div style="padding: 20px 28px; border-bottom: 1px solid #d4c4a0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <h2 style="font-size: 13px; letter-spacing: 3px; color: #2c1a0e; text-transform: uppercase; font-weight: 800; margin: 0;">All Users</h2>
+        <form method="GET" action="{{ route('admin.users') }}" style="display: flex; gap: 8px; margin: 0;">
+          <style>.user-search::placeholder { color: #6b5230; opacity: 1; }</style>
+          <input type="search" name="q" value="{{ $search }}" placeholder="Search name or email..." class="user-search"
+            style="background: #fff9ef; border: 1.5px solid #8a6a40; color: #2c1a0e; padding: 12px 20px; border-radius: 6px; font-size: 14px; outline: none; width: 260px; font-family: 'Jost', sans-serif;" />
+          @if($search !== '')
+            <a href="{{ route('admin.users') }}" style="align-self: center; font-size: 13px; color: #8a6a40; text-decoration: none;">Clear</a>
+          @endif
+        </form>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="m-cards" style="width: 100%; border-collapse: collapse;" id="usersTable">
+          <thead>
+            <tr style="border-bottom: 1px solid #d4c4a0;">
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">#</th>
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">NAME</th>
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">EMAIL</th>
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">REGISTERED</th>
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">STATUS</th>
+              <th style="padding: 14px 24px; text-align: left; font-size: 11px; letter-spacing: 2px; color: #8a6a40; font-weight: 700;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($users as $index => $user)
+              <tr style="border-bottom: 1px solid #e8dcc8; transition: background 0.2s;" onmouseover="this.style.background='#f5edd8'" onmouseout="this.style.background='transparent'">
+                <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">{{ $users->firstItem() + $index }}</td>
+                <td style="padding: 16px 24px; font-size: 15px; color: #2c1a0e; font-weight: 600;">{{ $user->name }}</td>
+                <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">
+                  {{ $user->email }}
+                  @if($user->pending_email)
+                    <div style="font-size: 11px; color: #856404; margin-top: 3px; display: flex; align-items: center; gap: 4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pending: {{ $user->pending_email }}</div>
+                  @endif
+                </td>
+                <td style="padding: 16px 24px; font-size: 15px; color: #8a6a40;">{{ $user->created_at->format('M d, Y') }}</td>
+                <td style="padding: 16px 24px;">
+                  @if($user->last_active && \Carbon\Carbon::parse($user->last_active)->diffInMinutes(now()) <= 30)
+                    <span class="user-status status-active">● Active</span>
+                  @else
+                    <span class="user-status status-inactive">○ Inactive</span>
+                  @endif
+                </td>
+                <td style="padding: 16px 24px;">
+                  <div style="display: flex; gap: 8px;">
+                    <a href="{{ route('admin.edit', $user->id) }}" style="background: transparent; border: 1px solid #c9a84c; color: #c9a84c; padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: 700; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#c9a84c'; this.style.color='#fff9ef';" onmouseout="this.style.background='transparent'; this.style.color='#c9a84c';">Edit</a>
+                    <form method="POST" action="{{ route('admin.destroy', $user->id) }}" data-confirm="Delete this user?">
+                      @csrf @method('DELETE')
+                      <button type="submit" style="background: transparent; border: 1px solid #e74c3c; color: #e74c3c; padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Jost', sans-serif;" onmouseover="this.style.background='#e74c3c'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#e74c3c';">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            @empty
+              <tr><td colspan="6" style="text-align: center; padding: 60px; color: #8a6a40; font-size: 16px;">{{ $search !== '' ? 'No users match "' . $search . '".' : 'No users found.' }}</td></tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+      @include('partials._pagination', ['paginator' => $users])
+    </div>
+  </main>
+
+</body>
+</html>

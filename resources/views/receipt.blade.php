@@ -114,8 +114,8 @@
             text-transform: uppercase;
         }
         .unpaid { background-color: #fee2e2; color: #ef4444; }
-        .partially_paid { background-color: #dcfce7; color: #16a34a; }
-        .fully_paid { background-color: #dbeafe; color: #2563eb; }
+        .partially_paid { background-color: #fdf0c4; color: #9a5b0c; }
+        .fully_paid { background-color: #d5f5e3; color: #15803d; }
 
         @media print {
             body {

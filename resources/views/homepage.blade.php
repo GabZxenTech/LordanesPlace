@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LorDane's Place - Event Venue</title>
+  @include('partials._favicon')
 <meta name="description" content="LorDane's Place — an elegant event venue in Santa Maria, Bulacan. Book your dream celebration today.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,13 +21,13 @@
          style="background: linear-gradient(rgba(26,18,8,0.4), rgba(26,18,8,0.6)), url('{{ asset('images/LORDANES_BG.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
   <div class="gold-divider absolute bottom-0 left-0 right-0"></div>
   <div class="max-w-[720px]">
-    <p class="tracking-[4px] text-gold-light text-[12px] md:text-[15px] font-bold mb-5">WELCOME TO LORDANE'S PLACE</p>
+    <p class="tracking-[4px] text-gold-light text-[12px] md:text-[15px] font-bold mb-5">WELCOME TO LDRESERVE</p>
     <h1 class="font-heading text-[36px] sm:text-[46px] md:text-[62px] font-bold leading-[1.2] mb-5 text-white">
       Experience Every<br>
-      Corner of <span class="italic text-gold-light">LorDane's Place</span>
+      Corner of <span class="italic text-gold-light">LDReserve</span>
     </h1>
     <p class="mb-9 text-white text-[16px] md:text-[17px] leading-[1.75] font-normal">
-      Your dream celebration starts here. LorDane's Place offers an elegant venue
+      Your dream celebration starts here. LDReserve offers an elegant venue
       experience in Santa Maria, Bulacan — where every moment becomes a masterpiece.
     </p>
     <div class="flex flex-wrap justify-center gap-3">
@@ -65,10 +66,10 @@
         Where Every Moment <br>Becomes a <span class="italic text-gold-deep">Masterpiece</span>
       </h2>
       <p class="text-[15px] md:text-[16px] font-normal leading-[1.85] text-warm-black/90 mb-4">
-        LorDane Events Place, located in Pulong Buhangin, Santa Maria, Bulacan,
+        LDReserve, located in Pulong Buhangin, Santa Maria, Bulacan,
         started offering event services in 2021 under the name Golden Tag Events
         Productions. In 2023, the owner, Ms. Loriedane Tabor, established
-        LorDane Events Place and began building it, and it has been hosting
+        LDReserve and began building it, and it has been hosting
         celebrations since 2024.
       </p>
       <p class="text-[15px] md:text-[16px] font-normal leading-[1.85] text-warm-black/90 mb-4">

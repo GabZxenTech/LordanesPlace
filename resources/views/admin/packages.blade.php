@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Packages Management | Admin</title>
+  @include('partials._favicon')
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -175,7 +176,7 @@
                       @if($pkg->start_time && $pkg->end_time)
                         {{ \Carbon\Carbon::parse($pkg->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($pkg->end_time)->format('h:i A') }}
                       @else
-                        <span style="color: #e74c3c;">Not set</span>
+                        <span style="color: #8a6a40;">Not set</span>
                       @endif
                     </span>
                     <div id="edit-schedule-{{ $pkg->id }}" style="display:none; grid-template-columns: 1fr 1fr; gap: 6px;">

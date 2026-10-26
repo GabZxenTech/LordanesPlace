@@ -19,6 +19,8 @@ Route::get('/', function () {
 Route::get('/tour', function () {
     return view('tour');
 })->name('tour');
+Route::get('/tour/data.js', [\App\Http\Controllers\TourController::class, 'data'])->name('tour.data');
+Route::get('/tour/image/{scene}', [\App\Http\Controllers\TourController::class, 'image'])->name('tour.image');
 
 Route::get('/discover', function () {
     return view('discover');
@@ -82,6 +84,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::get('/users/{id}/edit', [AdminController::class, 'edit'])->name('edit');
     Route::put('/users/{id}', [AdminController::class, 'update'])->name('update');
     Route::delete('/users/{id}', [AdminController::class, 'destroy'])->name('destroy');
@@ -170,6 +173,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/packages', [PackageController::class, 'store'])->name('packages.store');
     Route::put('/packages/{id}', [PackageController::class, 'update'])->name('packages.update');
     Route::delete('/packages/{id}', [PackageController::class, 'destroy'])->name('packages.destroy');
+
+    // 360 tour: scenes and arrows
+    Route::get('/tour', [\App\Http\Controllers\Admin\TourController::class, 'index'])->name('tour.index');
+    Route::post('/tour', [\App\Http\Controllers\Admin\TourController::class, 'store'])->name('tour.store');
+    Route::get('/tour/{scene}', [\App\Http\Controllers\Admin\TourController::class, 'show'])->name('tour.show');
+    Route::put('/tour/{scene}', [\App\Http\Controllers\Admin\TourController::class, 'update'])->name('tour.update');
+    Route::delete('/tour/{scene}', [\App\Http\Controllers\Admin\TourController::class, 'destroy'])->name('tour.destroy');
+    Route::put('/tour/{scene}/view', [\App\Http\Controllers\Admin\TourController::class, 'setView'])->name('tour.view');
+    Route::post('/tour/{scene}/hotspots', [\App\Http\Controllers\Admin\TourController::class, 'storeHotspot'])->name('tour.hotspots.store');
+    Route::put('/tour/hotspots/{hotspot}', [\App\Http\Controllers\Admin\TourController::class, 'updateHotspot'])->name('tour.hotspots.update');
+    Route::delete('/tour/hotspots/{hotspot}', [\App\Http\Controllers\Admin\TourController::class, 'destroyHotspot'])->name('tour.hotspots.destroy');
 
     // Reschedule management (admin)
     Route::get('/reschedules', [BlockedDateController::class, 'rescheduleRequests'])->name('reschedules.index');
