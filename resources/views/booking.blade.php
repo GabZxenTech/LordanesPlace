@@ -154,7 +154,10 @@
           <div class="w-3 h-3 rounded-sm" style="background: #dff3e4; border: 1px solid #1e7a3c;"></div> Available
         </div>
         <div class="flex items-center gap-1.5 text-[11px] text-warm-black/60">
-          <div class="w-3 h-3 rounded-sm" style="background: #e74c3c;"></div> Unavailable
+          <div class="w-3 h-3 rounded-sm" style="background: #e74c3c;"></div> Blocked
+        </div>
+        <div class="flex items-center gap-1.5 text-[11px] text-warm-black/60">
+          <div class="w-3 h-3 rounded-sm" style="background: #e3ddd0;"></div> Booked
         </div>
         <div class="flex items-center gap-1.5 text-[11px] text-warm-black/60">
           <div class="w-3 h-3 rounded-sm bg-gold-deep"></div> Selected
@@ -1765,7 +1768,6 @@
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const unavailables = getUnavailableDates();
     const chosen = selectedDates();
 
     for (let i = 0; i < firstDay; i++) {
@@ -1784,12 +1786,15 @@
       if (dateObj <= today) {
         // Today is disabled, a visit must come before the event.
         div.classList.add('past');
-      } else if (unavailables.includes(dateStr)) {
+      } else if (blockedDates[dateStr]) {
+        // Blocked by the admin: red, and a click shows the reason.
         div.classList.add('unavailable');
-        // Show why a day is unavailable.
         div.addEventListener('click', () => {
           showBlockedReason(dateStr);
         });
+      } else if (!roomsOnly() && approvedDates.includes(dateStr)) {
+        // Already booked: faded and not selectable, like a past day.
+        div.classList.add('past');
       } else {
         div.classList.add('available');
         if (formatDate(today) === dateStr) div.classList.add('today');

@@ -75,7 +75,7 @@ class BlockedDateController extends Controller
         // One event per day: another customer's approved event blocks the date (not for rooms).
         if (!Booking::isRoomPackage($booking->package)) {
             $hasConflict = Booking::where('event_date', $booking->event_date)
-                ->where('status', 'approved')
+                ->whereIn('status', Booking::DATE_HOLDING_STATUSES)
                 ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
                 ->where('id', '!=', $booking->id)
                 ->where('user_id', '!=', $booking->user_id)
@@ -248,7 +248,7 @@ class BlockedDateController extends Controller
         // One event per day check when the date changes.
         if ($booking->event_date->format('Y-m-d') !== $request->event_date) {
             $hasConflict = Booking::where('event_date', $request->event_date)
-                ->where('status', 'approved')
+                ->whereIn('status', Booking::DATE_HOLDING_STATUSES)
                 ->where('id', '!=', $booking->id)
                 ->exists();
 
@@ -335,7 +335,7 @@ class BlockedDateController extends Controller
 
             // One event per day check for the new date.
             $hasConflict = Booking::where('event_date', $booking->requested_event_date)
-                ->where('status', 'approved')
+                ->whereIn('status', Booking::DATE_HOLDING_STATUSES)
                 ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
                 ->where('id', '!=', $booking->id)
                 ->where('user_id', '!=', $booking->user_id)

@@ -29,7 +29,7 @@ class BookingController extends Controller
         $packages = Cache::remember('packages.all', 300, fn () => \App\Models\Package::all());
 
         // Dates already taken by an approved event (rooms are checked per room).
-        $approvedDates = Booking::where('status', 'approved')
+        $approvedDates = Booking::whereIn('status', Booking::DATE_HOLDING_STATUSES)
             ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
             ->pluck('event_date')
             ->map(fn($date) => $date->timezone('Asia/Manila')->format('Y-m-d'))
@@ -168,7 +168,7 @@ class BookingController extends Controller
 
                     // One event per day: another customer's approved event blocks the date.
                     $takenByOthers = Booking::where('event_date', $date)
-                        ->where('status', 'approved')
+                        ->whereIn('status', Booking::DATE_HOLDING_STATUSES)
                         ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
                         ->where('user_id', '!=', Auth::id())
                         ->exists();
@@ -271,7 +271,7 @@ class BookingController extends Controller
         }
 
         $hasApproved = Booking::where('event_date', $date)
-            ->where('status', 'approved')
+            ->whereIn('status', Booking::DATE_HOLDING_STATUSES)
             ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
             ->exists();
 
@@ -392,7 +392,7 @@ class BookingController extends Controller
 
         // One event per day check for the new date (not for rooms).
         $hasConflict = !Booking::isRoomPackage($booking->package) && Booking::where('event_date', $request->requested_event_date)
-            ->where('status', 'approved')
+            ->whereIn('status', Booking::DATE_HOLDING_STATUSES)
             ->whereNotIn('package', array_keys(Booking::ROOM_GROUPS))
             ->where('id', '!=', $booking->id)
             ->exists();

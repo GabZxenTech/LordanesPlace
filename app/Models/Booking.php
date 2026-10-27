@@ -241,6 +241,9 @@ class Booking extends Model
     public const STATUS_CANCELLED = 'cancelled';
     public const STATUS_REJECTED  = 'rejected';
 
+    // Statuses that take the date (one event per day).
+    public const DATE_HOLDING_STATUSES = [self::STATUS_APPROVED, self::STATUS_ONGOING];
+
     public const STATUSES = [
         self::STATUS_PENDING,
         self::STATUS_APPROVED,
