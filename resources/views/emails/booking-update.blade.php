@@ -79,7 +79,7 @@
                                     <a href="{{ $details['receiptUrl'] }}" style="display: inline-block; border: 1px solid #BF9B30; color: #BF9B30; text-decoration: none; font-weight: 700; font-size: 14px; letter-spacing: 1px; padding: 12px 30px; border-radius: 8px;">DOWNLOAD RECEIPT</a>
                                 </div>
                                 <p style="margin: 8px 0 0; font-size: 12px; color: rgba(255,255,255,0.4); text-align: center; line-height: 1.5;">
-                                    Your receipt (PDF) is attached to this email. You can also download it from your account.
+                                    Tap the button to download your receipt (PDF), no login needed. It is also attached to this email.
                                 </p>
                             @endif
                         </td>

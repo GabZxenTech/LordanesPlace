@@ -16,6 +16,8 @@ Route::get('/', function () {
     return view('homepage');
 })->name('home');
 
+// Receipt link from the email (signed, works without logging in)
+Route::get('/receipt/{booking}', [\App\Http\Controllers\ReceiptController::class, 'signed'])->middleware('signed')->name('booking.receipt.signed');
 Route::get('/tour', function () {
     return view('tour');
 })->name('tour');

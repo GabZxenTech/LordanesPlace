@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class ReceiptController extends Controller
 {
-    // Downloads the booking receipt as a PDF.
+    // Downloads the booking receipt as a PDF (owner or admin, logged in).
     public function download(Booking $booking)
     {
         // Only the booking owner or an admin.
@@ -17,6 +17,17 @@ class ReceiptController extends Controller
             abort(403, 'Unauthorized access to this receipt.');
         }
 
+        return $this->pdf($booking);
+    }
+
+    // Same receipt from the link in the email: the signed link is the proof, no login needed.
+    public function signed(Booking $booking)
+    {
+        return $this->pdf($booking);
+    }
+
+    private function pdf(Booking $booking)
+    {
         $booking->loadMissing('user', 'visitSchedules');
 
         // No receipt for cancelled or rejected bookings.

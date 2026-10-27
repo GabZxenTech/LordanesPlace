@@ -60,7 +60,7 @@ class NotificationService
                 'total' => $peso((float) $booking->total_amount),
                 'paid' => $peso($paid),
                 'balance' => $peso(max(0, (float) $booking->total_amount - $paid)),
-                'receiptUrl' => $withReceipt ? route('booking.receipt', $booking->id) : null,
+                'receiptUrl' => $withReceipt ? \Illuminate\Support\Facades\URL::temporarySignedRoute('booking.receipt.signed', now()->addDays(90), ['booking' => $booking->id]) : null,
                 'receiptBookingId' => $withReceipt ? $booking->id : null,
             ]));
         } catch (\Throwable $e) {
