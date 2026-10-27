@@ -20,7 +20,7 @@ class PasswordResetOtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Your LorDane's Place Password Reset Code",
+            subject: "Your LDReserve Password Reset Code",
         );
     }
 

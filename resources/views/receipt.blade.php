@@ -127,7 +127,7 @@
 <body>
     <div class="receipt">
         <div class="header">
-            <h1>LorDane's Place</h1>
+            <h1>LDReserve</h1>
             <p>Your Premier Event Destination</p>
             <p>Booking Acknowledgment & Receipt</p>
         </div>
@@ -206,7 +206,7 @@
         </div>
 
         <div class="footer">
-            <p style="margin:0;">Thank you for choosing <strong>LorDane's Place</strong>!</p>
+            <p style="margin:0;">Thank you for choosing <strong>LDReserve</strong>!</p>
             <p style="margin:3px 0 0;">0917 745 5049 &middot; lordanesplace@gmail.com</p>
             <p style="margin:6px 0 0;">Generated on {{ now()->format('F d, Y h:i A') }}</p>
         </div>

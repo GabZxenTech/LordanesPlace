@@ -20,7 +20,7 @@ class EmailOtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Your LorDane's Place Verification Code",
+            subject: 'Your LDReserve Verification Code',
         );
     }
 

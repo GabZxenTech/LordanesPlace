@@ -14,7 +14,7 @@
                     <tr>
                         <td style="padding: 32px 40px 20px; text-align: center; border-bottom: 1px solid rgba(191,155,48,0.2);">
                             <h1 style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 28px; color: #BF9B30; letter-spacing: 1px;">
-                                LorDane's Place
+                                LDReserve
                             </h1>
                             <p style="margin: 6px 0 0; font-size: 10px; letter-spacing: 3px; color: rgba(255,255,255,0.4); text-transform: uppercase;">
                                 PLACE • EVENT VENUE
@@ -42,7 +42,7 @@
                             </div>
 
                             <p style="margin: 24px 0 0; font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6;">
-                                If you didn't create an account at LorDane's Place, you can safely ignore this email.
+                                If you didn't create an account at LDReserve, you can safely ignore this email.
                             </p>
                         </td>
                     </tr>
@@ -51,7 +51,7 @@
                     <tr>
                         <td style="padding: 20px 40px 28px; border-top: 1px solid rgba(191,155,48,0.15); text-align: center;">
                             <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.3);">
-                                &copy; {{ date('Y') }} LorDane's Place. All rights reserved.
+                                &copy; {{ date('Y') }} LDReserve. All rights reserved.
                             </p>
                             <p style="margin: 8px 0 0; font-size: 11px; color: rgba(255,255,255,0.2);">
                                 This is an automated message — please do not reply.
