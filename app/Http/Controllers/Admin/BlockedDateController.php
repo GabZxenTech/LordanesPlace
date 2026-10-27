@@ -216,6 +216,8 @@ class BlockedDateController extends Controller
             return back()->withErrors(['amount' => 'Payment could not be recorded.']);
         }
 
+        NotificationService::paymentRecorded($booking->fresh(), $payment);
+
         $message = 'Payment of ₱' . number_format($payment->amount, 2) . ' confirmed for ' . $booking->user->name . '.';
         if ($adjustment != 0) {
             $message .= ' New total price: ₱' . number_format($newTotal, 2) . '.';

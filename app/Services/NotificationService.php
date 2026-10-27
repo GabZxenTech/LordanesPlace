@@ -5,10 +5,20 @@ namespace App\Services;
 use App\Models\Booking;
 use App\Models\Notification;
 use App\Models\User;
+use App\Models\Payment;
 use App\Models\VisitSchedule;
+use App\Mail\BookingUpdateMail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class NotificationService
 {
+    // Only the important updates are also sent by email.
+    protected const EMAIL_TYPES = [
+        'booking_pending', 'booking_approved', 'booking_rejected', 'booking_ongoing',
+        'booking_completed', 'booking_cancelled', 'payment_received', 'payment_completed',
+    ];
+
     protected static function toCustomer(Booking $booking, string $type, string $title, string $message): void
     {
         Notification::create([
@@ -19,6 +29,62 @@ class NotificationService
             'message' => $message,
             'type' => $type,
         ]);
+
+        if (in_array($type, self::EMAIL_TYPES, true)) {
+            // A fully paid booking gets a link to its receipt.
+            self::emailCustomer($booking, $title, $message, $type === 'payment_completed');
+        }
+    }
+
+    // Queues the email; a mail problem must never break the booking itself.
+    protected static function emailCustomer(Booking $booking, string $title, string $message, bool $withReceipt = false): void
+    {
+        try {
+            $user = $booking->user;
+            if (!$user || !$user->email) {
+                return;
+            }
+
+            $peso = fn (float $n) => '₱' . number_format($n, 2);
+            $paid = $booking->amountPaid();
+
+            Mail::to($user->email)->queue(new BookingUpdateMail($user->name, $title, $message, [
+                'number' => $booking->booking_number,
+                'package' => $booking->package . ($booking->room_number ? ' ' . $booking->room_number : ''),
+                'date' => $booking->event_date->format('F d, Y'),
+                'status' => ucfirst($booking->status),
+                'total' => $peso((float) $booking->total_amount),
+                'paid' => $peso($paid),
+                'balance' => $peso(max(0, (float) $booking->total_amount - $paid)),
+                'receiptUrl' => $withReceipt ? route('booking.receipt', $booking->id) : null,
+            ]));
+        } catch (\Throwable $e) {
+            Log::warning('Booking email not queued: ' . $e->getMessage());
+        }
+    }
+
+    // Tells the customer a payment was recorded (or that the booking is fully paid).
+    public static function paymentRecorded(Booking $booking, Payment $payment): void
+    {
+        $amount = '₱' . number_format((float) $payment->amount, 2);
+
+        if ($booking->remainingBalance() <= 0.01) {
+            self::toCustomer(
+                $booking,
+                'payment_completed',
+                'Payment Complete',
+                "We received your payment of {$amount}. Your booking is now fully paid. Thank you!"
+            );
+            return;
+        }
+
+        $remaining = '₱' . number_format($booking->remainingBalance(), 2);
+        self::toCustomer(
+            $booking,
+            'payment_received',
+            'Payment Received',
+            "We received your payment of {$amount}. Your remaining balance is {$remaining}."
+        );
     }
 
     protected static function toAdmins(Booking $booking, string $type, string $title, string $message): void

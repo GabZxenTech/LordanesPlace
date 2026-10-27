@@ -24,10 +24,10 @@
     <p class="tracking-[4px] text-gold-light text-[12px] md:text-[15px] font-bold mb-5">WELCOME TO LDRESERVE</p>
     <h1 class="font-heading text-[36px] sm:text-[46px] md:text-[62px] font-bold leading-[1.2] mb-5 text-white">
       Experience Every<br>
-      Corner of <span class="italic text-gold-light">LDReserve</span>
+      Corner of <span class="italic text-gold-light">LorDane's</span>
     </h1>
     <p class="mb-9 text-white text-[16px] md:text-[17px] leading-[1.75] font-normal">
-      Your dream celebration starts here. LDReserve offers an elegant venue
+      Your dream celebration starts here. LorDane Events Place offers an elegant venue
       experience in Santa Maria, Bulacan — where every moment becomes a masterpiece.
     </p>
     <div class="flex flex-wrap justify-center gap-3">
@@ -66,10 +66,10 @@
         Where Every Moment <br>Becomes a <span class="italic text-gold-deep">Masterpiece</span>
       </h2>
       <p class="text-[15px] md:text-[16px] font-normal leading-[1.85] text-warm-black/90 mb-4">
-        LDReserve, located in Pulong Buhangin, Santa Maria, Bulacan,
+        LorDane Events Place, located in Pulong Buhangin, Santa Maria, Bulacan,
         started offering event services in 2021 under the name Golden Tag Events
         Productions. In 2023, the owner, Ms. Loriedane Tabor, established
-        LDReserve and began building it, and it has been hosting
+        LorDane Events Place and began building it, and it has been hosting
         celebrations since 2024.
       </p>
       <p class="text-[15px] md:text-[16px] font-normal leading-[1.85] text-warm-black/90 mb-4">

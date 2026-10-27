@@ -227,7 +227,7 @@
     <div class="chat-header">
       <div class="chat-avatar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2C1A0E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
       <div class="chat-header-info">
-        <h4>Lordane's Place Chat Assistance</h4>
+        <h4>LDReserve Chat Assistance</h4>
         <p id="adminStatusText">● Online — here to help!</p>
       </div>
       <button class="chat-close" onclick="toggleChat()">×</button>
@@ -277,7 +277,7 @@
     if (chatOpen && !greeted) {
       greeted = true;
       setTimeout(() => {
-        addMessage('bot', "Hi! Welcome to **Lordane's Place**! I'm your assistant. How can I help you today?", true);
+        addMessage('bot', "Hi! Welcome to **LorDane's**! I'm your assistant. How can I help you today?", true);
         if (chatActive) loadHistory();
       }, 400);
     }
