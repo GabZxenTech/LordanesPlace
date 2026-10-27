@@ -114,6 +114,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/visit-schedule', [VisitScheduleController::class, 'store'])->name('visit-schedule.store');
     Route::get('/my-visits', [VisitScheduleController::class, 'index'])->name('my.visits');
 
+    // Demo online payment (simulated GCash)
+    Route::get('/payment/demo', [\App\Http\Controllers\DemoPaymentController::class, 'show'])->name('payment.demo.show');
+    Route::post('/payment/demo', [\App\Http\Controllers\DemoPaymentController::class, 'pay'])->name('payment.demo.pay');
+    Route::get('/payment/demo/done', [\App\Http\Controllers\DemoPaymentController::class, 'done'])->name('payment.demo.done');
+    Route::post('/payment/demo/skip', [\App\Http\Controllers\DemoPaymentController::class, 'skip'])->name('payment.demo.skip');
+
     // Receipt route
     Route::get('/bookings/{booking}/receipt', [ReceiptController::class, 'download'])->name('booking.receipt');
 

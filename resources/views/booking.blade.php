@@ -34,6 +34,19 @@
     input[type="number"] {
       -moz-appearance: textfield;
     }
+    /* Payment method cards */
+    .pm-list { display: grid; gap: 8px; }
+    .pm-card { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid rgba(184,134,11,0.25); border-radius: 8px; background: #fffdf7; cursor: pointer; transition: border-color .15s, box-shadow .15s, background .15s; }
+    .pm-card:hover:not(.is-off) { border-color: #B8860B; }
+    .pm-card input { position: absolute; opacity: 0; pointer-events: none; }
+    .pm-logo { width: 44px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+    .pm-text { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
+    .pm-text b { font-size: 15px; color: #1a1208; font-weight: 600; }
+    .pm-text small { font-size: 12px; color: rgba(26,18,8,0.5); }
+    .pm-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(26,18,8,0.25); flex-shrink: 0; transition: all .15s; }
+    .pm-card:has(input:checked) { border-color: #B8860B; background: #fbf3dd; box-shadow: 0 0 0 2px rgba(184,134,11,0.18); }
+    .pm-card:has(input:checked) .pm-dot { border-color: #B8860B; background: radial-gradient(#B8860B 45%, transparent 50%); }
+    .pm-card.is-off { cursor: default; }
     /* Gray text while a dropdown still shows its "Select ..." prompt */
     select.is-placeholder { color: #9a8b74; }
     select option { color: #1a1208; }
@@ -363,8 +376,40 @@
               <span class="font-bold text-warm-black" id="summaryRemaining">₱0.00</span>
             </div>
           </div>
-          <p class="text-[11px] text-warm-black/50 mt-1.5 italic">This selects your preferred payment arrangement only — it does not process or confirm any payment.</p>
+          <p class="text-[11px] text-warm-black/50 mt-1.5 italic">This is the amount you choose to pay now. Your booking is confirmed once the admin approves it.</p>
         </div>
+
+        <div class="mb-4">
+          <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Payment Method</label>
+          <div id="paymentMethodGroup" class="pm-list">
+            <label class="pm-card">
+              <input type="radio" name="payment_method" value="gcash" required {{ old('payment_method') === 'gcash' ? 'checked' : '' }}>
+              <span class="pm-logo" style="background:#007dfe;color:#fff;font-size:22px;">G</span>
+              <span class="pm-text"><b>GCash</b><small>Pay online</small></span>
+              <span class="pm-dot"></span>
+            </label>
+            <label class="pm-card is-off">
+              <input type="radio" name="payment_method" value="maya" disabled>
+              <span class="pm-logo" style="background:#0b0b0b;color:#2fe58b;font-size:13px;letter-spacing:-0.5px;">maya</span>
+              <span class="pm-text"><b>Maya</b><small>Wallet</small></span>
+              <span class="pm-dot"></span>
+            </label>
+            <label class="pm-card is-off">
+              <input type="radio" name="payment_method" value="card" disabled>
+              <span class="pm-logo" style="background:#f1e9d6;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8a6a40" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+              </span>
+              <span class="pm-text"><b>Credit / Debit Card</b><small>Visa, Mastercard</small></span>
+              <span class="pm-dot"></span>
+            </label>
+            <label class="pm-card">
+              <input type="radio" name="payment_method" value="venue" required {{ old('payment_method') === 'venue' ? 'checked' : '' }}>
+              <span class="pm-logo" style="background:#f1e9d6;font-size:22px;">🏛️</span>
+              <span class="pm-text"><b>Pay at the venue</b><small>Cash on your visit</small></span>
+              <span class="pm-dot"></span>
+            </label>
+          </div>
+          @error('payment_method') <span class="text-red-500 text-[12px] mt-1 block">{{ $message }}</span> @enderror        </div>
 
         <div class="mb-5">
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Additional Notes <span class="font-normal">(optional)</span></label>
@@ -927,7 +972,7 @@
       event_date: '#calGrid', event_end_date: '#calGrid', occasion: '#occasionSelect',
       event_type: '#eventTypeSelect', event_type_other: '#eventTypeOther', package: '#packageSelect',
       room_number: '#packageSelect', items: '#packageSelect', guest_count: '#guestCountInput',
-      payment_option: '#paymentOptionSelect', terms: '#termsAgreementArea',
+      payment_option: '#paymentOptionSelect', payment_method: '#paymentMethodGroup', terms: '#termsAgreementArea',
     };
     const keys = Object.keys(errors);
     let target = null, message = null;

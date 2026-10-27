@@ -70,8 +70,12 @@ class BookingController extends Controller
             'event_end_date' => 'nullable|date|after_or_equal:event_date',
             'notes'          => 'nullable|string|max:1000',
             'payment_option' => 'required|in:' . implode(',', Booking::PAYMENT_OPTIONS),
+            // Maya and card are not available in the demo.
+            'payment_method' => 'required|in:gcash,venue',
             'terms'          => 'accepted',
         ], [
+            'payment_method.required'          => 'Please choose how you will pay.',
+            'payment_method.in'                => 'That payment method is not available yet.',
             'items.required'                   => 'Please add at least one package.',
             'items.max'                        => 'You can book up to 10 packages at a time.',
             'items.*.occasion.required'        => 'Please select an occasion.',
@@ -229,6 +233,12 @@ class BookingController extends Controller
 
         foreach ($bookings as $booking) {
             NotificationService::bookingSubmitted($booking);
+        }
+
+        // Online payment (demo): go to the GCash page first.
+        if ($request->payment_method === 'gcash') {
+            session(['demo_pay_ids' => array_map(fn ($b) => $b->id, $bookings)]);
+            return redirect()->route('payment.demo.show');
         }
 
         return redirect()->route('booking')

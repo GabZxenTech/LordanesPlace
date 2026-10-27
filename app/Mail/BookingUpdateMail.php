@@ -2,7 +2,10 @@
 
 namespace App\Mail;
 
+use App\Models\Booking;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -33,5 +36,25 @@ class BookingUpdateMail extends Mailable
         return new Content(
             view: 'emails.booking-update',
         );
+    }
+
+    // Fully paid: the PDF receipt is attached.
+    public function attachments(): array
+    {
+        $id = $this->details['receiptBookingId'] ?? null;
+        if (!$id) {
+            return [];
+        }
+
+        return [
+            Attachment::fromData(function () use ($id) {
+                $booking = Booking::with('user', 'visitSchedules')->findOrFail($id);
+                $hasVisitRow = $booking->visitSchedules->where('status', 'confirmed')->isNotEmpty();
+
+                return Pdf::loadView('receipt', compact('booking'))
+                    ->setPaper([0, 0, 300, $hasVisitRow ? 510 : 494])
+                    ->output();
+            }, 'Receipt-' . $this->details['number'] . '.pdf')->withMime('application/pdf'),
+        ];
     }
 }

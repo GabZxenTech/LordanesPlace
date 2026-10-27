@@ -30,6 +30,21 @@ class BookingStatusService
         return true;
     }
 
+    // Online payment (demo): the booking goes straight to ongoing, skipping the admin approval step.
+    public static function startAfterOnlinePayment(Booking $booking): bool
+    {
+        if ($booking->status !== Booking::STATUS_PENDING) {
+            return false;
+        }
+
+        $booking->update(['status' => Booking::STATUS_ONGOING]);
+
+        // No separate email: the payment email that follows already shows the new status.
+        NotificationService::bookingStatusChanged($booking, false);
+
+        return true;
+    }
+
     // Message explaining why a status change was refused.
     public static function failureReason(Booking $booking, string $status): string
     {

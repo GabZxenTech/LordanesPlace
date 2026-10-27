@@ -19,7 +19,7 @@ class NotificationService
         'booking_completed', 'booking_cancelled', 'payment_received', 'payment_completed',
     ];
 
-    protected static function toCustomer(Booking $booking, string $type, string $title, string $message): void
+    protected static function toCustomer(Booking $booking, string $type, string $title, string $message, bool $email = true): void
     {
         Notification::create([
             'recipient_type' => 'customer',
@@ -30,14 +30,13 @@ class NotificationService
             'type' => $type,
         ]);
 
-        if (in_array($type, self::EMAIL_TYPES, true)) {
-            // A fully paid booking gets a link to its receipt.
-            self::emailCustomer($booking, $title, $message, $type === 'payment_completed');
+        if ($email && in_array($type, self::EMAIL_TYPES, true)) {
+            self::emailCustomer($booking, $title, $message);
         }
     }
 
     // Queues the email; a mail problem must never break the booking itself.
-    protected static function emailCustomer(Booking $booking, string $title, string $message, bool $withReceipt = false): void
+    protected static function emailCustomer(Booking $booking, string $title, string $message): void
     {
         try {
             $user = $booking->user;
@@ -48,6 +47,11 @@ class NotificationService
             $peso = fn (float $n) => '₱' . number_format($n, 2);
             $paid = $booking->amountPaid();
 
+            // Any email about a fully paid booking carries its receipt.
+            $withReceipt = $paid > 0
+                && ((float) $booking->total_amount - $paid) <= 0.01
+                && !$booking->isCancelledOrRejected();
+
             Mail::to($user->email)->queue(new BookingUpdateMail($user->name, $title, $message, [
                 'number' => $booking->booking_number,
                 'package' => $booking->package . ($booking->room_number ? ' ' . $booking->room_number : ''),
@@ -57,6 +61,7 @@ class NotificationService
                 'paid' => $peso($paid),
                 'balance' => $peso(max(0, (float) $booking->total_amount - $paid)),
                 'receiptUrl' => $withReceipt ? route('booking.receipt', $booking->id) : null,
+                'receiptBookingId' => $withReceipt ? $booking->id : null,
             ]));
         } catch (\Throwable $e) {
             Log::warning('Booking email not queued: ' . $e->getMessage());
@@ -132,7 +137,7 @@ class NotificationService
     ];
 
     // Tells the customer their booking status changed.
-    public static function bookingStatusChanged(Booking $booking): void
+    public static function bookingStatusChanged(Booking $booking, bool $email = true): void
     {
         if (!isset(self::STATUS_MESSAGES[$booking->status])) {
             return;
@@ -148,7 +153,7 @@ class NotificationService
             $message .= "\n\nReason: " . $booking->cancellation_reason;
         }
 
-        self::toCustomer($booking, 'booking_' . $booking->status, $title, $message);
+        self::toCustomer($booking, 'booking_' . $booking->status, $title, $message, $email);
     }
 
     // New booking: notify the customer and the admins.
