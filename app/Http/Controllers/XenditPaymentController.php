@@ -40,7 +40,7 @@ class XenditPaymentController extends Controller
 
         $bookings = OnlinePaymentService::pendingBookings();
         if ($bookings->isEmpty()) {
-            return redirect()->route('profile');
+            return redirect()->route('profile')->with('error', 'We could not find a booking waiting for payment. Your booking is saved and still unpaid. (code: no-pending)');
         }
 
         $total = round($bookings->sum(fn (Booking $b) => $b->amountToPay()), 2);
@@ -62,12 +62,12 @@ class XenditPaymentController extends Controller
             ]);
         } catch (\Throwable $e) {
             Log::warning('Xendit invoice failed: ' . $e->getMessage());
-            return $this->unavailable();
+            return $this->unavailable('connection');
         }
 
         if (!$response->successful() || !$response->json('invoice_url')) {
             Log::warning('Xendit invoice rejected: ' . $response->status() . ' ' . $response->body());
-            return $this->unavailable();
+            return $this->unavailable($response->status() . ' ' . ($response->json('error_code') ?? ''));
         }
 
         session(['xendit_payment' => ['id' => $response->json('id')]]);
@@ -185,9 +185,10 @@ class XenditPaymentController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    private function unavailable()
+    // $code is a short reason (an HTTP status or error name), never a secret.
+    private function unavailable(string $code = '')
     {
-        return $this->backToProfile('error', 'Online payment is not available right now. Your booking is saved and still unpaid.');
+        return $this->backToProfile('error', 'Online payment is not available right now. Your booking is saved and still unpaid.' . ($code ? ' (code: ' . trim($code) . ')' : ''));
     }
 
     private function backToProfile(string $flash, string $message)
