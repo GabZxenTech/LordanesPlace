@@ -40,7 +40,7 @@ class XenditPaymentController extends Controller
 
         $bookings = OnlinePaymentService::pendingBookings();
         if ($bookings->isEmpty()) {
-            return redirect()->route('profile')->with('error', 'We could not find a booking waiting for payment. Your booking is saved and still unpaid. (code: no-pending)');
+            return $this->backToProfile('nopending');
         }
 
         $total = round($bookings->sum(fn (Booking $b) => $b->amountToPay()), 2);
@@ -93,7 +93,7 @@ class XenditPaymentController extends Controller
         }
 
         if (!in_array($response->json('status'), ['PAID', 'SETTLED'], true)) {
-            return $this->backToProfile('error', 'Your payment was not completed. Your booking is saved and still unpaid.');
+            return $this->backToProfile('notpaid', (string) $response->json('status'));
         }
 
         $channel = strtoupper((string) $response->json('payment_channel'));
@@ -176,7 +176,7 @@ class XenditPaymentController extends Controller
     // The customer cancelled or the payment failed on the Xendit page.
     public function cancel()
     {
-        return $this->backToProfile('success', 'Payment cancelled. Your booking is saved and still unpaid.');
+        return $this->backToProfile('cancelled');
     }
 
     // Xendit's notice of a finished payment. The payment is confirmed when the customer returns, so just acknowledge.
@@ -188,14 +188,17 @@ class XenditPaymentController extends Controller
     // $code is a short reason (an HTTP status or error name), never a secret.
     private function unavailable(string $code = '')
     {
-        return $this->backToProfile('error', 'Online payment is not available right now. Your booking is saved and still unpaid.' . ($code ? ' (code: ' . trim($code) . ')' : ''));
+        return $this->backToProfile('unavailable', $code);
     }
 
-    private function backToProfile(string $flash, string $message)
+    // The profile shows the message from the link itself (pay=...&code=...), so it never gets lost.
+    private function backToProfile(string $kind, string $code = '')
     {
         $ids = session('demo_pay_ids', []);
         session()->forget(['demo_pay_ids', 'xendit_payment']);
 
-        return redirect(route('profile') . (!empty($ids) ? '#booking-' . $ids[0] : ''))->with($flash, $message);
+        $query = ['pay' => $kind] + ($code !== '' ? ['code' => trim($code)] : []);
+
+        return redirect(route('profile', $query) . (!empty($ids) ? '#booking-' . $ids[0] : ''));
     }
 }

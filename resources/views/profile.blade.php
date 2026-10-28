@@ -231,6 +231,22 @@
     @if(session('error'))
       <div class="rv-flash rv-flash-err">{{ session('error') }}</div>
     @endif
+    {{-- Result of an online payment that did not finish (from the link, so it is never lost) --}}
+    @php
+      $payMessages = [
+        'cancelled'   => ['ok',  'Payment cancelled. Your booking is saved and still unpaid.'],
+        'unavailable' => ['err', 'Online payment is not available right now. Your booking is saved and still unpaid.'],
+        'notpaid'     => ['err', 'Your payment was not completed. Your booking is saved and still unpaid.'],
+        'nopending'   => ['err', 'We could not find a booking waiting for payment. Your booking is saved and still unpaid.'],
+      ];
+      $payKind = request('pay');
+      $payCode = preg_replace('/[^A-Za-z0-9 _.-]/', '', (string) request('code'));
+    @endphp
+    @if($payKind && isset($payMessages[$payKind]))
+      <div class="rv-flash rv-flash-{{ $payMessages[$payKind][0] }}">
+        {{ $payMessages[$payKind][1] }}@if($payCode !== '') <b>(code: {{ \Illuminate\Support\Str::limit($payCode, 60) }})</b>@endif
+      </div>
+    @endif
     @if($errors->any())
       <div class="rv-flash rv-flash-err">@foreach($errors->all() as $err)<div>{{ $err }}</div>@endforeach</div>
     @endif

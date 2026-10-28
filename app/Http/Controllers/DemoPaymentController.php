@@ -73,7 +73,6 @@ class DemoPaymentController extends Controller
         $ids = session('demo_pay_ids', []);
         session()->forget(['demo_pay_ids', 'demo_pay_method', 'xendit_payment', 'wallet_mobile']);
 
-        return redirect(route('profile') . (!empty($ids) ? '#booking-' . $ids[0] : ''))
-            ->with('success', 'Payment cancelled. Your booking is saved and still unpaid.');
+        return redirect(route('profile', ['pay' => 'cancelled']) . (!empty($ids) ? '#booking-' . $ids[0] : ''));
     }
 }
