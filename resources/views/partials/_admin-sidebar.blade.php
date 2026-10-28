@@ -85,7 +85,7 @@
 
       <a href="{{ route('admin.tour.index') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('admin.tour.*') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>
-        360 Tour
+        360° Tour
       </a>
 
       <a href="{{ route('admin.schedule') }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 28px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; {{ request()->routeIs('admin.schedule') ? 'color: #c9a84c; background: #3d2312; border-left: 3px solid #c9a84c;' : 'color: #b89060; border-left: 3px solid transparent;' }}">

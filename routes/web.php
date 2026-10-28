@@ -16,6 +16,11 @@ Route::get('/', function () {
     return view('homepage');
 })->name('home');
 
+// Xendit's payment notice (no login or CSRF; the payment is confirmed when the customer returns)
+Route::post('/payment/xendit/webhook', [\App\Http\Controllers\XenditPaymentController::class, 'webhook'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+    ->name('payment.xendit.webhook');
+
 // Receipt link from the email (signed, works without logging in)
 Route::get('/receipt/{booking}', [\App\Http\Controllers\ReceiptController::class, 'signed'])->middleware('signed')->name('booking.receipt.signed');
 Route::get('/tour', function () {
@@ -115,6 +120,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/visit-schedule/create', [VisitScheduleController::class, 'create'])->name('visit-schedule.create');
     Route::post('/visit-schedule', [VisitScheduleController::class, 'store'])->name('visit-schedule.store');
     Route::get('/my-visits', [VisitScheduleController::class, 'index'])->name('my.visits');
+
+    // Online payment: Xendit when a key is set, otherwise the simulated page
+    Route::get('/payment/start', [\App\Http\Controllers\XenditPaymentController::class, 'start'])->name('payment.start');
+    Route::get('/payment/wallet', [\App\Http\Controllers\XenditPaymentController::class, 'wallet'])->name('payment.wallet');
+    Route::post('/payment/wallet', [\App\Http\Controllers\XenditPaymentController::class, 'walletSubmit'])->name('payment.wallet.submit');
+    Route::get('/payment/xendit/return', [\App\Http\Controllers\XenditPaymentController::class, 'return'])->name('payment.xendit.return');
+    Route::get('/payment/xendit/cancel', [\App\Http\Controllers\XenditPaymentController::class, 'cancel'])->name('payment.xendit.cancel');
 
     // Demo online payment (simulated GCash)
     Route::get('/payment/demo', [\App\Http\Controllers\DemoPaymentController::class, 'show'])->name('payment.demo.show');

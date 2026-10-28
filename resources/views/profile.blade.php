@@ -228,6 +228,9 @@
     @if(session('success'))
       <div class="rv-flash rv-flash-ok">{{ session('success') }}</div>
     @endif
+    @if(session('error'))
+      <div class="rv-flash rv-flash-err">{{ session('error') }}</div>
+    @endif
     @if($errors->any())
       <div class="rv-flash rv-flash-err">@foreach($errors->all() as $err)<div>{{ $err }}</div>@endforeach</div>
     @endif

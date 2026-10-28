@@ -3,31 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use App\Services\BookingStatusService;
-use App\Services\NotificationService;
-use App\Services\PaymentService;
+use App\Services\OnlinePaymentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-// DEMO ONLY: a simulated GCash payment. No real money moves and no payment gateway is called.
+// Simulated GCash payment, used when no Xendit key is set. No real money moves and no gateway is called.
 class DemoPaymentController extends Controller
 {
-    // The customer's new bookings that are waiting for the demo payment.
-    private function pendingBookings()
-    {
-        return Booking::where('user_id', Auth::id())
-            ->whereIn('id', session('demo_pay_ids', []))
-            ->orderBy('id')
-            ->get()
-            ->filter(fn (Booking $b) => $b->remainingBalance() > 0)
-            ->values();
-    }
-
     public function show()
     {
-        $bookings = $this->pendingBookings();
+        $bookings = OnlinePaymentService::pendingBookings();
         if ($bookings->isEmpty()) {
             return redirect()->route('booking');
         }
@@ -47,7 +32,7 @@ class DemoPaymentController extends Controller
             'otp.digits'   => 'Enter the 6-digit code.',
         ]);
 
-        $bookings = $this->pendingBookings();
+        $bookings = OnlinePaymentService::pendingBookings();
         if ($bookings->isEmpty()) {
             return redirect()->route('booking');
         }
@@ -55,29 +40,12 @@ class DemoPaymentController extends Controller
         $ref = 'GC' . strtoupper(Str::random(10));
         $note = 'GCash (demo) · Ref ' . $ref . ' · ***' . substr($request->mobile, -4);
 
-        // Record every booking's payment together.
-        $payments = DB::transaction(function () use ($bookings, $note) {
-            $made = [];
-            foreach ($bookings as $booking) {
-                $amount = min($booking->amountToPay(), $booking->remainingBalance());
-                $payment = PaymentService::recordPayment($booking, $amount, $note);
-                if ($payment) {
-                    $made[] = [$booking, $payment];
-                }
-            }
-            return $made;
-        });
-
-        foreach ($payments as [$booking, $payment]) {
-            // Paid online: the booking is ongoing right away.
-            BookingStatusService::startAfterOnlinePayment($booking->fresh());
-            NotificationService::paymentRecorded($booking->fresh(), $payment);
-        }
+        $result = OnlinePaymentService::complete($bookings, $note);
 
         session(['demo_paid' => [
-            'first_id' => $bookings->first()->id,
+            'first_id' => $result['first_id'],
             'ref'      => $ref,
-            'total'    => collect($payments)->sum(fn ($p) => (float) $p[1]->amount),
+            'total'    => $result['total'],
         ]]);
         session()->forget('demo_pay_ids');
 
@@ -103,7 +71,7 @@ class DemoPaymentController extends Controller
     public function skip()
     {
         $ids = session('demo_pay_ids', []);
-        session()->forget('demo_pay_ids');
+        session()->forget(['demo_pay_ids', 'demo_pay_method', 'xendit_payment', 'wallet_mobile']);
 
         return redirect(route('profile') . (!empty($ids) ? '#booking-' . $ids[0] : ''))
             ->with('success', 'Payment cancelled. Your booking is saved and still unpaid.');

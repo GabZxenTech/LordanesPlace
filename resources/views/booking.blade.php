@@ -386,23 +386,11 @@
           <label class="block text-[12px] tracking-[1px] text-gold-deep mb-2 font-bold">Payment Method</label>
           <div id="paymentMethodGroup" class="pm-list">
             <label class="pm-card">
-              <input type="radio" name="payment_method" value="gcash" required {{ old('payment_method') === 'gcash' ? 'checked' : '' }}>
-              <span class="pm-logo" style="background:#007dfe;color:#fff;font-size:22px;">G</span>
-              <span class="pm-text"><b>GCash</b><small>Pay online</small></span>
-              <span class="pm-dot"></span>
-            </label>
-            <label class="pm-card is-off">
-              <input type="radio" name="payment_method" value="maya" disabled>
-              <span class="pm-logo" style="background:#0b0b0b;color:#2fe58b;font-size:13px;letter-spacing:-0.5px;">maya</span>
-              <span class="pm-text"><b>Maya</b><small>Wallet</small></span>
-              <span class="pm-dot"></span>
-            </label>
-            <label class="pm-card is-off">
-              <input type="radio" name="payment_method" value="card" disabled>
-              <span class="pm-logo" style="background:#f1e9d6;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8a6a40" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+              <input type="radio" name="payment_method" value="online" required {{ old('payment_method') === 'online' ? 'checked' : '' }}>
+              <span class="pm-logo" style="background:#007dfe;color:#fff;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
               </span>
-              <span class="pm-text"><b>Credit / Debit Card</b><small>Visa, Mastercard</small></span>
+              <span class="pm-text"><b>Pay Online</b><small>GCash, Maya, bank or card</small></span>
               <span class="pm-dot"></span>
             </label>
             <label class="pm-card">

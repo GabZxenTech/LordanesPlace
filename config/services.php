@@ -53,5 +53,13 @@ return [
     'site_key'   => env('RECAPTCHA_SITE_KEY'),
     'secret_key' => env('RECAPTCHA_SECRET_KEY'),
 ],
+
+// Online payments: Xendit when a key is set, otherwise the built-in simulated page.
+'xendit' => [
+    'secret_key' => env('XENDIT_SECRET_KEY'),
+],
+'payments' => [
+    'gateway' => env('PAYMENT_GATEWAY', env('XENDIT_SECRET_KEY') ? 'xendit' : 'demo'),
+],
 ];
 

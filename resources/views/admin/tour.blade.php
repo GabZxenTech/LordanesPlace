@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>360 Tour | Admin</title>
+  <title>360° Tour | Admin</title>
   @include('partials._favicon')
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,7 +31,7 @@
   <main class="tour-main" style="flex: 1; min-width: 0; padding: 40px 48px; min-height: 100vh; overflow-y: auto;">
     <div style="margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;">
       <div>
-        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; color: #2c1a0e; margin: 0 0 4px;">360 Tour</h1>
+        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; color: #2c1a0e; margin: 0 0 4px;">360° Tour</h1>
         <p style="font-size: 12px; letter-spacing: 3px; color: #8a6a40; text-transform: uppercase; font-weight: 600; margin: 0;">Manage the pictures and arrows of the virtual tour</p>
       </div>
       <a href="{{ route('tour') }}" target="_blank" class="tour-btn">View public tour ↗</a>
