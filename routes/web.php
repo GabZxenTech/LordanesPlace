@@ -121,18 +121,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/visit-schedule', [VisitScheduleController::class, 'store'])->name('visit-schedule.store');
     Route::get('/my-visits', [VisitScheduleController::class, 'index'])->name('my.visits');
 
-    // Online payment: Xendit when a key is set, otherwise the simulated page
+    // Pay Online through Xendit
     Route::get('/payment/start', [\App\Http\Controllers\XenditPaymentController::class, 'start'])->name('payment.start');
-    Route::get('/payment/wallet', [\App\Http\Controllers\XenditPaymentController::class, 'wallet'])->name('payment.wallet');
-    Route::post('/payment/wallet', [\App\Http\Controllers\XenditPaymentController::class, 'walletSubmit'])->name('payment.wallet.submit');
     Route::get('/payment/xendit/return', [\App\Http\Controllers\XenditPaymentController::class, 'return'])->name('payment.xendit.return');
     Route::get('/payment/xendit/cancel', [\App\Http\Controllers\XenditPaymentController::class, 'cancel'])->name('payment.xendit.cancel');
 
-    // Demo online payment (simulated GCash)
-    Route::get('/payment/demo', [\App\Http\Controllers\DemoPaymentController::class, 'show'])->name('payment.demo.show');
-    Route::post('/payment/demo', [\App\Http\Controllers\DemoPaymentController::class, 'pay'])->name('payment.demo.pay');
-    Route::get('/payment/demo/done', [\App\Http\Controllers\DemoPaymentController::class, 'done'])->name('payment.demo.done');
-    Route::post('/payment/demo/skip', [\App\Http\Controllers\DemoPaymentController::class, 'skip'])->name('payment.demo.skip');
+    // Payment successful screen
+    Route::get('/payment/done', [\App\Http\Controllers\XenditPaymentController::class, 'done'])->name('payment.done');
 
     // Receipt route
     Route::get('/bookings/{booking}/receipt', [ReceiptController::class, 'download'])->name('booking.receipt');
