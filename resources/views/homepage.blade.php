@@ -17,10 +17,14 @@
 @include('partials._navbar')
 
 <!-- HERO -->
-<section class="hero-bg min-h-screen flex justify-center items-center text-center text-white px-5 relative" id="home" 
+<section class="hero-bg min-h-screen flex justify-center items-center text-center text-white px-5 relative overflow-hidden" id="home"
          style="background: linear-gradient(rgba(26,18,8,0.4), rgba(26,18,8,0.6)), url('{{ asset('images/LORDANES_BG.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
-  <div class="gold-divider absolute bottom-0 left-0 right-0"></div>
-  <div class="max-w-[720px]">
+  {{-- 360° background: the venue panorama turns slowly and can be dragged; the picture above stays as the fallback --}}
+  <div id="heroPano" class="absolute inset-0" style="z-index: 0; opacity: 0; transition: opacity 1.2s ease; cursor: grab;"></div>
+  <div id="heroPanoShade" class="absolute inset-0 pointer-events-none" style="z-index: 1; opacity: 0; transition: opacity 1.2s ease; background: linear-gradient(rgba(26,18,8,0.4), rgba(26,18,8,0.6));"></div>
+  <div class="gold-divider absolute bottom-0 left-0 right-0" style="z-index: 2;"></div>
+  {{-- The text lets the mouse through so the panorama can be dragged; the buttons still work --}}
+  <div class="max-w-[720px] relative pointer-events-none" style="z-index: 10;">
     <p class="tracking-[4px] text-gold-light text-[12px] md:text-[15px] font-bold mb-5">WELCOME TO LDRESERVE</p>
     <h1 class="font-heading text-[36px] sm:text-[46px] md:text-[62px] font-bold leading-[1.2] mb-5 text-white">
       Experience Every<br>
@@ -30,7 +34,7 @@
       Your dream celebration starts here. LorDane Events Place offers an elegant venue
       experience in Santa Maria, Bulacan — where every moment becomes a masterpiece.
     </p>
-    <div class="flex flex-wrap justify-center gap-3">
+    <div class="flex flex-wrap justify-center gap-3 pointer-events-auto">
       <button onclick="window.location.href='{{ route('discover') }}#virtual-tour'"
         class="bg-gold-deep text-white px-6 md:px-8 py-3 md:py-4 border-none cursor-pointer text-[16px] md:text-[15px] font-bold tracking-wide rounded-[3px] transition-all duration-300 hover:bg-gold-mid hover:-translate-y-0.5">
         Start 360° Tour
@@ -411,6 +415,80 @@
     </a>
   </div>
 </section>
+
+{{-- 360° hero background (loads after the page, so the text appears first) --}}
+<script src="{{ asset('lordanes-place-360/app-files/vendor/marzipano.js') }}" defer></script>
+<script>
+  window.addEventListener('load', function () {
+    var box = document.getElementById('heroPano');
+    var shade = document.getElementById('heroPanoShade');
+    if (!box || !window.Marzipano) return;
+
+    try {
+      // The panoramas of the hero, shown one after another (same tile setup for all).
+      var tilesUrl = @json(asset('lordanes-place-360/app-files/tiles'));
+      var places = ['1-lordanes-place-overview', '2-pool-area-', '4-venue-hall'];
+      var SECONDS_EACH = 10;
+      var FADE_MS = 1500;
+      var geometry = new Marzipano.CubeGeometry([
+        { tileSize: 256, size: 256, fallbackOnly: true },
+        { tileSize: 512, size: 512 },
+        { tileSize: 512, size: 1024 },
+        { tileSize: 512, size: 2048 }
+      ]);
+      var limiter = Marzipano.RectilinearView.limit.traditional(2000, 100 * Math.PI / 180, 120 * Math.PI / 180);
+      var viewer = new Marzipano.Viewer(box);
+      var scenes = places.map(function (id) {
+        var base = tilesUrl + '/' + id;
+        return viewer.createScene({
+          source: Marzipano.ImageUrlSource.fromString(base + '/{z}/{f}/{y}/{x}.jpg', { cubeMapPreviewUrl: base + '/preview.jpg' }),
+          geometry: geometry,
+          view: new Marzipano.RectilinearView({ yaw: 0, pitch: 0, fov: 1.2 }, limiter),
+          pinFirstLevel: true
+        });
+      });
+      scenes[0].switchTo();
+
+      // The mouse wheel and touch swipes stay with the page, so scrolling still works.
+      var controls = viewer.controls();
+      controls.disableMethod('scrollZoom');
+      controls.disableMethod('pinch');
+      if (window.matchMedia('(pointer: coarse)').matches) controls.disableMethod('touchView');
+
+      // Turns slowly on its own, and again 3 seconds after the visitor lets go.
+      var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var auto = Marzipano.autorotate({ yawSpeed: 0.04, targetPitch: 0, targetFov: 1.2 });
+      var turn = function () {
+        if (reduceMotion) return;
+        viewer.startMovement(auto);
+        viewer.setIdleMovement(3000, auto);
+      };
+      turn();
+
+      // Every 10 seconds, fade to the next place.
+      var current = 0;
+      setInterval(function () {
+        if (document.hidden) return;
+        current = (current + 1) % scenes.length;
+        scenes[current].switchTo({ transitionDuration: FADE_MS });
+        turn();
+      }, SECONDS_EACH * 1000);
+
+      // Fade the panorama in over the picture once the first image is drawn.
+      var shown = false;
+      var show = function () {
+        if (shown) return;
+        shown = true;
+        box.style.opacity = '1';
+        shade.style.opacity = '1';
+      };
+      viewer.stage().addEventListener('renderComplete', show);
+      setTimeout(show, 3000);
+    } catch (e) {
+      // No WebGL or an old browser: the picture stays as the background.
+    }
+  });
+</script>
 
 @include('partials._footer')
 
