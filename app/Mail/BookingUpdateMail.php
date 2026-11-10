@@ -49,10 +49,9 @@ class BookingUpdateMail extends Mailable
         return [
             Attachment::fromData(function () use ($id) {
                 $booking = Booking::with('user', 'visitSchedules')->findOrFail($id);
-                $hasVisitRow = $booking->visitSchedules->where('status', 'confirmed')->isNotEmpty();
 
                 return Pdf::loadView('receipt', compact('booking'))
-                    ->setPaper([0, 0, 300, $hasVisitRow ? 510 : 494])
+                    ->setPaper([0, 0, 300, $booking->receiptPaperHeight()])
                     ->output();
             }, 'Receipt-' . $this->details['number'] . '.pdf')->withMime('application/pdf'),
         ];

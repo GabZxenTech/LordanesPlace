@@ -96,6 +96,74 @@ class Booking extends Model
             && $this->remainingBalance() > 0;
     }
 
+    // After the first payment, the rest can also be paid online.
+    public function canPayBalanceOnline(): bool
+    {
+        return $this->payment_method === 'online'
+            && $this->status === self::STATUS_APPROVED
+            && $this->hasConfirmedPayment()
+            && $this->remainingBalance() > 0;
+    }
+
+    // What the next online payment charges: the first payment, then the whole remaining balance.
+    public function onlineAmountDue(): float
+    {
+        return $this->hasConfirmedPayment()
+            ? $this->remainingBalance()
+            : min($this->amountToPay(), $this->remainingBalance());
+    }
+
+    // Receipts of bookings made from this date list each payment; older ones keep the single total.
+    public const RECEIPT_BREAKDOWN_FROM = '2026-11-10';
+
+    public function hasPaymentBreakdown(): bool
+    {
+        return $this->created_at && $this->created_at->format('Y-m-d') >= self::RECEIPT_BREAKDOWN_FROM;
+    }
+
+    // Each payment for the receipt, oldest first, with a label.
+    public function receiptPayments(): array
+    {
+        $total = (float) $this->total_amount;
+        $running = 0.0;
+        $rows = [];
+
+        foreach ($this->payments()->orderBy('created_at')->orderBy('id')->get() as $i => $payment) {
+            $amount = (float) $payment->amount;
+            $running += $amount;
+
+            if ($i === 0) {
+                $label = 'Initial payment';
+                if (abs($amount - $this->amountToPay()) < 0.01) {
+                    $label .= ' (' . self::paymentOptionLabel($this->payment_option) . ')';
+                }
+            } else {
+                $label = $running >= $total - 0.01 ? 'Remaining balance payment' : 'Additional payment';
+            }
+
+            $rows[] = ['label' => $label, 'amount' => $amount, 'date' => $payment->created_at->format('M d, Y')];
+        }
+
+        return $rows;
+    }
+
+    // Receipt page height (pt): grows with the visit row and the payment lines.
+    public function receiptPaperHeight(): int
+    {
+        $height = 494;
+
+        if ($this->visitSchedules->where('status', 'confirmed')->isNotEmpty()) {
+            $height += 16;
+        }
+
+        if ($this->hasPaymentBreakdown()) {
+            $count = max(1, count($this->receiptPayments()));
+            $height += 12 + ($count - 1) * 28 + ($count > 1 ? 18 : 0);
+        }
+
+        return $height;
+    }
+
     public function isCancelledOrRejected(): bool
     {
         return in_array($this->status, [self::STATUS_CANCELLED, self::STATUS_REJECTED], true);

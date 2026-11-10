@@ -120,6 +120,9 @@
 
   <div class="rv-acts">
     {{-- Approved and chosen to pay online: the first payment opens now. --}}
+    @if($booking->canPayBalanceOnline())
+      <a href="{{ route('payment.start', $booking->id) }}" class="rv-act rv-act-primary" style="text-decoration: none; display: inline-block;">Pay Remaining Balance · ₱{{ number_format($booking->remainingBalance(), 0) }}</a>
+    @endif
     @if($booking->canPayOnline())
       <a href="{{ route('payment.start', $booking->id) }}" class="rv-act rv-act-primary" style="text-decoration: none; display: inline-block;">Pay Online</a>
     @endif

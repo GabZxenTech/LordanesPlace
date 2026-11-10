@@ -36,7 +36,7 @@ class XenditPaymentController extends Controller
             return $this->backToProfile('nopending');
         }
 
-        $total = round($bookings->sum(fn (Booking $b) => $b->amountToPay()), 2);
+        $total = round($bookings->sum(fn (Booking $b) => $b->onlineAmountDue()), 2);
         $numbers = $bookings->pluck('booking_number')->implode(', ');
 
         try {

@@ -16,7 +16,7 @@ class OnlinePaymentService
             ->whereIn('id', session('demo_pay_ids', []))
             ->orderBy('id')
             ->get()
-            ->filter(fn (Booking $b) => $b->canPayOnline())
+            ->filter(fn (Booking $b) => $b->canPayOnline() || $b->canPayBalanceOnline())
             ->values();
     }
 
@@ -27,7 +27,7 @@ class OnlinePaymentService
         $payments = DB::transaction(function () use ($bookings, $note) {
             $made = [];
             foreach ($bookings as $booking) {
-                $amount = min($booking->amountToPay(), $booking->remainingBalance());
+                $amount = $booking->onlineAmountDue();
                 $payment = PaymentService::recordPayment($booking, $amount, $note);
                 if ($payment) {
                     $made[] = [$booking, $payment];

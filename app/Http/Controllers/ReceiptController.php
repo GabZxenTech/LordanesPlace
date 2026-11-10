@@ -40,12 +40,8 @@ class ReceiptController extends Controller
             abort(404, 'Receipt not yet available. Payment confirmation is required.');
         }
 
-        // Receipt page size; one extra line when a visit schedule is shown.
-        $hasVisitRow = $booking->visitSchedules->where('status', 'confirmed')->isNotEmpty();
-        $pageHeight = $hasVisitRow ? 510 : 494;
-
         $pdf = Pdf::loadView('receipt', compact('booking'))
-                 ->setPaper([0, 0, 300, $pageHeight]);
+                 ->setPaper([0, 0, 300, $booking->receiptPaperHeight()]);
 
         $filename = 'Receipt-' . ($booking->booking_number ?? $booking->id) . '.pdf';
 

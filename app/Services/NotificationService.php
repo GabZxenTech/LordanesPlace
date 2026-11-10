@@ -31,12 +31,12 @@ class NotificationService
         ]);
 
         if ($email && in_array($type, self::EMAIL_TYPES, true)) {
-            self::emailCustomer($booking, $title, $message);
+            self::emailCustomer($booking, $title, $message, $type);
         }
     }
 
     // Queues the email; a mail problem must never break the booking itself.
-    protected static function emailCustomer(Booking $booking, string $title, string $message): void
+    protected static function emailCustomer(Booking $booking, string $title, string $message, string $type = ''): void
     {
         try {
             $user = $booking->user;
@@ -47,9 +47,10 @@ class NotificationService
             $peso = fn (float $n) => '₱' . number_format($n, 2);
             $paid = $booking->amountPaid();
 
-            // Any email about a fully paid booking carries its receipt.
+            // Payment emails always carry the receipt (even a downpayment); so does any email once fully paid.
+            $fullyPaid = ((float) $booking->total_amount - $paid) <= 0.01;
             $withReceipt = $paid > 0
-                && ((float) $booking->total_amount - $paid) <= 0.01
+                && ($fullyPaid || in_array($type, ['payment_received', 'payment_completed'], true))
                 && !$booking->isCancelledOrRejected();
 
             Mail::to($user->email)->queue(new BookingUpdateMail($user->name, $title, $message, [
@@ -90,6 +91,7 @@ class NotificationService
             'payment_received',
             'Payment Received',
             "We received your payment of {$amount}. Your remaining balance is {$remaining}."
+                . ($booking->canPayBalanceOnline() ? ' You can pay it online from My Reservations (Pay Remaining Balance).' : '')
         );
     }
 

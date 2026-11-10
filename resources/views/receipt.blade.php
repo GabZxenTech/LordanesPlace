@@ -195,10 +195,26 @@
                 <div class="amount-label">Payment Type</div>
                 <div class="amount-value">{{ \App\Models\Booking::paymentOptionLabel($booking->payment_option) }}</div>
             </div>
-            <div class="amount-row">
-                <div class="amount-label">Amount Paid</div>
-                <div class="amount-value">₱{{ number_format($booking->amountPaid(), 2) }}</div>
-            </div>
+            @if($booking->hasPaymentBreakdown())
+                @php $payRows = $booking->receiptPayments(); @endphp
+                @foreach($payRows as $row)
+                    <div class="amount-row">
+                        <div class="amount-label">{{ $row['label'] }}<br><span style="font-size: 9px; color: #888;">{{ $row['date'] }}</span></div>
+                        <div class="amount-value">₱{{ number_format($row['amount'], 2) }}</div>
+                    </div>
+                @endforeach
+                @if(count($payRows) > 1)
+                    <div class="amount-row">
+                        <div class="amount-label">Total Paid</div>
+                        <div class="amount-value">₱{{ number_format($booking->amountPaid(), 2) }}</div>
+                    </div>
+                @endif
+            @else
+                <div class="amount-row">
+                    <div class="amount-label">Amount Paid</div>
+                    <div class="amount-value">₱{{ number_format($booking->amountPaid(), 2) }}</div>
+                </div>
+            @endif
             <div class="amount-row total-row">
                 <div class="amount-label">Remaining Balance</div>
                 <div class="amount-value">₱{{ number_format($booking->remainingBalance(), 2) }}</div>
