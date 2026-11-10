@@ -59,7 +59,8 @@
   @else
     @php
       // Offer to book a visit only while the booking is still ahead of us.
-      $canScheduleVisit = !$visit && $isUpcomingDate && in_array($booking->status, ['pending', 'approved'], true);
+      // Not for Pay Online bookings: they pay online, so no visit is needed.
+      $canScheduleVisit = !$visit && $isUpcomingDate && $booking->payment_method !== 'online' && in_array($booking->status, ['pending', 'approved'], true);
     @endphp
     @if($visit || $canScheduleVisit)
       <div class="rv-visit">
