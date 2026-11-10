@@ -68,7 +68,6 @@
     .rv-chip { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
     .rv-s-pending { color: #a86a00; background: #fbf0d9; }
     .rv-s-approved { color: #2f8f5b; background: #e3f3ea; }
-    .rv-s-ongoing { color: #2f6fbf; background: #e3ecf8; }
     .rv-s-completed { color: #fff; background: #c9a84c; }
     .rv-s-cancelled { color: #fff9ef; background: #2c1a0e; }
     .rv-s-rejected { color: #c0392b; background: #fbe5e2; }
@@ -109,6 +108,7 @@
     .rv-act { font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; padding: 8px 12px; border-radius: 6px; cursor: pointer; background: transparent; border: 1px solid var(--rv-line); color: var(--rv-soft); transition: background .2s; }
     .rv-act-primary { border-color: var(--rv-gold); color: var(--rv-gold); }
     .rv-act-primary:hover { background: #fbf0d9; }
+    a.rv-act { display: inline-block; text-decoration: none; }
     .rv-act-danger { border-color: #e9b7b1; color: #c0392b; }
     .rv-act-danger:hover { background: #fbe5e2; }
 
@@ -237,7 +237,7 @@
         'cancelled'   => ['ok',  'Payment cancelled. Your booking is saved and still unpaid.'],
         'unavailable' => ['err', 'Online payment is not available right now. Your booking is saved and still unpaid.'],
         'notpaid'     => ['err', 'Your payment was not completed. Your booking is saved and still unpaid.'],
-        'nopending'   => ['err', 'We could not find a booking waiting for payment. Your booking is saved and still unpaid.'],
+        'nopending'   => ['err', 'This booking cannot be paid online right now. It must be approved and still unpaid.'],
       ];
       $payKind = request('pay');
       $payCode = preg_replace('/[^A-Za-z0-9 _.-]/', '', (string) request('code'));

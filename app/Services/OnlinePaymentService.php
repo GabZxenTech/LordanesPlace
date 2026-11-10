@@ -9,18 +9,18 @@ use Illuminate\Support\Facades\DB;
 // Shared by the online payment pages: finds the bookings waiting for payment and records the payment.
 class OnlinePaymentService
 {
-    // The customer's new bookings that are waiting for online payment.
+    // The customer's approved bookings that are waiting for online payment.
     public static function pendingBookings(): \Illuminate\Support\Collection
     {
         return Booking::where('user_id', Auth::id())
             ->whereIn('id', session('demo_pay_ids', []))
             ->orderBy('id')
             ->get()
-            ->filter(fn (Booking $b) => $b->remainingBalance() > 0)
+            ->filter(fn (Booking $b) => $b->canPayOnline())
             ->values();
     }
 
-    // Records the payment for each booking, starts them, and notifies the customer.
+    // Records the payment for each booking and notifies the customer.
     // Returns the numbers the success screen needs.
     public static function complete($bookings, string $note): array
     {
@@ -37,8 +37,6 @@ class OnlinePaymentService
         });
 
         foreach ($payments as [$booking, $payment]) {
-            // Paid online: the booking is ongoing right away.
-            BookingStatusService::startAfterOnlinePayment($booking->fresh());
             NotificationService::paymentRecorded($booking->fresh(), $payment);
         }
 

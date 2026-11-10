@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login | LorDane's Place</title>
+  <title>Login | LDReserve</title>
   @include('partials._favicon')
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,11 +23,11 @@
       <div class="px-2 lg:px-4 text-center lg:text-left">
         <p class="text-[12px] tracking-[4px] text-gold-light font-bold mb-4">WELCOME BACK</p>
         <h1 class="font-heading text-[36px] sm:text-[46px] lg:text-[58px] leading-[1.1] text-white mb-4">
-          Login to <span class="text-gold-light italic">LorDane's Place</span>
+          Login to <span class="text-gold-light italic">LDReserve</span>
         </h1>
         <p class="max-w-[560px] text-[15px] md:text-[16px] leading-[1.8] text-white/70 mx-auto lg:mx-0">
           Access your account to manage bookings, view reservations,
-          and explore LorDane's Place with ease.
+          and explore LDReserve with ease.
         </p>
       </div>
 

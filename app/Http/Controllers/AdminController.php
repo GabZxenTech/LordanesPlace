@@ -16,11 +16,11 @@ class AdminController extends Controller
     public function dashboard()
     {
         $today = now()->startOfDay();
-        $open = [Booking::STATUS_PENDING, Booking::STATUS_APPROVED, Booking::STATUS_ONGOING];
+        $open = [Booking::STATUS_PENDING, Booking::STATUS_APPROVED];
 
         $stats = [
             'pending'  => Booking::where('status', Booking::STATUS_PENDING)->count(),
-            'upcoming' => Booking::whereIn('status', [Booking::STATUS_APPROVED, Booking::STATUS_ONGOING])
+            'upcoming' => Booking::whereIn('status', [Booking::STATUS_APPROVED])
                 ->whereBetween('event_date', [$today, now()->addDays(30)->endOfDay()])->count(),
             'revenue'  => (float) Payment::where('created_at', '>=', now()->startOfMonth())->sum('amount'),
             'balance'  => Booking::with('payments')->whereIn('status', $open)->get()
@@ -48,7 +48,7 @@ class AdminController extends Controller
             ->groupBy('package')->orderByDesc('total')->limit(5)->get();
 
         $upcomingEvents = Booking::with('user')
-            ->whereIn('status', [Booking::STATUS_APPROVED, Booking::STATUS_ONGOING])
+            ->whereIn('status', [Booking::STATUS_APPROVED])
             ->where('event_date', '>=', $today)->orderBy('event_date')->limit(6)->get();
 
         $pendingBookings = Booking::with('user')->where('status', Booking::STATUS_PENDING)

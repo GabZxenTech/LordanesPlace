@@ -15,7 +15,7 @@ class NotificationService
 {
     // Only the important updates are also sent by email.
     protected const EMAIL_TYPES = [
-        'booking_pending', 'booking_approved', 'booking_rejected', 'booking_ongoing',
+        'booking_pending', 'booking_approved', 'booking_rejected',
         'booking_completed', 'booking_cancelled', 'payment_received', 'payment_completed',
     ];
 
@@ -62,6 +62,7 @@ class NotificationService
                 'balance' => $peso(max(0, (float) $booking->total_amount - $paid)),
                 'receiptUrl' => $withReceipt ? \Illuminate\Support\Facades\URL::temporarySignedRoute('booking.receipt.signed', now()->addDays(90), ['booking' => $booking->id]) : null,
                 'receiptBookingId' => $withReceipt ? $booking->id : null,
+                'payUrl' => $booking->canPayOnline() ? route('payment.start', $booking->id) : null,
             ]));
         } catch (\Throwable $e) {
             Log::warning('Booking email not queued: ' . $e->getMessage());
@@ -118,10 +119,6 @@ class NotificationService
             'Booking Approved',
             'Your booking has been approved.',
         ],
-        Booking::STATUS_ONGOING => [
-            'Event Ongoing',
-            'Your event is now ongoing.',
-        ],
         Booking::STATUS_COMPLETED => [
             'Booking Completed',
             'Your booking has been completed. Thank you for choosing LorDane\'s Place.',
@@ -144,6 +141,13 @@ class NotificationService
         }
 
         [$title, $message] = self::STATUS_MESSAGES[$booking->status];
+
+        // Approved and chosen to pay online: tell them to proceed to payment.
+        if ($booking->status === Booking::STATUS_APPROVED && $booking->canPayOnline()) {
+            $message .= "
+
+You can now proceed to online payment. Open My Reservations and tap Pay Online, or use the button in the email.";
+        }
 
         // Add the admin's reason for rejected or cancelled bookings.
         if (

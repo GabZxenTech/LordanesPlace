@@ -36,7 +36,6 @@
     .status-pending { background: #fdf0c4; color: #9a5b0c; border: 1px solid #f6e3a1; }
     .status-approved { background: #d5f5e3; color: #15803d; border: 1px solid #b7ebcb; }
     .status-rejected { background: #fde0e0; color: #c0392b; border: 1px solid #f8c4c4; }
-    .status-ongoing { background: #dbeafe; color: #1d6fb8; border: 1px solid #bfd9f8; }
     .status-completed { background: #ece3ff; color: #7c4dcc; border: 1px solid #d9c9fa; }
     .status-cancelled { background: #dde3ec; color: #3d4a5c; border: 1px solid #c9d2df; }
     .dash-action { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 20px; border: 1px solid #d4c4a0; border-radius: 8px; background: #fff9ef; color: #2c1a0e; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s; }
@@ -208,8 +207,8 @@
       new Chart(document.getElementById('statusChart'), {
         type: 'doughnut',
         data: {
-          labels: ['Pending', 'Approved', 'Ongoing', 'Completed', 'Cancelled', 'Rejected'],
-          datasets: [{ data: @json($statusChart), backgroundColor: ['#f6d86b', '#6fcf97', '#7fb4ee', '#b79cf0', '#aab4c4', '#ee8c8c'], borderColor: '#fff9ef', borderWidth: 2 }]
+          labels: ['Pending', 'Approved', 'Completed', 'Cancelled', 'Rejected'],
+          datasets: [{ data: @json($statusChart), backgroundColor: ['#f6d86b', '#6fcf97', '#b79cf0', '#aab4c4', '#ee8c8c'], borderColor: '#fff9ef', borderWidth: 2 }]
         },
         options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom' } } }
       });

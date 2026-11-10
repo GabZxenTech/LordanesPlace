@@ -122,7 +122,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/my-visits', [VisitScheduleController::class, 'index'])->name('my.visits');
 
     // Pay Online through Xendit
-    Route::get('/payment/start', [\App\Http\Controllers\XenditPaymentController::class, 'start'])->name('payment.start');
+    Route::get('/payment/start/{id}', [\App\Http\Controllers\XenditPaymentController::class, 'start'])->name('payment.start');
     Route::get('/payment/xendit/return', [\App\Http\Controllers\XenditPaymentController::class, 'return'])->name('payment.xendit.return');
     Route::get('/payment/xendit/cancel', [\App\Http\Controllers\XenditPaymentController::class, 'cancel'])->name('payment.xendit.cancel');
 
@@ -160,8 +160,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/block-date/{id}', [BlockedDateController::class, 'destroy'])->name('unblock.date');
     Route::post('/booking/{id}/approve', [BlockedDateController::class, 'approveBooking'])->name('booking.approve');
     Route::post('/booking/{id}/reject', [BlockedDateController::class, 'rejectBooking'])->name('booking.reject');
-    Route::post('/booking/{id}/cancel', [BlockedDateController::class, 'cancelBooking'])->name('booking.cancel');
-    Route::post('/booking/{id}/ongoing', [BlockedDateController::class, 'markOngoing'])->name('booking.ongoing');
     Route::post('/booking/{id}/completed', [BlockedDateController::class, 'markCompleted'])->name('booking.completed');
     Route::post('/booking/{id}/status', [BlockedDateController::class, 'updateStatus'])->name('booking.status');
     Route::put('/booking/{id}', [BlockedDateController::class, 'updateBooking'])->name('booking.update');

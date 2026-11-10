@@ -19,16 +19,13 @@
     .status-pending { background: #fdf0c4; color: #9a5b0c; border: 1px solid #f6e3a1; }
     .status-approved { background: #d5f5e3; color: #15803d; border: 1px solid #b7ebcb; }
     .status-rejected { background: #fde0e0; color: #c0392b; border: 1px solid #f8c4c4; }
-    .status-ongoing { background: #dbeafe; color: #1d6fb8; border: 1px solid #bfd9f8; }
     .status-completed { background: #ece3ff; color: #7c4dcc; border: 1px solid #d9c9fa; }
     .status-cancelled { background: #dde3ec; color: #3d4a5c; border: 1px solid #c9d2df; }
     /* Action menu items tint on hover with their own color */
     .am-item { display: block; width: 100%; text-align: left; padding: 10px 16px; border: none; background: transparent; font-size: 13px; font-weight: 600; cursor: pointer; box-sizing: border-box; text-decoration: none; font-family: inherit; }
     .am-approve { color: #15803d; } .am-approve:hover { background: #d5f5e3; }
     .am-reject { color: #c0392b; } .am-reject:hover { background: #fde0e0; }
-    .am-ongoing { color: #1d6fb8; } .am-ongoing:hover { background: #dbeafe; }
     .am-completed { color: #7c4dcc; } .am-completed:hover { background: #ece3ff; }
-    .am-cancel { color: #c2631a; } .am-cancel:hover { background: #ffe8d1; }
     .am-payment { color: #1d6fb8; } .am-payment:hover { background: #dbeafe; }
     .am-receipt { color: #2c1a0e; } .am-receipt:hover { background: #f5f0e8; }
     .am-delete { color: #8b1a1a; font-weight: 700; } .am-delete:hover { background: #fde0e0; }
@@ -132,7 +129,7 @@
         {{-- Filters for this month's bookings (client-side; see partials._list-filter) --}}
         <div class="lf-bar" data-list-filter="admin-schedule" data-default-tab="all">
           <div class="lf-tabs" role="tablist" aria-label="Filter by status">
-            @foreach(['all' => 'All', 'pending' => 'Pending', 'approved' => 'Approved', 'ongoing' => 'Ongoing', 'completed' => 'Completed', 'closed' => 'Cancelled / Rejected'] as $tabKey => $tabLabel)
+            @foreach(['all' => 'All', 'pending' => 'Pending', 'approved' => 'Approved', 'completed' => 'Completed', 'closed' => 'Cancelled / Rejected'] as $tabKey => $tabLabel)
               <button type="button" class="lf-tab" role="tab" data-filter-tab="{{ $tabKey }}" aria-selected="false">{{ $tabLabel }}<span class="lf-n" data-count></span></button>
             @endforeach
           </div>
@@ -264,22 +261,11 @@
                               onclick="openReasonModal('reject', {{ $booking->id }}, '{{ addslashes($booking->user->name) }}', '{{ route('admin.booking.reject', $booking->id) }}')"
                             >Reject</button>
                           @endif
-                          @if($booking->canTransitionTo('ongoing'))
-                            <form method="POST" action="{{ route('admin.booking.ongoing', $booking->id) }}">
-                              @csrf
-                              <button type="submit" class="am-item am-ongoing">Mark Ongoing</button>
-                            </form>
-                          @endif
                           @if($booking->canTransitionTo('completed'))
                             <form method="POST" action="{{ route('admin.booking.completed', $booking->id) }}">
                               @csrf
                               <button type="submit" class="am-item am-completed">Mark Completed</button>
                             </form>
-                          @endif
-                          @if($booking->canTransitionTo('cancelled'))
-                            <button type="button" class="am-item am-cancel"
-                              onclick="openReasonModal('cancel', {{ $booking->id }}, '{{ addslashes($booking->user->name) }}', '{{ route('admin.booking.cancel', $booking->id) }}')"
-                            >Cancel Booking</button>
                           @endif
                           @if(!$booking->isCancelledOrRejected() && $booking->remainingBalance() > 0)
                             @php

@@ -103,26 +103,6 @@ class BlockedDateController extends Controller
         return $this->applyStatus($booking, Booking::STATUS_REJECTED, 'Booking rejected.');
     }
 
-    // Admin cancels a booking.
-    public function cancelBooking(Request $request, $id)
-    {
-        $request->validate([
-            'cancellation_reason' => 'required|string|max:1000',
-        ]);
-
-        $booking = Booking::findOrFail($id);
-        $booking->cancellation_reason = $request->cancellation_reason;
-        $booking->save();
-
-        return $this->applyStatus($booking, Booking::STATUS_CANCELLED, 'Booking cancelled.');
-    }
-
-    // Mark a booking as ongoing.
-    public function markOngoing($id)
-    {
-        return $this->applyStatus(Booking::findOrFail($id), Booking::STATUS_ONGOING, 'Booking marked as ongoing.');
-    }
-
     // Mark a booking as completed.
     public function markCompleted($id)
     {

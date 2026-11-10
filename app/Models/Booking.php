@@ -87,6 +87,15 @@ class Booking extends Model
         return $this->amountPaid() > 0;
     }
 
+    // Online payment opens after approval, for the first payment only.
+    public function canPayOnline(): bool
+    {
+        return $this->payment_method === 'online'
+            && $this->status === self::STATUS_APPROVED
+            && !$this->hasConfirmedPayment()
+            && $this->remainingBalance() > 0;
+    }
+
     public function isCancelledOrRejected(): bool
     {
         return in_array($this->status, [self::STATUS_CANCELLED, self::STATUS_REJECTED], true);
@@ -236,18 +245,16 @@ class Booking extends Model
 
     public const STATUS_PENDING   = 'pending';
     public const STATUS_APPROVED  = 'approved';
-    public const STATUS_ONGOING   = 'ongoing';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
     public const STATUS_REJECTED  = 'rejected';
 
     // Statuses that take the date (one event per day).
-    public const DATE_HOLDING_STATUSES = [self::STATUS_APPROVED, self::STATUS_ONGOING];
+    public const DATE_HOLDING_STATUSES = [self::STATUS_APPROVED];
 
     public const STATUSES = [
         self::STATUS_PENDING,
         self::STATUS_APPROVED,
-        self::STATUS_ONGOING,
         self::STATUS_COMPLETED,
         self::STATUS_CANCELLED,
         self::STATUS_REJECTED,
@@ -256,8 +263,7 @@ class Booking extends Model
     // Allowed status changes. Final statuses cannot change.
     protected const TRANSITIONS = [
         self::STATUS_PENDING   => [self::STATUS_APPROVED, self::STATUS_REJECTED, self::STATUS_CANCELLED],
-        self::STATUS_APPROVED  => [self::STATUS_ONGOING, self::STATUS_COMPLETED, self::STATUS_CANCELLED],
-        self::STATUS_ONGOING   => [self::STATUS_COMPLETED, self::STATUS_CANCELLED],
+        self::STATUS_APPROVED  => [self::STATUS_COMPLETED, self::STATUS_REJECTED, self::STATUS_CANCELLED],
         self::STATUS_COMPLETED => [],
         self::STATUS_CANCELLED => [],
         self::STATUS_REJECTED  => [],
@@ -286,7 +292,6 @@ class Booking extends Model
         return match ($status) {
             self::STATUS_PENDING   => '#B8860B',
             self::STATUS_APPROVED  => '#10b981',
-            self::STATUS_ONGOING   => '#3b82f6',
             self::STATUS_COMPLETED => '#B8860B',
             self::STATUS_REJECTED  => '#ef4444',
             self::STATUS_CANCELLED => '#94a3b8',
@@ -308,6 +313,7 @@ class Booking extends Model
         'total_amount',
         'down_payment_amount',
         'payment_option',
+        'payment_method',
         'payment_status',
         'down_payment_paid_at',
         'booking_number',

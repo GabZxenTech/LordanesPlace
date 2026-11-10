@@ -5,8 +5,10 @@
   $total = (float) $booking->total_amount;
   $pct = $total > 0 ? min(100, (int) round($paid / $total * 100)) : 0;
   $visit = $booking->visitSchedules->first();
-  $steps = ['pending' => 'Pending', 'approved' => 'Approved', 'ongoing' => 'Ongoing', 'completed' => 'Completed'];
-  $stepIndex = array_search($booking->status, array_keys($steps), true);
+  $steps = ['pending' => 'Pending', 'approved' => 'Approved', 'paid' => 'Paid', 'completed' => 'Completed'];
+  // Paid step is reached only when fully paid.
+  $stepKey = $booking->status === 'approved' && $booking->payment_status === 'fully_paid' ? 'paid' : $booking->status;
+  $stepIndex = array_search($stepKey, array_keys($steps), true);
   $isUpcomingDate = $booking->event_date->format('Y-m-d') >= date('Y-m-d');
   $occasionLine = in_array($booking->event_type, ['Swimming', 'Staycation'], true)
       ? $booking->event_type
@@ -38,7 +40,7 @@
     <span class="rv-chip rv-s-{{ $booking->status }}">{{ $booking->status }}</span>
     @if(!$isDead)
       @if($booking->payment_status === 'fully_paid')
-        <span class="rv-chip rv-p-paid">Fully paid</span>
+        <span class="rv-chip rv-p-paid">Paid</span>
       @elseif($booking->payment_status === 'partially_paid')
         <span class="rv-chip rv-p-partial">Partially paid</span>
       @else
@@ -82,7 +84,7 @@
         </div>
         <div class="rv-step-labels">
           @foreach($steps as $key => $label)
-            <span class="{{ $key === $booking->status ? 'cur' : '' }}">{{ $label }}</span>
+            <span class="{{ $key === $stepKey ? 'cur' : '' }}">{{ $label }}</span>
           @endforeach
         </div>
       </div>
@@ -116,6 +118,10 @@
   @endif
 
   <div class="rv-acts">
+    {{-- Approved and chosen to pay online: the first payment opens now. --}}
+    @if($booking->canPayOnline())
+      <a href="{{ route('payment.start', $booking->id) }}" class="rv-act rv-act-primary" style="text-decoration: none; display: inline-block;">Pay Online</a>
+    @endif
     @if($booking->status === 'approved' && $booking->reschedule_status !== 'pending' && $isUpcomingDate)
       <button type="button" class="rv-act rv-act-primary"
         onclick="openRescheduleModal({{ $booking->id }}, '{{ $booking->event_date->format('F d, Y') }}', '{{ $visit ? $visit->visit_date->format('F d, Y') : 'Not scheduled' }}', {{ $booking->reschedule_count }})">

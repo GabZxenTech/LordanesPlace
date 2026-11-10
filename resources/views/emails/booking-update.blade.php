@@ -71,7 +71,12 @@
                             </table>
 
                             <!-- Button -->
-                            <div style="text-align: center; margin: 28px 0 8px;">
+                            @if(!empty($details['payUrl']))
+                                <div style="text-align: center; margin: 28px 0 8px;">
+                                    <a href="{{ $details['payUrl'] }}" style="display: inline-block; background: #BF9B30; color: #1a1208; text-decoration: none; font-weight: 700; font-size: 14px; letter-spacing: 1px; padding: 13px 30px; border-radius: 8px;">PROCEED TO ONLINE PAYMENT</a>
+                                </div>
+                            @endif
+                            <div style="text-align: center; margin: {{ !empty($details['payUrl']) ? '12px' : '28px' }} 0 8px;">
                                 <a href="{{ route('profile') }}" style="display: inline-block; background: #BF9B30; color: #1a1208; text-decoration: none; font-weight: 700; font-size: 14px; letter-spacing: 1px; padding: 13px 30px; border-radius: 8px;">VIEW MY BOOKING</a>
                             </div>
                             @if(!empty($details['receiptUrl']))

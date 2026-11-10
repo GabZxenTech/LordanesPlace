@@ -211,6 +211,7 @@ class BookingController extends Controller
                         'notes'          => $request->notes,
                         'status'         => 'pending',
                         'payment_option' => $request->payment_option,
+                        'payment_method' => $request->payment_method,
                         'payment_status' => 'unpaid',
                     ]), $prepared);
                 });
@@ -234,14 +235,9 @@ class BookingController extends Controller
             NotificationService::bookingSubmitted($booking);
         }
 
-        // Pay Online: go to the payment page first (Xendit, or the simulated page without a key).
-        if ($request->payment_method === 'online') {
-            session(['demo_pay_ids' => array_map(fn ($b) => $b->id, $bookings)]);
-            return redirect()->route('payment.start');
-        }
-
         return redirect()->route('booking')
             ->with('booking_success', true)
+            ->with('pay_online_after_approval', $request->payment_method === 'online')
             ->with('new_booking_id', $bookings[0]->id)
             ->with('new_booking_ids', array_map(fn ($b) => $b->id, $bookings))
             ->with('booking_number', implode(', ', array_map(fn ($b) => $b->booking_number, $bookings)));

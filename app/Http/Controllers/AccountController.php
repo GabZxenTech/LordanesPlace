@@ -22,7 +22,7 @@ use Illuminate\Validation\Rules\Password;
 class AccountController extends Controller
 {
     // Bookings in these statuses stop the account from being deleted.
-    private const ACTIVE_STATUSES = [Booking::STATUS_PENDING, Booking::STATUS_APPROVED, Booking::STATUS_ONGOING];
+    private const ACTIVE_STATUSES = [Booking::STATUS_PENDING, Booking::STATUS_APPROVED];
 
     // Account settings page.
     public function show()

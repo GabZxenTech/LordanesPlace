@@ -23,8 +23,10 @@ class XenditPaymentController extends Controller
     }
 
     // Creates the Xendit invoice and sends the customer to its payment page.
-    public function start()
+    public function start($id)
     {
+        session(['demo_pay_ids' => [(int) $id]]);
+
         if (!config('services.xendit.secret_key')) {
             return $this->unavailable('not-configured');
         }

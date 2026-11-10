@@ -390,7 +390,7 @@
               <span class="pm-logo" style="background:#007dfe;color:#fff;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
               </span>
-              <span class="pm-text"><b>Pay Online</b><small>GCash, Maya, bank or card</small></span>
+              <span class="pm-text"><b>Pay Online</b><small>GCash, Maya, bank or card · after admin approval</small></span>
               <span class="pm-dot"></span>
             </label>
             <label class="pm-card">
@@ -838,9 +838,19 @@
         @endif
         <p class="text-warm-black/80 text-[15px] leading-relaxed mb-4">Your reservation request has been received and is currently <strong class="text-gold-deep">pending approval</strong>.</p>
 
+        @if(session('pay_online_after_approval'))
+          <p class="text-warm-black/80 text-[14px] leading-relaxed mb-4">Once the admin approves your booking, we will notify you and email you a link to <strong class="text-gold-deep">proceed to online payment</strong>.</p>
+        @endif
+
         <div class="mb-6 text-[13px] text-warm-black/60 italic">Your official receipt will be available here once the admin confirms your payment.</div>
     </div>
 
+    {{-- Pay Online: no visit step here; the visit can be booked later from My Reservations. --}}
+    @if(session('pay_online_after_approval'))
+    <div class="text-center">
+        <a href="{{ route('profile') }}" class="inline-block bg-gold-deep text-white px-8 py-3 rounded-md no-underline font-bold text-[15px] tracking-[1px] transition-all hover:bg-gold-mid">GO TO MY RESERVATIONS</a>
+    </div>
+    @else
     <div class="bg-cream border border-gold-deep/15 rounded-xl p-6 md:p-8">
         <div class="flex items-center gap-3 mb-5">
             <div class="w-8 h-8 rounded-full bg-gold-deep text-white flex items-center justify-center font-bold text-[14px]">2</div>
@@ -932,6 +942,7 @@
             });
         </script>
     </div>
+    @endif
   </div>
 </div>
 

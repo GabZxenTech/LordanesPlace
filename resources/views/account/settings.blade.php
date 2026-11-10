@@ -226,7 +226,7 @@
             <div><h2>Delete Account</h2><p>This cannot be undone</p></div>
           </div>
           @if($activeBookings > 0)
-            <p class="as-text">You have {{ $activeBookings }} active {{ $activeBookings === 1 ? 'booking' : 'bookings' }} (pending, approved or ongoing). You can delete your account once they are cancelled or finished.</p>
+            <p class="as-text">You have {{ $activeBookings }} active {{ $activeBookings === 1 ? 'booking' : 'bookings' }} (pending or approved). You can delete your account once they are cancelled or finished.</p>
             <button type="button" class="as-btn as-btn-danger" disabled>Delete Account</button>
           @else
             <p class="as-text">Your profile, notifications and chats will be removed and you won't be able to sign in. Records of paid bookings are kept for the resort's reports.</p>

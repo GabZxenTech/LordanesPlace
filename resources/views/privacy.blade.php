@@ -86,7 +86,7 @@
       <h2>Your choices</h2>
       <ul>
         <li>Update your name, email, password and profile picture in <a href="{{ route('account.settings') }}">Account Settings</a>.</li>
-        <li>Delete your account there once you have no pending, approved or ongoing bookings. Your personal details, notifications and chats are then removed.</li>
+        <li>Delete your account there once you have no pending or approved bookings. Your personal details, notifications and chats are then removed.</li>
         <li>Ask us what information we hold about you, or ask for a correction, using the contact details below.</li>
       </ul>
     </div>
