@@ -9,6 +9,12 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    // Where the user lands after logging in or verifying: admins to the dashboard, customers to their profile.
+    public function landingUrl(): string
+    {
+        return $this->role === 'admin' ? route('admin.dashboard') : route('profile');
+    }
+
     use HasFactory, Notifiable;
 
     protected $hidden = [

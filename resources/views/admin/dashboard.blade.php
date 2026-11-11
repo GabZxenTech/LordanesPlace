@@ -86,8 +86,18 @@
         <div style="padding: 20px 24px; height: 300px;"><canvas id="monthlyChart"></canvas></div>
       </div>
       <div class="dash-card">
-        <div class="dash-head"><h2 class="dash-card-title">Bookings by Status</h2></div>
-        <div style="padding: 20px 24px; height: 300px;"><canvas id="statusChart"></canvas></div>
+        <div class="dash-head">
+          <h2 class="dash-card-title">Bookings by Status</h2>
+          <select id="statusPeriod" aria-label="Period" style="border: 1px solid #d4c4a0; background: #fff9ef; color: #2c1a0e; border-radius: 6px; padding: 6px 10px; font: 600 13px 'Jost', sans-serif;">
+            <option value="weekly">This week</option>
+            <option value="monthly" selected>This month</option>
+            <option value="yearly">This year</option>
+          </select>
+        </div>
+        <div style="padding: 20px 24px; height: 300px; position: relative;">
+          <canvas id="statusChart"></canvas>
+          <div id="statusEmpty" style="display: none; position: absolute; inset: 0; align-items: center; justify-content: center; color: #8a6a40; font-size: 14px;">No bookings in this period.</div>
+        </div>
       </div>
     </div>
 
@@ -188,8 +198,8 @@
         data: {
           labels: monthly.labels,
           datasets: [
-            { type: 'bar', label: 'Bookings', data: monthly.bookings, backgroundColor: '#e3cf94', borderRadius: 4, yAxisID: 'y' },
-            { type: 'line', label: 'Revenue (₱)', data: monthly.revenue, borderColor: '#7a5a10', backgroundColor: '#7a5a10', tension: 0.3, yAxisID: 'y1' }
+            { type: 'line', label: 'Bookings', data: monthly.bookings, borderColor: '#b07d4a', backgroundColor: '#b07d4a', tension: 0.3, pointRadius: 4, yAxisID: 'y' },
+            { type: 'line', label: 'Revenue (₱)', data: monthly.revenue, borderColor: '#1f8a5b', backgroundColor: '#1f8a5b', tension: 0.3, pointRadius: 4, yAxisID: 'y1' }
           ]
         },
         options: {
@@ -203,15 +213,26 @@
         }
       });
 
-      // Same colors as the status badges
-      new Chart(document.getElementById('statusChart'), {
+      // Doughnut with the same colors as the status badges; the dropdown picks the period (this week, month or year).
+      const statusSeries = @json($statusSeries);
+      const statusKeys = ['pending', 'approved', 'completed', 'cancelled', 'rejected'];
+      const statusChart = new Chart(document.getElementById('statusChart'), {
         type: 'doughnut',
         data: {
           labels: ['Pending', 'Approved', 'Completed', 'Cancelled', 'Rejected'],
-          datasets: [{ data: @json($statusChart), backgroundColor: ['#f6d86b', '#6fcf97', '#b79cf0', '#aab4c4', '#ee8c8c'], borderColor: '#fff9ef', borderWidth: 2 }]
+          datasets: [{ data: [], backgroundColor: ['#f6d86b', '#6fcf97', '#b79cf0', '#aab4c4', '#ee8c8c'], borderColor: '#fff9ef', borderWidth: 2 }]
         },
         options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom' } } }
       });
+      function showStatusPeriod(period) {
+        const p = statusSeries[period];
+        const counts = statusKeys.map(k => p.statuses[k][p.statuses[k].length - 1]);
+        statusChart.data.datasets[0].data = counts;
+        statusChart.update();
+        document.getElementById('statusEmpty').style.display = counts.some(n => n > 0) ? 'none' : 'flex';
+      }
+      document.getElementById('statusPeriod').addEventListener('change', e => showStatusPeriod(e.target.value));
+      showStatusPeriod('monthly');
     })();
   </script>
 </body>

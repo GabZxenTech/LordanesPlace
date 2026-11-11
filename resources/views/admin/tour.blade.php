@@ -18,8 +18,8 @@
     .tour-label { display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 8px; font-weight: 700; text-transform: uppercase; }
     .tour-btn { border: 1px solid #d4c4a0; background: transparent; color: #8a6a40; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: 'Jost', sans-serif; display: inline-block; }
     .tour-btn:hover { background: #f5edd8; }
-    .tour-btn.gold { background: #c9a84c; border-color: #c9a84c; color: #2c1a0e; }
-    .tour-btn.gold:hover { background: #b8860b; color: #fff; }
+    .tour-btn.gold { background: #ecd9a0; border-color: #b8860b; color: #5a3d08; }
+    .tour-btn.gold:hover { background: #e3cb88; border-color: #9a7009; color: #5a3d08; }
     .tour-btn.red { color: #c0392b; border-color: rgba(192,57,43,0.35); }
     .tour-btn.red:hover { background: #c0392b; color: #fff; }
   </style>

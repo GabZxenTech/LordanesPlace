@@ -40,8 +40,7 @@ class AdminController extends Controller
             'revenue'  => $months->map(fn ($m) => (float) ($revenueByMonth[$m->format('Y-m')] ?? 0))->all(),
         ];
 
-        $statusCounts = Booking::selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
-        $statusChart = collect(Booking::STATUSES)->map(fn ($s) => (int) ($statusCounts[$s] ?? 0))->all();
+        $statusSeries = $this->statusSeries();
 
         $topPackages = Booking::selectRaw('package, COUNT(*) as total')
             ->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_REJECTED])
@@ -61,9 +60,38 @@ class AdminController extends Controller
         $unreadChats = Conversation::unreadCountForAdmin();
 
         return view('admin.dashboard', compact(
-            'stats', 'monthlyChart', 'statusChart', 'topPackages', 'upcomingEvents',
+            'stats', 'monthlyChart', 'statusSeries', 'topPackages', 'upcomingEvents',
             'pendingBookings', 'recentBookings', 'pendingReschedules', 'pendingVisits', 'unreadChats'
         ));
+    }
+
+    // Bookings per status over time (by booking date), for the dashboard line graph.
+    // Weekly: last 8 weeks, monthly: last 6 months, yearly: last 3 years.
+    private function statusSeries(): array
+    {
+        $periods = [
+            'weekly'  => [collect(range(7, 0))->map(fn ($i) => now()->startOfWeek()->subWeeks($i)), 'W',  fn ($d) => $d->format('M d'), 'o-W'],
+            'monthly' => [collect(range(5, 0))->map(fn ($i) => now()->startOfMonth()->subMonths($i)), 'M', fn ($d) => $d->format('M Y'), 'Y-m'],
+            'yearly'  => [collect(range(2, 0))->map(fn ($i) => now()->startOfYear()->subYears($i)), 'Y',  fn ($d) => $d->format('Y'), 'Y'],
+        ];
+
+        $bookings = Booking::where('created_at', '>=', now()->startOfYear()->subYears(2)->min(now()->startOfWeek()->subWeeks(7)))
+            ->get(['status', 'created_at']);
+
+        $result = [];
+        foreach ($periods as $key => [$buckets, , $label, $format]) {
+            $counts = $bookings->groupBy(fn ($b) => $b->created_at->format($format))
+                ->map(fn ($g) => $g->countBy('status'));
+
+            $result[$key] = [
+                'labels'   => $buckets->map($label)->all(),
+                'statuses' => collect(Booking::STATUSES)->mapWithKeys(fn ($s) => [
+                    $s => $buckets->map(fn ($d) => (int) ($counts[$d->format($format)][$s] ?? 0))->all(),
+                ])->all(),
+            ];
+        }
+
+        return $result;
     }
 
     // User management: list of users.

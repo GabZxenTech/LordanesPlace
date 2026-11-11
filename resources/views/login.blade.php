@@ -10,91 +10,71 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  @include('partials._auth-style')
 </head>
 <body class="bg-off-white text-warm-black font-body">
 
-  <section class="auth-bg min-h-screen relative flex items-center justify-center px-5 py-10"
-           style="background: linear-gradient(rgba(26,18,8,0.7), rgba(26,18,8,0.7)), url('{{ asset('images/LORDANES_BG.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
-    <div class="absolute inset-0 bg-gradient-to-r from-warm-black/40 to-warm-black/20"></div>
-
-    <div class="relative z-10 w-full max-w-[1150px] grid grid-cols-1 lg:grid-cols-[1fr_470px] gap-10 items-center">
+  <section class="su-page">
+    <div class="su-grid">
 
       <!-- Left side -->
-      <div class="px-2 lg:px-4 text-center lg:text-left">
-        <p class="text-[12px] tracking-[4px] text-gold-light font-bold mb-4">WELCOME BACK</p>
-        <h1 class="font-heading text-[36px] sm:text-[46px] lg:text-[58px] leading-[1.1] text-white mb-4">
-          Login to <span class="text-gold-light italic">LDReserve</span>
-        </h1>
-        <p class="max-w-[560px] text-[15px] md:text-[16px] leading-[1.8] text-white/70 mx-auto lg:mx-0">
-          Access your account to manage bookings, view reservations,
-          and explore LDReserve with ease.
-        </p>
+      <div class="su-hero">
+        <p class="su-eyebrow">WELCOME BACK</p>
+        <h1>Login to <em>LDReserve</em></h1>
+        <p>Access your account to manage bookings, view reservations, and explore LDReserve with ease.</p>
       </div>
 
-      <!-- Right side (card) -->
-      <div class="flex justify-center">
-        <div class="w-full bg-warm-black/80 backdrop-blur-sm border border-gold-deep/20 rounded-2xl p-7 md:p-9 shadow-2xl">
-          <h2 class="font-heading text-[30px] md:text-[34px] text-white mb-2">Login</h2>
-          <p class="text-white/60 text-[16px] mb-7">Sign in to continue to your account</p>
+      <!-- Form card -->
+      <div class="su-card">
+        <h2>Login</h2>
+        <p class="su-sub">Sign in to continue to your account</p>
 
-          @if (session('success'))
-            <div style="background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.35); color: #4ade80; padding: 10px 14px; border-radius: 8px; margin-bottom: 18px; font-size: 13px;">
-              {{ session('success') }}
+        @if (session('success'))
+          <div class="su-ok">{{ session('success') }}</div>
+        @endif
+
+        <form method="POST" action="{{ route('login.post') }}">
+          @csrf
+
+          <div class="su-field">
+            <label for="email">Email address</label>
+            <div class="su-input"><input type="email" id="email" name="email" placeholder="you@gmail.com" value="{{ old('email') }}" required autocomplete="email"></div>
+            @error('email') <span class="su-fe">{{ $message }}</span> @enderror
+          </div>
+
+          <div class="su-field">
+            <label for="password">Password</label>
+            <div class="su-input has-eye">
+              <input type="password" name="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
+              <button type="button" class="su-eye" onclick="togglePassword('password', this)" aria-label="Show or hide password">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.399 8.049 7.21 5 12 5c4.789 0 8.601 3.049 9.964 6.678.045.12.045.26 0 .381C20.601 15.951 16.789 19 12 19c-4.789 0-8.601-3.049-9.964-6.678z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              </button>
             </div>
-          @endif
+            @error('password') <span class="su-fe">{{ $message }}</span> @enderror
+          </div>
 
-          <form method="POST" action="{{ route('login.post') }}">
-            @csrf
+          <div class="su-row">
+            <label><input type="checkbox" name="remember"> <span>Remember me</span></label>
+            <a href="{{ route('password.request') }}">Forgot password?</a>
+          </div>
 
-            <div class="mb-4">
-              <label class="block text-[15px] font-bold text-white/90 mb-2">Email Address</label>
-              <input type="email" name="email" placeholder="Enter your email" value="{{ old('email') }}" required
-                class="w-full py-3.5 px-4 rounded-lg border border-gold-deep/20 bg-white/5 text-white text-[16px] outline-none transition-all focus:border-gold-deep focus:bg-white/8 placeholder:text-white/40 font-body" />
-              @error('email') <span class="text-red-400 text-[12px] mt-1 block">{{ $message }}</span> @enderror
-            </div>
+          <div class="su-captcha">
+            <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
+            @error('recaptcha') <span class="su-fe">{{ $message }}</span> @enderror
+          </div>
 
-            <div class="mb-4">
-              <label class="block text-[15px] font-bold text-white/90 mb-2">Password</label>
-              <div class="relative flex items-center">
-                <input type="password" name="password" id="password" placeholder="Enter your password" required
-                  class="w-full py-3.5 px-4 rounded-lg border border-gold-deep/20 bg-white/5 text-white text-[16px] outline-none transition-all focus:border-gold-deep focus:bg-white/8 placeholder:text-white/40 font-body pr-12" />
-                <button type="button" onclick="togglePassword('password', this)" class="absolute right-4 flex items-center justify-center bg-transparent border-none cursor-pointer text-white/40 hover:text-gold-light transition-colors focus:outline-none p-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.399 8.049 7.21 5 12 5c4.789 0 8.601 3.049 9.964 6.678.045.12.045.26 0 .381C20.601 15.951 16.789 19 12 19c-4.789 0-8.601-3.049-9.964-6.678z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </button>
-              </div>
-              @error('password') <span class="text-red-400 text-[12px] mt-1 block">{{ $message }}</span> @enderror
-            </div>
+          <button type="submit" class="su-submit">Login</button>
+        </form>
 
-            <div class="flex justify-between items-center gap-2.5 mb-5 text-[15px]">
-              <label class="flex items-center gap-2 text-white/60 cursor-pointer">
-                <input type="checkbox" name="remember" class="accent-gold-deep" />
-                <span>Remember me</span>
-              </label>
-              <a href="{{ route('password.request') }}" class="text-gold-deep no-underline hover:text-gold-light transition-colors">Forgot password?</a>
-            </div>
+        <div class="su-or"><span>or</span></div>
 
-            <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}" style="margin-bottom:16px;"></div>
-            @error('recaptcha')
-              <span class="text-red-400 text-[12px] block mb-3">{{ $message }}</span>
-            @enderror
+        <a href="{{ route('auth.google') }}" class="su-google">
+          <img src="https://developers.google.com/identity/images/g-logo.png" alt="" />
+          Continue with Google
+        </a>
 
-            <button type="submit" class="w-full py-3.5 border-none rounded-lg bg-gold-deep text-warm-black text-[15px] font-bold tracking-[2px] cursor-pointer transition-all hover:bg-gold-mid hover:-translate-y-0.5 mb-5">LOGIN</button>
-          </form>
-
-          <div class="text-center text-white/40 text-[16px] my-4">or</div>
-          <a href="{{ route('auth.google') }}" class="w-full flex items-center justify-center gap-2.5 py-3 rounded-lg border border-white/20 bg-white text-warm-black text-[15px] font-medium hover:bg-gray-100 transition-colors mb-4 no-underline">
-            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="w-5 h-5" />
-            Continue with Google
-          </a>
-
-          <p class="text-center text-[16px] text-white/60 mb-4">
-            Don't have an account? <a href="{{ route('register') }}" class="text-gold-deep no-underline hover:text-gold-light">Sign Up</a>
-          </p>
-          <a href="{{ route('home') }}" class="text-gold-deep text-[16px] no-underline hover:text-gold-light inline-block">← Back to Home</a>
-        </div>
+        <p class="su-alt">Don't have an account? <a href="{{ route('register') }}">Sign Up</a></p>
+        <a href="{{ route('home') }}" class="su-back">← Back to Home</a>
       </div>
     </div>
   </section>
@@ -104,11 +84,11 @@
       const input = document.getElementById(inputId);
       const isPassword = input.type === 'password';
       input.type = isPassword ? 'text' : 'password';
-      
+
       // Update icon
-      btn.innerHTML = isPassword 
-        ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>`
-        : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.399 8.049 7.21 5 12 5c4.789 0 8.601 3.049 9.964 6.678.045.12.045.26 0 .381C20.601 15.951 16.789 19 12 19c-4.789 0-8.601-3.049-9.964-6.678z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`;
+      btn.innerHTML = isPassword
+        ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>`
+        : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.399 8.049 7.21 5 12 5c4.789 0 8.601 3.049 9.964 6.678.045.12.045.26 0 .381C20.601 15.951 16.789 19 12 19c-4.789 0-8.601-3.049-9.964-6.678z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`;
     }
   </script>
 </body>

@@ -425,7 +425,7 @@
             <li>Unpaid bookings and missed venue visits are automatically cancelled.</li>
             <li>The first reschedule is free; each one after costs ₱5,000.</li>
           </ul>
-          <p class="mt-2 mb-0 text-[12px]">Read the full <a href="{{ route('terms') }}" target="_blank" rel="noopener" class="text-gold-deep font-bold underline">Terms &amp; Conditions</a> and <a href="{{ route('privacy') }}" target="_blank" rel="noopener" class="text-gold-deep font-bold underline">Privacy Policy</a>.</p>
+          <p class="mt-2 mb-0 text-[12px]">Read the full <a href="#" data-legal="terms" class="text-gold-deep font-bold underline">Terms &amp; Conditions</a> and <a href="#" data-legal="privacy" class="text-gold-deep font-bold underline">Privacy Policy</a>.</p>
         </div>
 
         {{-- Hidden terms checkbox that is submitted (checked after agreeing in the modal) --}}

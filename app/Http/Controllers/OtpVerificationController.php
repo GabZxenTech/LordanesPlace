@@ -21,7 +21,7 @@ class OtpVerificationController extends Controller
         $user = Auth::user();
 
         if ($user->email_verified_at) {
-            return redirect()->route('home');
+            return redirect()->to(Auth::user()->landingUrl());
         }
 
         return view('auth.verify-email', [
@@ -42,7 +42,7 @@ class OtpVerificationController extends Controller
         $user = Auth::user();
 
         if ($user->email_verified_at) {
-            return redirect()->route('home');
+            return redirect()->to(Auth::user()->landingUrl());
         }
 
         // Limit wrong attempts so the code can't be guessed.
@@ -92,7 +92,7 @@ class OtpVerificationController extends Controller
 
         $user->update(['email_verified_at' => now()]);
 
-        return redirect()->route('home')
+        return redirect()->to(Auth::user()->landingUrl())
             ->with('success', 'Your email has been verified successfully!');
     }
 
@@ -102,7 +102,7 @@ class OtpVerificationController extends Controller
         $user = Auth::user();
 
         if ($user->email_verified_at) {
-            return redirect()->route('home');
+            return redirect()->to(Auth::user()->landingUrl());
         }
 
         // Max 3 requests per 5 minutes.
@@ -164,7 +164,7 @@ class OtpVerificationController extends Controller
         $user = Auth::user();
 
         if ($user->email_verified_at) {
-            return redirect()->route('home');
+            return redirect()->to(Auth::user()->landingUrl());
         }
 
         $request->merge(['email' => Str::lower(trim((string) $request->input('email')))]);

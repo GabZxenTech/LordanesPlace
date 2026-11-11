@@ -22,11 +22,12 @@
     .ed-label { display: block; font-size: 11px; letter-spacing: 2px; color: #8a6a40; margin-bottom: 6px; font-weight: 700; text-transform: uppercase; }
     .ed-btn { border: 1px solid #d4c4a0; background: transparent; color: #8a6a40; padding: 7px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: 'Jost', sans-serif; display: inline-block; }
     .ed-btn:hover { background: #f5edd8; }
-    .ed-btn.gold { background: #c9a84c; border-color: #c9a84c; color: #2c1a0e; }
-    .ed-btn.gold:hover { background: #b8860b; color: #fff; }
+    .ed-btn.gold { background: #ecd9a0; border-color: #b8860b; color: #5a3d08; }
+    .ed-btn.gold:hover { background: #e3cb88; border-color: #9a7009; color: #5a3d08; }
     .ed-btn.red { color: #c0392b; border-color: rgba(192,57,43,0.35); }
     .ed-btn.red:hover { background: #c0392b; color: #fff; }
-    .ed-btn.on { background: #2c1a0e; border-color: #2c1a0e; color: #fff9ef; }
+    .ed-btn.on { background: #d9bd6b; border-color: #9a7009; color: #2c1a0e; }
+    .ed-btn.on:hover { background: #d1b35a; color: #2c1a0e; }
 
     #pano { width: 100%; height: 66vh; min-height: 360px; background: #1a1208; border-radius: 10px; position: relative; overflow: hidden; }
     #pano.placing { cursor: crosshair; }

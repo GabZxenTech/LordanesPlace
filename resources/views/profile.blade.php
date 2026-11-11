@@ -27,26 +27,81 @@
     .rv-who p { margin: 4px 0 0; color: var(--rv-faint); font-size: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .rv-email { overflow-wrap: anywhere; } /* wraps only when the address can't fit */
     .rv-tier { background: #fbf0d9; color: var(--rv-gold); font-weight: 700; font-size: 12px; padding: 2px 10px; border-radius: 999px; }
-    .rv-btn { display: inline-block; background: var(--rv-gold); color: #fff; font-weight: 700; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; padding: 12px 20px; border-radius: 6px; text-decoration: none; transition: background .2s; }
+    .rv-btn { display: inline-block; background: var(--rv-gold); color: #fff; font-weight: 700; font-size: 14px; letter-spacing: 1.2px; text-transform: uppercase; padding: 12px 20px; border-radius: 6px; text-decoration: none; transition: background .2s; }
     .rv-btn:hover { background: #c9a84c; }
     .rv-btn-outline { background: transparent; color: var(--rv-gold); border: 1px solid var(--rv-gold); padding: 11px 18px; }
     .rv-btn-outline:hover { background: #fbf0d9; }
     .rv-head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
     .rv-avatar { overflow: hidden; }
     .rv-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .rv-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-    .rv-stat { background: var(--rv-tint); border-radius: 10px; padding: 14px 16px; }
+    .rv-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 4px; }
+    .rv-stat { background: var(--rv-surface); border: 1px solid var(--rv-line); border-radius: 10px; padding: 14px 16px; }
     .rv-stat b { display: block; font-family: 'Cormorant Garamond', serif; font-size: 32px; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
-    .rv-stat span { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--rv-faint); font-weight: 600; }
-    .rv-stat-money b { color: var(--rv-gold); font-size: 28px; }
+    .rv-stat span { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--rv-faint); font-weight: 600; }
+    .rv-stat-money { background: #f6e8c3; border-color: #ecd9a0; }
+    .rv-stat-money b { color: var(--rv-gold); font-size: 32px; }
+
+    /* Dashboard header, next reservation and side cards */
+    .rv-welcome { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+    .rv-eyebrow { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--rv-gold); }
+    .rv-welcome h1 { font-family: 'Cormorant Garamond', serif; font-size: 44px; font-weight: 700; line-height: 1.05; margin: 0; }
+    .rv-sub-line { margin: 6px 0 0; font-size: 14px; color: var(--rv-soft); }
+    .rv-next { display: grid; grid-template-columns: minmax(0, 1fr) 300px; background: #fff6dc; border: 1px solid #ecd9a0; border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+    .rv-next-main { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 22px; padding: 22px; align-items: center; }
+    .rv-next-date { background: #f4e5b8; border-radius: 12px; padding: 18px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .rv-next-date .m { font-size: 12px; letter-spacing: 2px; font-weight: 700; color: var(--rv-gold); }
+    .rv-next-date .d { font-family: 'Cormorant Garamond', serif; font-size: 44px; font-weight: 700; line-height: 1; font-variant-numeric: lining-nums; }
+    .rv-next-date .w { font-size: 12px; color: var(--rv-faint); text-transform: uppercase; letter-spacing: 1px; }
+    .rv-next-info { min-width: 0; display: grid; gap: 6px; }
+    .rv-next-info .rv-eyebrow { margin: 0; }
+    .rv-next-info h2 { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; margin: 0; line-height: 1.1; }
+    .rv-next-info h2 small { font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 500; color: var(--rv-faint); }
+    .rv-next-meta { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; color: var(--rv-soft); }
+    .rv-next-steps { max-width: 360px; margin-top: 8px; }
+    .rv-next .rv-dot { background: #fff6dc; width: 12px; height: 12px; }
+    .rv-next-money { background: #f6e8c3; padding: 22px; display: grid; gap: 12px; align-content: center; }
+    .rv-next-money .rv-total { font-size: 32px; }
+    .rv-next-money .rv-pay-track { background: #ecd9a0; }
+    .rv-act-solid { background: #ecd9a0; border-color: #b8860b; color: #5a3d08; }
+    .rv-act-solid:hover { background: #e3cb88; }
+    .rv-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+    .rv-main { min-width: 0; }
+    .rv-layout .rv-list-head { margin-top: 28px; }
+    .rv-layout .rv-list-head h2 { font-size: 32px; }
+    .rv-layout .rv-ticket { grid-template-columns: 88px minmax(0, 1fr) 220px; }
+    .rv-layout .rv-sub { grid-template-columns: minmax(0, 1fr) 220px; }
+    .rv-aside { display: grid; gap: 16px; margin-top: 28px; }
+    .rv-side-card { background: var(--rv-surface); border: 1px solid var(--rv-line); border-radius: 12px; padding: 18px; }
+    .rv-me { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; align-items: center; }
+    .rv-me-info { display: grid; min-width: 0; }
+    .rv-me-info strong { font-family: 'Cormorant Garamond', serif; font-size: 24px; line-height: 1.1; }
+    .rv-me-info .rv-email { font-size: 12px; color: var(--rv-faint); }
+    .rv-me-foot { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--rv-faint); }
+    .rv-tour { background: #f6e8c3; border-color: #ecd9a0; }
+    .rv-tour h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 700; line-height: 1.15; margin: 0 0 10px; }
+    .rv-tour .rv-eyebrow { color: var(--rv-soft); }
+    @media (max-width: 1000px) {
+      .rv-layout { grid-template-columns: minmax(0, 1fr); }
+      .rv-aside { margin-top: 8px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+      .rv-next { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .rv-welcome h1 { font-size: 32px; }
+      .rv-welcome .rv-head-actions { width: 100%; }
+      .rv-welcome .rv-head-actions .rv-btn { flex: 1; text-align: center; }
+      .rv-next-main { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 14px; }
+      .rv-next-date { flex-direction: row; gap: 10px; padding: 10px 14px; justify-content: flex-start; }
+      .rv-next-date .d { font-size: 32px; }
+      .rv-next-money { padding: 16px; }
+    }
 
     .rv-list-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 36px 0 14px; }
-    .rv-list-head h2 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 700; margin: 0; }
+    .rv-list-head h2 { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; margin: 0; }
     .rv-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
     .rv-tab { font: inherit; font-size: 14px; font-weight: 500; background: transparent; color: var(--rv-soft); border: 1px solid var(--rv-line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
     .rv-tab .rv-n { margin-left: 5px; color: var(--rv-faint); font-variant-numeric: tabular-nums; }
-    .rv-tab[aria-selected="true"] { background: var(--rv-brown); border-color: var(--rv-brown); color: #fff; }
-    .rv-tab[aria-selected="true"] .rv-n { color: #c9a84c; }
+    .rv-tab[aria-selected="true"] { background: var(--rv-gold); border-color: var(--rv-gold); color: #fff; }
+    .rv-tab[aria-selected="true"] .rv-n { color: #fff3cf; }
     .rv-tab:focus-visible, .rv-act:focus-visible, .rv-btn:focus-visible { outline: 2px solid var(--rv-ink); outline-offset: 2px; }
 
     .rv-list { display: grid; gap: 14px; }
@@ -55,17 +110,17 @@
     .is-dim { opacity: .72; }
     .rv-stub { background: var(--rv-tint); border-right: 2px dashed var(--rv-line); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 6px; text-align: center; }
     .rv-stub .m { font-size: 12px; letter-spacing: 2px; font-weight: 700; color: var(--rv-gold); }
-    .rv-stub .d { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 700; line-height: 1; font-variant-numeric: lining-nums; }
-    .rv-stub .w { font-size: 11px; color: var(--rv-faint); text-transform: uppercase; letter-spacing: 1px; }
+    .rv-stub .d { font-family: 'Cormorant Garamond', serif; font-size: 44px; font-weight: 700; line-height: 1; font-variant-numeric: lining-nums; }
+    .rv-stub .w { font-size: 12px; color: var(--rv-faint); text-transform: uppercase; letter-spacing: 1px; }
 
     .rv-body { padding: 16px 20px; min-width: 0; display: grid; gap: 8px; align-content: start; }
     .rv-title { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-    .rv-title h3 { margin: 0; font-size: 18px; font-weight: 700; }
-    .rv-occ { font-size: 13px; color: var(--rv-faint); }
-    .rv-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--rv-soft); }
+    .rv-title h3 { margin: 0; font-size: 16px; font-weight: 700; }
+    .rv-occ { font-size: 14px; color: var(--rv-faint); }
+    .rv-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; color: var(--rv-soft); }
     .rv-ref { color: var(--rv-faint); font-variant-numeric: tabular-nums; }
     .rv-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-    .rv-chip { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
+    .rv-chip { font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
     .rv-s-pending { color: #a86a00; background: #fbf0d9; }
     .rv-s-approved { color: #2f8f5b; background: #e3f3ea; }
     .rv-s-completed { color: #fff; background: #c9a84c; }
@@ -74,13 +129,13 @@
     .rv-p-unpaid { color: #c0392b; background: #fbe5e2; }
     .rv-p-partial { color: #a86a00; background: #fbf0d9; }
     .rv-p-paid { color: #2f8f5b; background: #e3f3ea; }
-    .rv-visit { font-size: 13px; color: var(--rv-soft); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .rv-visit { font-size: 14px; color: var(--rv-soft); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
     .rv-visit svg { color: var(--rv-gold); flex-shrink: 0; }
     .rv-muted { color: var(--rv-faint); font-size: 12px; }
     .rv-link { color: var(--rv-gold); font-weight: 700; text-decoration: none; }
     .rv-link:hover { text-decoration: underline; }
-    .rv-reason { margin: 0; font-size: 13px; color: #7a4f00; background: #fff6e0; border-radius: 6px; padding: 8px 12px; }
-    .rv-note { margin: 0; font-size: 13px; color: var(--rv-faint); font-style: italic; }
+    .rv-reason { margin: 0; font-size: 14px; color: #7a4f00; background: #fff6e0; border-radius: 6px; padding: 8px 12px; }
+    .rv-note { margin: 0; font-size: 14px; color: var(--rv-faint); font-style: italic; }
 
     .rv-steps { max-width: 420px; margin-top: 2px; }
     .rv-track { display: flex; align-items: center; }
@@ -92,17 +147,17 @@
     .rv-step.done .rv-bar { background: var(--rv-gold); }
     .rv-step.now .rv-dot { background: var(--rv-surface); box-shadow: 0 0 0 3px #fbf0d9; }
     .rv-step.now .rv-bar { background: var(--rv-line); }
-    .rv-step-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--rv-faint); margin-top: 3px; }
+    .rv-step-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--rv-faint); margin-top: 3px; }
     .rv-step-labels .cur { color: var(--rv-gold); font-weight: 700; }
 
     .rv-money { border-left: 1px solid var(--rv-line); padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
-    .rv-total { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
-    .rv-total small { display: block; font-family: 'Jost', sans-serif; font-size: 11px; color: var(--rv-faint); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+    .rv-total { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 700; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
+    .rv-total small { display: block; font-family: 'Jost', sans-serif; font-size: 12px; color: var(--rv-faint); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
     .rv-pay { display: grid; gap: 4px; font-size: 12px; color: var(--rv-soft); }
     .rv-pay-track { height: 6px; border-radius: 999px; background: var(--rv-tint); overflow: hidden; }
     .rv-pay-fill { height: 100%; background: var(--rv-gold); border-radius: 999px; }
     .rv-pay-row { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
-    .rv-due { font-size: 11px; color: var(--rv-gold); font-weight: 600; margin-top: 4px; line-height: 1.35; }
+    .rv-due { font-size: 12px; color: var(--rv-gold); font-weight: 600; margin-top: 4px; line-height: 1.35; }
     .rv-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
     .rv-acts form { margin: 0; }
     .rv-act { font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; padding: 8px 12px; border-radius: 6px; cursor: pointer; background: transparent; border: 1px solid var(--rv-line); color: var(--rv-soft); transition: background .2s; }
@@ -115,8 +170,8 @@
     .rv-group-body { min-width: 0; }
     .rv-group-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--rv-line); }
     .rv-group-head h3 { margin: 0; font-size: 16px; font-weight: 700; }
-    .rv-sum { font-size: 13px; color: var(--rv-soft); font-variant-numeric: tabular-nums; }
-    .rv-sum b { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--rv-ink); font-variant-numeric: lining-nums; }
+    .rv-sum { font-size: 14px; color: var(--rv-soft); font-variant-numeric: tabular-nums; }
+    .rv-sum b { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--rv-ink); font-variant-numeric: lining-nums; }
     .rv-sub { display: grid; grid-template-columns: minmax(0, 1fr) 240px; border-bottom: 1px solid var(--rv-line); scroll-margin-top: 110px; transition: box-shadow .3s; }
     .rv-sub:last-child { border-bottom: 0; }
 
@@ -133,7 +188,7 @@
     .rv-modal-thumb { width: 96px; height: 72px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #e8dcc4; }
     .rv-modal-info { flex: 1; min-width: 0; display: grid; gap: 3px; }
     .rv-modal-info strong { font-size: 16px; color: #1a1208; }
-    .rv-modal-info > span { font-size: 13px; color: #8f7c62; font-variant-numeric: tabular-nums; }
+    .rv-modal-info > span { font-size: 14px; color: #8f7c62; font-variant-numeric: tabular-nums; }
     .rv-modal-date { display: flex; align-items: center; gap: 6px; }
     .rv-modal-date svg { color: #b8860b; flex-shrink: 0; }
     .rv-modal-status { flex-shrink: 0; align-self: center; margin-left: 2px; padding: 4px 12px; border-radius: 999px; background: #f5ead2; color: #b8860b; font-size: 12px; font-weight: 700; position: relative; }
@@ -171,23 +226,23 @@
       .rv-profile-top .rv-btn { grid-column: 1 / -1; text-align: center; }
       .rv-profile-top .rv-head-actions { grid-column: 1 / -1; }
       .rv-head-actions .rv-btn { flex: 1; }
-      .rv-avatar { width: 48px; height: 48px; font-size: 17px; }
-      .rv-who p { flex-direction: column; align-items: flex-start; gap: 4px; font-size: 13px; }
+      .rv-avatar { width: 48px; height: 48px; font-size: 16px; }
+      .rv-who p { flex-direction: column; align-items: flex-start; gap: 4px; font-size: 14px; }
       .rv-who p > span[aria-hidden] { display: none; }
       .rv-stats { gap: 10px; }
       .rv-stat { padding: 12px 14px; }
-      .rv-stat b { font-size: 28px; }
+      .rv-stat b { font-size: 32px; }
       .rv-stat-money b { font-size: 24px; }
       .rv-list-head { margin-top: 28px; }
-      .rv-list-head h2 { font-size: 30px; }
+      .rv-list-head h2 { font-size: 32px; }
       .rv-body, .rv-money { padding: 14px 16px; }
       .rv-group-head { padding: 12px 16px; }
     }
     @media (max-width: 480px) {
       .rv-ticket, .rv-group { grid-template-columns: minmax(0, 1fr); }
       .rv-stub { flex-direction: row; gap: 8px; border-right: 0; border-bottom: 2px dashed var(--rv-line); justify-content: flex-start; padding: 10px 16px; }
-      .rv-stub .d { font-size: 28px; }
-      .rv-who h1 { font-size: 26px; }
+      .rv-stub .d { font-size: 32px; }
+      .rv-who h1 { font-size: 24px; }
     }
   </style>
 </head>
@@ -223,6 +278,15 @@
       $accountTier = $completedCount >= 2 ? 'Loyal Client' : ($completedCount === 1 ? 'Member' : 'New Member');
       $balance = $bookings->reject(fn ($b) => $b->isCancelledOrRejected())->sum(fn ($b) => max(0, $b->remainingBalance()));
       $initials = collect(preg_split('/\s+/', trim($user->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
+      $firstName = preg_split('/\s+/', trim($user->name))[0] ?? $user->name;
+
+      // The next live booking that is still ahead (pending or approved).
+      $nextBooking = $bookings
+          ->filter(fn ($b) => in_array($bucketOf($b), ['upcoming', 'pending'], true))
+          ->sortBy(fn ($b) => $b->event_date->toDateString())
+          ->first();
+      $nextDays = $nextBooking ? (int) now()->startOfDay()->diffInDays($nextBooking->event_date->copy()->startOfDay(), false) : null;
+      $nextIn = $nextDays === null ? '' : ($nextDays <= 0 ? 'today' : ($nextDays === 1 ? 'tomorrow' : 'in ' . $nextDays . ' days'));
     @endphp
 
     @if(session('success'))
@@ -251,33 +315,106 @@
       <div class="rv-flash rv-flash-err">@foreach($errors->all() as $err)<div>{{ $err }}</div>@endforeach</div>
     @endif
 
-    {{-- PROFILE HEADER --}}
-    <section class="rv-profile" aria-label="Profile">
-      <div class="rv-profile-top">
-        <div class="rv-avatar" aria-hidden="true">@if($user->avatarUrl())<img src="{{ $user->avatarUrl() }}" alt="" referrerpolicy="no-referrer">@else{{ $initials ?: '?' }}@endif</div>
-        <div class="rv-who">
-          <h1>{{ $user->name }}</h1>
-          <p>
-            <span class="rv-email">{{ $user->email }}</span>
-            <span aria-hidden="true">·</span>
-            <span class="rv-tier">★ {{ $accountTier }}</span>
-            <span aria-hidden="true">·</span>
-            <span>Member since {{ $user->created_at->format('M d, Y') }}</span>
-          </p>
-        </div>
-        <div class="rv-head-actions">
-          <a href="{{ route('account.settings') }}" class="rv-btn rv-btn-outline">Update Profile</a>
-          <a href="{{ route('booking') }}" class="rv-btn">+ New Reservation</a>
-        </div>
+    {{-- WELCOME HEADER --}}
+    <header class="rv-welcome">
+      <div>
+        <p class="rv-eyebrow">Client dashboard</p>
+        <h1>Welcome back, {{ $firstName }}</h1>
+        <p class="rv-sub-line">
+          @if(!$nextBooking)
+            You have no upcoming reservations yet. Plan your next stay.
+          @elseif($nextBooking->status === 'pending')
+            Your next booking is waiting for approval.
+          @elseif($nextBooking->remainingBalance() <= 0)
+            Your next stay is {{ $nextIn }}. Everything for it is paid.
+          @else
+            Your next stay is {{ $nextIn }}. You still have ₱{{ number_format($nextBooking->remainingBalance(), 0) }} to pay for it.
+          @endif
+        </p>
       </div>
-      <div class="rv-stats">
-        <div class="rv-stat"><b>{{ $counts['upcoming'] }}</b><span>Upcoming</span></div>
-        <div class="rv-stat"><b>{{ $counts['pending'] }}</b><span>Pending approval</span></div>
-        <div class="rv-stat"><b>{{ $completedCount }}</b><span>Completed</span></div>
-        <div class="rv-stat rv-stat-money"><b>₱{{ number_format($balance, 0) }}</b><span>Balance to pay</span></div>
+      <div class="rv-head-actions">
+        <a href="{{ route('account.settings') }}" class="rv-btn rv-btn-outline">Update Profile</a>
+        <a href="{{ route('booking') }}" class="rv-btn">+ New Reservation</a>
       </div>
-    </section>
+    </header>
 
+    {{-- NEXT RESERVATION --}}
+    @if($nextBooking)
+      @php
+        $nb = $nextBooking;
+        $nbPaid = $nb->amountPaid();
+        $nbTotal = (float) $nb->total_amount;
+        $nbPct = $nbTotal > 0 ? min(100, (int) round($nbPaid / $nbTotal * 100)) : 0;
+        $nbSteps = ['pending' => 'Pending', 'approved' => 'Approved', 'paid' => 'Paid', 'completed' => 'Completed'];
+        $nbKey = $nb->status === 'approved' && $nb->payment_status === 'fully_paid' ? 'paid' : $nb->status;
+        $nbIndex = array_search($nbKey, array_keys($nbSteps), true);
+        $nbVisit = $nb->visitSchedules->first();
+      @endphp
+      <section class="rv-next" aria-label="Next reservation">
+        <div class="rv-next-main">
+          <div class="rv-next-date">
+            <span class="m">{{ strtoupper($nb->event_date->format('M')) }}</span>
+            <span class="d">{{ $nb->event_date->format('j') }}</span>
+            <span class="w">{{ $nb->event_date->format('D') }} · {{ $nb->event_date->format('Y') }}</span>
+          </div>
+          <div class="rv-next-info">
+            <p class="rv-eyebrow">Next reservation · {{ $nextIn }}</p>
+            <h2>{{ $nb->package }}{{ $nb->room_number ? ' ' . $nb->room_number : '' }} <small>{{ in_array($nb->event_type, ['Swimming', 'Staycation'], true) ? $nb->event_type : 'Event · ' . $nb->event_type }}</small></h2>
+            <p class="rv-next-meta">
+              <span>#{{ $nb->booking_number }}</span>
+              <span>{{ $nb->guest_count }} {{ $nb->guest_count == 1 ? 'guest' : 'guests' }}</span>
+              <span>{{ $nb->scheduleLabel() ?: 'Schedule set during your venue visit' }}</span>
+            </p>
+            @if($nbIndex !== false)
+              <div class="rv-steps rv-next-steps" aria-label="Status: {{ $nbKey }}">
+                <div class="rv-track">
+                  @foreach($nbSteps as $key => $label)
+                    <div class="rv-step {{ $loop->index <= $nbIndex ? 'done' : '' }} {{ $loop->index === $nbIndex ? 'now' : '' }}">
+                      <span class="rv-dot"></span>@if(!$loop->last)<span class="rv-bar"></span>@endif
+                    </div>
+                  @endforeach
+                </div>
+                <div class="rv-step-labels">
+                  @foreach($nbSteps as $key => $label)
+                    <span class="{{ $key === $nbKey ? 'cur' : '' }}">{{ $label }}</span>
+                  @endforeach
+                </div>
+              </div>
+            @endif
+          </div>
+        </div>
+        <div class="rv-next-money">
+          <div class="rv-total"><small>Total</small>₱{{ number_format($nbTotal, 2) }}</div>
+          <div class="rv-pay">
+            <div class="rv-pay-track" role="img" aria-label="{{ $nbPct }}% paid"><div class="rv-pay-fill" style="width: {{ $nbPct }}%;"></div></div>
+            <div class="rv-pay-row"><span>Paid ₱{{ number_format($nbPaid, 0) }} · {{ $nbPct }}%</span><span>Balance ₱{{ number_format($nb->remainingBalance(), 0) }}</span></div>
+          </div>
+          <div class="rv-acts">
+            @if($nb->canPayBalanceOnline())
+              <a href="{{ route('payment.start', $nb->id) }}" class="rv-act rv-act-solid">Pay Remaining Balance</a>
+            @endif
+            @if($nb->canPayOnline())
+              <a href="{{ route('payment.start', $nb->id) }}" class="rv-act rv-act-solid">Pay Online</a>
+            @endif
+            @if($nb->status === 'approved' && $nb->reschedule_status !== 'pending')
+              <button type="button" class="rv-act rv-act-solid"
+                onclick="openRescheduleModal({{ $nb->id }}, '{{ $nb->event_date->format('F d, Y') }}', '{{ $nbVisit ? $nbVisit->visit_date->format('F d, Y') : 'Not scheduled' }}', {{ $nb->reschedule_count }})">Reschedule</button>
+            @endif
+            <a href="#booking-{{ $nb->id }}" class="rv-act rv-act-primary rv-details" data-target="booking-{{ $nb->id }}">Details</a>
+          </div>
+        </div>
+      </section>
+    @endif
+
+    <div class="rv-stats">
+      <div class="rv-stat"><b>{{ $counts['upcoming'] }}</b><span>Upcoming</span></div>
+      <div class="rv-stat"><b>{{ $counts['pending'] }}</b><span>Pending approval</span></div>
+      <div class="rv-stat"><b>{{ $completedCount }}</b><span>Completed</span></div>
+      <div class="rv-stat rv-stat-money"><b>₱{{ number_format($balance, 0) }}</b><span>Balance to pay</span></div>
+    </div>
+
+    <div class="rv-layout">
+    <div class="rv-main">
     {{-- RESERVATIONS --}}
     <div class="rv-list-head">
       <h2>My Reservations</h2>
@@ -343,6 +480,27 @@
         </div>
       @endforelse
       <div class="rv-empty" id="rvTabEmpty" hidden><p>No reservations here.</p></div>
+    </div>
+    </div>
+
+    <aside class="rv-aside">
+      <div class="rv-side-card rv-me">
+        <div class="rv-avatar" aria-hidden="true">@if($user->avatarUrl())<img src="{{ $user->avatarUrl() }}" alt="" referrerpolicy="no-referrer">@else{{ $initials ?: '?' }}@endif</div>
+        <div class="rv-me-info">
+          <strong>{{ $user->name }}</strong>
+          <span class="rv-email">{{ $user->email }}</span>
+        </div>
+        <div class="rv-me-foot">
+          <span class="rv-tier">★ {{ $accountTier }}</span>
+          <span>Member since {{ $user->created_at->format('M d, Y') }}</span>
+        </div>
+      </div>
+      <div class="rv-side-card rv-tour">
+        <p class="rv-eyebrow">360° Virtual tour</p>
+        <h3>Walk through LorDane's Place before your date</h3>
+        <a href="{{ route('tour') }}" class="rv-link">Start the tour →</a>
+      </div>
+    </aside>
     </div>
   </div>
 </section>
@@ -446,7 +604,6 @@
   </div>
 </div>
 
-@include('partials._footer')
 
 <script>
   function openRescheduleModal(bookingId, eventDate, visitDate, rescheduleCount) {
@@ -619,6 +776,21 @@
     const hasUpcoming = Array.from(cards).some(function (c) { return c.dataset.buckets.split(' ').includes('upcoming'); });
     show(window.location.hash.startsWith('#booking-') || !hasUpcoming ? 'all' : 'upcoming');
   })();
+
+  // "Details" on the next-reservation card: show every booking, then jump to that one.
+  document.querySelectorAll('.rv-details').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      const all = document.querySelector('.rv-tab[data-tab="all"]');
+      if (all) all.click();
+      const target = document.getElementById(link.dataset.target);
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.style.transition = 'box-shadow 0.4s ease';
+      target.style.boxShadow = '0 0 0 3px #B8860B';
+      setTimeout(function () { target.style.boxShadow = ''; }, 2500);
+    });
+  });
 
   // Highlight the booking a notification linked to (e.g. #booking-42)
   if (window.location.hash.startsWith('#booking-')) {

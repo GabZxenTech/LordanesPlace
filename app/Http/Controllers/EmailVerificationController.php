@@ -16,7 +16,7 @@ class EmailVerificationController extends Controller
     {
         $request->fulfill();
 
-        return redirect()->route('home');
+        return redirect()->to($request->user()->landingUrl());
     }
 
     public function send(Request $request)

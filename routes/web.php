@@ -37,13 +37,6 @@ Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
 
-Route::get('/terms-and-conditions', function () {
-    return view('terms');
-})->name('terms');
-
-Route::get('/privacy', function () {
-    return view('privacy');
-})->name('privacy');
 
 Route::get('/faq', function () {
     return view('faq', ['faqs' => \App\Models\Faq::published()]);

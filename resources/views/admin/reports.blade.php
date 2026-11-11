@@ -446,17 +446,18 @@
       const ctx = document.getElementById('reportChart').getContext('2d');
 
       new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
           labels: @json($chartData['labels']),
           datasets: [
             {
               label: 'Bookings',
               data: @json($chartData['bookingCounts']),
-              backgroundColor: 'rgba(201, 168, 76, 0.7)',
-              borderColor: '#c9a84c',
-              borderWidth: 1,
-              borderRadius: 4,
+              backgroundColor: '#b07d4a',
+              borderColor: '#b07d4a',
+              borderWidth: 2,
+              pointRadius: 4,
+              tension: 0.3,
               yAxisID: 'y',
               order: 2,
             },
@@ -464,11 +465,11 @@
               label: 'Revenue (₱)',
               data: @json($chartData['revenueTotals']),
               type: 'line',
-              borderColor: '#8a6a40',
-              backgroundColor: 'rgba(138, 106, 64, 0.1)',
+              borderColor: '#1f8a5b',
+              backgroundColor: 'rgba(31, 138, 91, 0.1)',
               borderWidth: 2,
               pointRadius: 4,
-              pointBackgroundColor: '#8a6a40',
+              pointBackgroundColor: '#1f8a5b',
               fill: true,
               tension: 0.3,
               yAxisID: 'y1',
@@ -520,7 +521,7 @@
                 display: true,
                 text: 'Bookings',
                 font: { family: "'Jost', sans-serif", size: 12, weight: '600' },
-                color: '#c9a84c',
+                color: '#b07d4a',
               },
               ticks: {
                 stepSize: 1,
@@ -536,7 +537,7 @@
                 display: true,
                 text: 'Revenue (₱)',
                 font: { family: "'Jost', sans-serif", size: 12, weight: '600' },
-                color: '#8a6a40',
+                color: '#1f8a5b',
               },
               ticks: {
                 font: { family: "'Jost', sans-serif", size: 11 },

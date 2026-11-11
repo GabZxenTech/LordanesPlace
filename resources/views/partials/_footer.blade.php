@@ -28,8 +28,8 @@
         <a href="{{ route('discover') }}#gallery" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Gallery</a>
         <a href="{{ url('/contact') }}" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Contact Us</a>
         <a href="{{ route('faq') }}" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">FAQs</a>
-        <a href="{{ route('terms') }}" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Terms &amp; Conditions</a>
-        <a href="{{ route('privacy') }}" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Privacy Policy</a>
+        <a href="#" data-legal="terms" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Terms &amp; Conditions</a>
+        <a href="#" data-legal="privacy" class="text-off-white/80 text-[15px] font-normal transition-colors hover:text-gold-light no-underline">Privacy Policy</a>
       </div>
     </div>
 

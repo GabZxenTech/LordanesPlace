@@ -17,6 +17,11 @@ class AuthController extends Controller
 {
     public function showRegister()
     {
+        // Already logged in: no need to sign up again.
+        if (Auth::check()) {
+            return redirect()->to(Auth::user()->landingUrl());
+        }
+
         return view('signup');
     }
 
@@ -108,6 +113,11 @@ class AuthController extends Controller
     // ---------- Login ----------
     public function showLogin()
     {
+        // Already logged in: go to the profile instead.
+        if (Auth::check()) {
+            return redirect()->to(Auth::user()->landingUrl());
+        }
+
         return view('login');
     }
 
@@ -165,7 +175,7 @@ class AuthController extends Controller
                     ->with($sent ? [] : ['email_warning' => 'We could not deliver the verification code to your email. Please make sure your email address is correct or try resending.']);
             }
 
-            return redirect()->route('home');
+            return redirect()->to(Auth::user()->landingUrl());
         }
 
         RateLimiter::hit($throttleKey, 60);
@@ -276,7 +286,7 @@ class AuthController extends Controller
                     ->with($sent ? [] : ['email_warning' => 'We could not deliver the verification code to your email. Please try resending.']);
             }
 
-            return redirect()->route('home');
+            return redirect()->to(Auth::user()->landingUrl());
 
         } catch (\Exception $e) {
             return redirect()->route('login')->withErrors([

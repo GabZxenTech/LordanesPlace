@@ -27,6 +27,10 @@ opcache.max_accelerated_files=20000\n\
 opcache.validate_timestamps=0\n\
 opcache.save_comments=1\n' > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
+# Upload limit: 25 MB (the 360 tour form allows 25 MB).
+RUN printf 'upload_max_filesize=25M\n\
+post_max_size=26M\n' > /usr/local/etc/php/conf.d/uploads.ini
+
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -52,6 +56,11 @@ RUN rm -rf /etc/nginx/http.d/* && printf 'server {\n\
     server_name _;\n\
     root /var/www/html/public;\n\
     index index.php;\n\
+    client_max_body_size 25m;\n\
+    error_page 413 /errors/413.html;\n\
+    location = /errors/413.html {\n\
+        internal;\n\
+    }\n\
     location / {\n\
         try_files $uri $uri/ /index.php?$query_string;\n\
     }\n\
