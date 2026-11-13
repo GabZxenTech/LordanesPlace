@@ -78,4 +78,49 @@
     .su-row a { color: var(--su-gold-light); text-decoration: none; font-weight: 600; }
     .su-row a:hover { text-decoration: underline; }
     .su-ok { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.35); color: #4ade80; padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 16px; }
+
+    /* Sign up only: compact two-column form so the whole card fits one laptop screen */
+    .su-signup { padding: 14px 20px; }
+    .su-signup .su-card { padding: 20px 26px; }
+    .su-signup .su-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .su-signup .su-head h2 { font-size: 34px; margin: 0; }
+    .su-signup .su-head .su-back { font-size: 14px; white-space: nowrap; }
+    .su-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+    .su-strength { grid-column: 1 / -1; }
+    .su-signup .su-field { margin-bottom: 10px; }
+    .su-signup .su-field label { margin-bottom: 5px; font-size: 13px; }
+    .su-signup .su-input input { padding: 10px 14px; font-size: 16px; }
+    .su-signup .su-bars { margin: 0 0 8px; gap: 6px; }
+    .su-signup .su-bars span { height: 5px; }
+    .su-signup .su-rules { grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 6px; margin-bottom: 10px; }
+    .su-signup .su-rules li { font-size: 13px; gap: 6px; }
+    .su-signup .su-match { margin: 4px 0 0; font-size: 13px; }
+    .su-signup .su-terms { margin: 0 0 8px; font-size: 15px; }
+    .su-signup .su-captcha { margin: 6px 0 12px; }
+    .su-signup .su-submit { padding: 12px; font-size: 17px; }
+    .su-signup .su-or { margin: 10px 0; }
+    .su-signup .su-google { padding: 10px; font-size: 17px; }
+    .su-signup .su-gnote { margin: 8px 0 0; font-size: 12px; }
+    .su-signup .su-alt { margin: 10px 0 0; font-size: 16px; }
+
+    @media (min-width: 1001px) {
+      .su-signup .su-grid { grid-template-columns: minmax(0, 1fr) 620px; }
+    }
+    @media (max-height: 720px) {
+      .su-signup .su-card { padding: 16px 24px; }
+      .su-signup .su-head { margin-bottom: 10px; }
+      .su-signup .su-head h2 { font-size: 30px; }
+      .su-signup .su-field { margin-bottom: 8px; }
+      .su-signup .su-input input { padding: 8px 14px; }
+      .su-signup .su-submit { padding: 10px; }
+      .su-signup .su-google { padding: 8px; }
+      .su-signup .su-or { margin: 8px 0; }
+    }
+    @media (max-width: 640px) {
+      .su-signup .su-rules { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .su-form-grid { grid-template-columns: 1fr; }
+      .su-signup .su-head { flex-direction: column; align-items: flex-start; gap: 4px; }
+    }
 </style>

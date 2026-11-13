@@ -14,7 +14,7 @@
 </head>
 <body class="bg-off-white text-warm-black font-body">
 
-  <section class="su-page">
+  <section class="su-page su-signup">
     <div class="su-grid">
 
       <!-- Left side -->
@@ -26,8 +26,10 @@
 
       <!-- Form card -->
       <div class="su-card">
-        <h2>Create your account</h2>
-        <p class="su-sub">Book events and track your reservations in one place.</p>
+        <div class="su-head">
+          <h2>Create your account</h2>
+          <a href="{{ route('home') }}" class="su-back">← Back to Home</a>
+        </div>
 
         <form method="POST" action="{{ route('register.post') }}">
           @csrf
@@ -42,6 +44,7 @@
             </div>
           @endif
 
+          <div class="su-form-grid">
           <div class="su-field">
             <label for="name">Full name</label>
             <div class="su-input"><input type="text" id="name" name="name" placeholder="e.g. Juan Dela Cruz" value="{{ old('name') }}" required autocomplete="name"></div>
@@ -63,13 +66,6 @@
               </button>
             </div>
             @error('password') <span class="su-fe">{{ $message }}</span> @enderror
-            <div class="su-bars" id="pwBars" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-            <ul class="su-rules" id="pwRules" aria-live="polite">
-              <li data-rule="length"><i></i>8+ characters</li>
-              <li data-rule="case"><i></i>Upper &amp; lower case</li>
-              <li data-rule="number"><i></i>A number</li>
-              <li data-rule="symbol"><i></i>A symbol (!@#$)</li>
-            </ul>
           </div>
 
           <div class="su-field">
@@ -81,6 +77,17 @@
               </button>
             </div>
             <p id="pwMatch" class="su-match" aria-live="polite"></p>
+          </div>
+
+          <div class="su-strength">
+            <div class="su-bars" id="pwBars" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+            <ul class="su-rules" id="pwRules" aria-live="polite">
+              <li data-rule="length"><i></i>8+ characters</li>
+              <li data-rule="case"><i></i>Upper &amp; lower case</li>
+              <li data-rule="number"><i></i>A number</li>
+              <li data-rule="symbol"><i></i>A symbol (!@#$)</li>
+            </ul>
+          </div>
           </div>
 
           <label class="su-terms">
@@ -106,7 +113,6 @@
         <p class="su-gnote">By continuing with Google you agree to our <a href="#" data-legal="terms">Terms</a> and <a href="#" data-legal="privacy">Privacy Policy</a>.</p>
 
         <p class="su-alt">Already have an account? <a href="{{ route('login') }}">Login</a></p>
-        <a href="{{ route('home') }}" class="su-back">← Back to Home</a>
       </div>
     </div>
   </section>
